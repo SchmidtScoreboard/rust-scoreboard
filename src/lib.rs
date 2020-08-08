@@ -4,13 +4,6 @@ use serde::{de::Error, Deserialize, Deserializer};
 use std::collections::HashMap;
 use std::sync::mpsc;
 
-pub struct Matrix {
-    led_matrix: rpi_led_matrix::LedMatrix,
-    receiver: mpsc::Receiver<MatrixCommand>,
-    active_id: ScreenId,
-    screens_map: HashMap<ScreenId, Box<dyn ScreenProvider>>,
-}
-
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub enum ScreenId {
     Hockey = 0,
@@ -26,23 +19,30 @@ pub enum ScreenId {
 
 pub enum MatrixCommand {
     SetActiveScreen {
-        id: i32,
+        id: ScreenId,
     },
     SetPower {
         on: bool,
     },
     Display {
-        id: i32,
+        id: ScreenId,
         canvas: rpi_led_matrix::LedCanvas,
     },
 }
 
-impl Matrix {
+pub struct Matrix<'a> {
+    led_matrix: &'a rpi_led_matrix::LedMatrix,
+    receiver: mpsc::Receiver<MatrixCommand>,
+    active_id: ScreenId,
+    screens_map: HashMap<ScreenId, Box<dyn ScreenProvider + 'a>>,
+}
+
+impl<'a> Matrix<'a> {
     pub fn new(
-        led_matrix: rpi_led_matrix::LedMatrix,
+        led_matrix: &'a rpi_led_matrix::LedMatrix,
         receiver: mpsc::Receiver<MatrixCommand>,
-        map: HashMap<ScreenId, Box<dyn ScreenProvider>>,
-    ) -> Matrix {
+        map: HashMap<ScreenId, Box<dyn ScreenProvider + 'a>>,
+    ) -> Matrix<'a> {
         Matrix {
             led_matrix,
             receiver,
@@ -59,16 +59,23 @@ impl Matrix {
             .get(&self.active_id)
             .expect("Could not find screen {self.active_id}");
 
-        let refresh_screen = self
-            .screens_map
-            .get(&ScreenId::Refresh)
-            .expect("Could not find refresh screen");
+        // TODO reenable refresh screen
+        // let refresh_screen = self
+        //     .screens_map
+        //     .get(&ScreenId::Refresh)
+        //     .expect("Could not find refresh screen");
 
-        if start_screen.should_show_refresh_on_activate() {
-            refresh_screen.activate();
-        }
+        // if start_screen.should_show_refresh_on_activate() {
+        //     refresh_screen.activate();
+        // }
 
         start_screen.activate();
+
+        // TODO wait on the receiver, complete MatrixCommands
+        // while let command = self.receiver.recv() {
+        //     let command = command.unwrap(); // Get the actual command
+        //                                     // mat
+        // }
     }
 }
 
@@ -78,7 +85,47 @@ pub trait ScreenProvider {
     // Use local reference to the matrix to get a canvas and fill it in on refreshes
     // Use push pipe to push the pipe back to the Display driver
     fn activate(self: &Self);
-    fn should_show_refresh_on_activate(self: &Self) -> bool;
+    fn should_show_refresh_on_activate(self: &Self) -> bool {
+        false
+    }
+}
+
+pub struct Hockey<'a> {
+    led_matrix: &'a rpi_led_matrix::LedMatrix,
+    sender: mpsc::Sender<MatrixCommand>,
+}
+
+impl<'a> Hockey<'a> {
+    pub fn new(
+        led_matrix: &'a rpi_led_matrix::LedMatrix,
+        sender: mpsc::Sender<MatrixCommand>,
+    ) -> Hockey {
+        Hockey { led_matrix, sender }
+    }
+}
+
+impl ScreenProvider for Hockey<'_> {
+    fn activate(self: &Self) {
+        // Fetch scores from the web
+        // Setup a timer to get scores every minute
+        // Setup a timer to shift screens every Y seconds
+        // For now, let's just get a canvas back
+        let mut canvas = self.led_matrix.offscreen_canvas();
+        let (width, height) = canvas.size();
+
+        canvas.draw_line(0, 0, width, height, &new_color(255, 255, 255));
+
+        self.sender
+            .send(MatrixCommand::Display {
+                id: ScreenId::Hockey,
+                canvas: canvas,
+            })
+            .expect("Failed to send canvas");
+    }
+    fn should_show_refresh_on_activate(self: &Self) -> bool {
+        // TODO, this should be true if the hockey data is out of date
+        false
+    }
 }
 
 pub trait ImageProvider {
