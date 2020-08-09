@@ -1,4 +1,4 @@
 // Example custom build script.
 fn main() {
-    println!("cargo:rustc-link-search=/home/pi/rpi-rgb-led-matrix/lib");
+    println!("cargo:rustc-link-search=rust-rpirgb-led-matrix/rpi-rgb-led-matrix/lib");
 }

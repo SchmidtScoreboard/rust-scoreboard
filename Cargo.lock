@@ -18,10 +18,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+dependencies = [
+ "rpi-led-matrix",
+]
+
+[[package]]
+name = "game"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "common",
+ "rpi-led-matrix",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "gcc"
 version = "0.3.55"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f5f3913fa0bfe7ee1fd8248b6b9f42a5af4b9d65ec2dd2c3c26132b950ecfc2"
+
+[[package]]
+name = "hockey"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "game",
+ "matrix",
+ "rpi-led-matrix",
+]
 
 [[package]]
 name = "itoa"
@@ -34,6 +62,14 @@ name = "libc"
 version = "0.2.74"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2f02823cf78b754822df5f7f268fb59822e7296276d3e069d8e8cb26a14bd10"
+
+[[package]]
+name = "matrix"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "rpi-led-matrix",
+]
 
 [[package]]
 name = "num-integer"
@@ -90,10 +126,11 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 name = "scoreboard-rust"
 version = "0.1.0"
 dependencies = [
- "chrono",
+ "common",
+ "game",
+ "hockey",
+ "matrix",
  "rpi-led-matrix",
- "serde",
- "serde_json",
 ]
 
 [[package]]

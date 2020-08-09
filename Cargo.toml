@@ -1,13 +1,8 @@
-[package]
-name = "scoreboard-rust"
-version = "0.1.0"
-authors = ["Mark Schmidt <mark.schmidt@hey.com>"]
-edition = "2018"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-rpi-led-matrix = {path = "../rust-rpi-rgb-led-matrix" }
-serde_json = "1.0"
-serde = { version = "1.0", features = ["derive"]}
-chrono = "0.4.13"
+members = [
+    "scoreboard",
+    "common",
+    "matrix",
+    "hockey",
+]
