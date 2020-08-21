@@ -1,5 +1,4 @@
 use rpi_led_matrix;
-
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub enum ScreenId {
     Hockey = 0,
@@ -17,12 +16,6 @@ pub enum MatrixCommand {
     SetActiveScreen(ScreenId),
     SetPower(bool),
     Display(ScreenId),
-}
-
-pub enum ScreenCommand<T> {
-    Deactivate(),
-    Draw(),
-    NewData(T),
 }
 
 pub fn new_color(red: u8, green: u8, blue: u8) -> rpi_led_matrix::LedColor {

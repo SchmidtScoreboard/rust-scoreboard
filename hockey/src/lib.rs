@@ -1,11 +1,10 @@
-use chrono;
 use common;
 use rpi_led_matrix;
 use serde::{de::Error, Deserialize, Deserializer};
 use serde_json;
 use std::collections::HashMap;
 use std::sync::mpsc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 static HOCKEY_QUERY: &str = r#"
     games {
@@ -46,16 +45,23 @@ pub struct Hockey<'a> {
     sender: mpsc::Sender<common::MatrixCommand>,
     api_key: &'a str,
     data: Option<Vec<HockeyGame>>,
-    last_refresh_time: Option<chrono::NaiveDateTime>,
+    last_refresh_time: Option<Instant>,
+    data_pipe_sender: mpsc::Sender<Vec<HockeyGame>>,
+    data_pipe_receiver: mpsc::Receiver<Vec<HockeyGame>>,
+    refresh_control_sender: Option<mpsc::Sender<()>>,
 }
 
 impl<'a> Hockey<'a> {
     pub fn new(sender: mpsc::Sender<common::MatrixCommand>, api_key: &'a str) -> Hockey<'a> {
+        let (data_pipe_sender, data_pipe_receiver) = mpsc::channel();
         Hockey {
             sender,
             api_key,
             data: None,
             last_refresh_time: None,
+            data_pipe_sender,
+            data_pipe_receiver,
+            refresh_control_sender: None,
         }
     }
 }
@@ -67,25 +73,61 @@ struct HockeyGame {
     away_players: u8,
     home_players: u8,
 }
+
 impl matrix::ScreenProvider for Hockey<'_> {
     fn activate(self: &mut Self) {
         let api_key = self.api_key.to_owned();
 
-        let refresh_thread = std::thread::spawn(move || {
-            let resp = game::fetch_games("nhl", &HOCKEY_QUERY, &api_key);
-            let games: Vec<HockeyGame> =
-                serde_json::from_str(&resp.into_string().unwrap()).unwrap();
-        });
-    }
-    fn deactivate(self: &Self) {}
+        let (refresh_control_sender, refresh_control_receiver) = mpsc::channel();
+        self.refresh_control_sender = Some(refresh_control_sender);
 
-    fn next_draw(self: &Self) -> Duration {
-        Duration::from_secs(5)
+        // TODO refresh thread needs to be able to send an error!
+        let data_sender = self.data_pipe_sender.clone();
+        let _refresh_thread = std::thread::spawn(move || loop {
+            if let Ok(_) = refresh_control_receiver.try_recv() {
+                break;
+            } else {
+                let resp = game::fetch_games("nhl", &HOCKEY_QUERY, &api_key);
+                let games: Vec<HockeyGame> =
+                    serde_json::from_str(&resp.into_string().unwrap()).unwrap();
+                // self.last_refresh_time = chrono::DateTime::
+                data_sender.send(games).unwrap();
+                std::thread::sleep(Duration::from_secs(60));
+            }
+        });
+
+        self.sender
+            .send(common::MatrixCommand::Display(common::ScreenId::Hockey))
+            .unwrap();
+    }
+    fn deactivate(self: &Self) {
+        // Sends a deactivate command to the refresh thread
+        self.refresh_control_sender
+            .as_ref()
+            .unwrap()
+            .send(())
+            .unwrap();
     }
 
     fn draw(self: &mut Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas {
-        // TODO: decide to draw refresh screen
-        // TODO:
+        if let Ok(games) = self.data_pipe_receiver.try_recv() {
+            self.data = Some(games);
+        }
+
+        if let Some(games) = &self.data { // TODO make sure the data is not stale
+             // Draw the hockey games
+        } else {
+            // Draw the refresh screen
+        }
+
+        let sender = self.sender.clone();
+        let _next_draw_thread = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_secs(5)); // TODO better calculate how long to wait
+            sender
+                .send(common::MatrixCommand::Display(common::ScreenId::Hockey))
+                .unwrap();
+        });
+
         canvas
     }
 }

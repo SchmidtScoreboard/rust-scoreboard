@@ -34,7 +34,7 @@ impl<'a> Matrix<'a> {
     }
 
     fn activate_screen(self: &mut Self, id: common::ScreenId) -> common::ScreenId {
-        let mut screen = self.get_mut_screen(&id);
+        let screen = self.get_mut_screen(&id);
         screen.activate();
         id
     }
@@ -56,11 +56,8 @@ impl<'a> Matrix<'a> {
                 common::MatrixCommand::Display(id) => {
                     if id == active_id {
                         // If the id received matches the active id, display the image
-                        // Request a new screen
-                        self.get_screen(&active_id)
-                            .draw(self.led_matrix.offscreen_canvas());
-                        // Now, schedule the next DISPLAY call
-                        let wait_time = self.get_screen(&active_id).next_draw();
+                        let canvas = self.led_matrix.offscreen_canvas();
+                        self.get_mut_screen(&active_id).draw(canvas);
                     }
                 }
             };
@@ -71,8 +68,6 @@ impl<'a> Matrix<'a> {
 pub trait ScreenProvider {
     // Activate is called by the Display driver
     // Activate sets up whatever refreshing this screen needs
-    // Use local reference to the matrix to get a canvas and fill it in on refreshes
-    // Use push pipe to push the pipe back to the Display driver
     fn activate(self: &mut Self) {}
 
     // Cleanup any unused resources
@@ -80,8 +75,9 @@ pub trait ScreenProvider {
     // If there are owned threads, cancel them
     fn deactivate(self: &Self) {}
 
-    fn next_draw(self: &Self) -> Duration;
-
-    // Request a filled in canvas at your earliest convenience
+    // Draw is not blocking--fills in the canvas and returns it immediately
+    // Draw can check for new data on an internal try_recv, and update internal variables, but
+    // it must not issue any network requests or perform any other asynchronous action
+    // Asynchronous actions must be driven by a refresh thread set up in `activate`
     fn draw(self: &mut Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas;
 }
