@@ -14,16 +14,9 @@ pub enum ScreenId {
 }
 
 pub enum MatrixCommand {
-    SetActiveScreen {
-        id: ScreenId,
-    },
-    SetPower {
-        on: bool,
-    },
-    Display {
-        id: ScreenId,
-        canvas: rpi_led_matrix::LedCanvas,
-    },
+    SetActiveScreen(ScreenId),
+    SetPower(bool),
+    Display(ScreenId, rpi_led_matrix::LedCanvas),
 }
 
 pub fn new_color(red: u8, green: u8, blue: u8) -> rpi_led_matrix::LedColor {

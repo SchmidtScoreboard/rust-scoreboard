@@ -1,5 +1,9 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{de::Error, Deserialize, Deserializer};
+use serde_json;
+use ureq;
+
+const AWS_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
 
 #[derive(Deserialize, PartialEq, Debug)]
 pub enum GameStatus {
@@ -64,10 +68,17 @@ where
     Ok(DateTime::<Utc>::from_utc(naive_time, Utc))
 }
 
+pub fn fetch_games(endpoint: &str, query: &str, api_key: &str) -> ureq::Response {
+    let url = format!("{}{}", AWS_URL, endpoint);
+    let resp = ureq::get(&url)
+        .set("x-api-key", api_key)
+        .send_json(serde_json::from_str(query).unwrap());
+    return resp;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json;
 
     #[test]
     fn test_team() {

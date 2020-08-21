@@ -3,9 +3,25 @@ use hockey::Hockey;
 use matrix::{Matrix, ScreenProvider};
 use rpi_led_matrix;
 use std::collections::HashMap;
+use std::env;
+use std::fs;
 use std::sync::mpsc;
 
 fn main() {
+    let mut arguments = env::args();
+    arguments.next(); // skip program name
+    let secrets = match arguments.next() {
+        Some(arg) => arg,
+        None => String::from("/home/pi/rust-scoreboard/secrets.txt"),
+    };
+
+    println!("Loading secrets from {}", secrets);
+
+    let api_key = fs::read_to_string(secrets).unwrap();
+    // TODO read Scoreboard Settings
+
+    // TODO read secrets.txt
+
     // Set up original channel
     let (tx, rx) = mpsc::channel();
 
@@ -25,14 +41,12 @@ fn main() {
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
 
     // Hockey
-    let hockey = Hockey::new(&led_matrix, tx);
+    let hockey = Hockey::new(tx.clone(), &api_key);
     map.insert(ScreenId::Hockey, Box::new(hockey));
 
     // TODO add Baseball
 
-    // TODO add refresh and all setup screens
-
     // Setup the actual matrix and run it
     let matrix = Matrix::new(&led_matrix, rx, map);
-    matrix.run();
+    matrix.run(ScreenId::Hockey);
 }
