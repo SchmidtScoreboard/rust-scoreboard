@@ -68,7 +68,7 @@ struct HockeyGame {
     home_players: u8,
 }
 impl matrix::ScreenProvider for Hockey<'_> {
-    fn activate(self: &Self) {
+    fn activate(self: &mut Self) {
         let api_key = self.api_key.to_owned();
 
         let refresh_thread = std::thread::spawn(move || {
@@ -84,6 +84,8 @@ impl matrix::ScreenProvider for Hockey<'_> {
     }
 
     fn draw(self: &Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas {
+        // TODO: decide to draw refresh screen
+        // TODO:
         canvas
     }
 }

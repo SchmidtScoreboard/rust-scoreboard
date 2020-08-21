@@ -4,14 +4,14 @@ use std::sync::mpsc;
 use std::time::Duration;
 
 pub struct Matrix<'a> {
-    led_matrix: &'a rpi_led_matrix::LedMatrix,
+    led_matrix: rpi_led_matrix::LedMatrix,
     receiver: mpsc::Receiver<common::MatrixCommand>,
     screens_map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
 }
 
 impl<'a> Matrix<'a> {
     pub fn new(
-        led_matrix: &'a rpi_led_matrix::LedMatrix,
+        led_matrix: rpi_led_matrix::LedMatrix,
         receiver: mpsc::Receiver<common::MatrixCommand>,
         map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
     ) -> Matrix<'a> {
@@ -22,30 +22,33 @@ impl<'a> Matrix<'a> {
         }
     }
 
-    fn activate_screen(
-        self: &'a Self,
-        id: common::ScreenId,
-    ) -> (common::ScreenId, &'a Box<dyn ScreenProvider + 'a>) {
-        let screen = self
-            .screens_map
-            .get(&id)
-            .expect("Could not find screen {id}");
+    fn get_mut_screen(self: &mut Self, id: &common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
+        self.screens_map
+            .get_mut(id)
+            .expect("Could not find screen {id}")
+    }
+    fn get_screen(self: &Self, id: &common::ScreenId) -> &Box<dyn ScreenProvider + 'a> {
+        self.screens_map
+            .get(id)
+            .expect("Could not find screen {id}")
+    }
+
+    fn activate_screen(self: &mut Self, id: common::ScreenId) -> common::ScreenId {
+        let mut screen = self.get_mut_screen(&id);
         screen.activate();
-        (id, screen)
+        id
     }
     // This is the main loop of the entire code
     // Call this after everything else is set up
-    pub fn run(self: Self, active_id: common::ScreenId) {
-        let (mut active_id, mut active_screen) = self.activate_screen(active_id);
+    pub fn run(self: &mut Self, active_id: common::ScreenId) {
+        let mut active_id = self.activate_screen(active_id);
 
         loop {
             let command = self.receiver.recv().unwrap();
             // let command = command.unwrap(); // Get the actual command
             match command {
                 common::MatrixCommand::SetActiveScreen(id) => {
-                    let (id, screen) = self.activate_screen(id); // really wish I could bind this differently
-                    active_id = id;
-                    active_screen = screen;
+                    active_id = self.activate_screen(id);
                 }
                 common::MatrixCommand::SetPower(on) => {
                     // TODO set power to the matrix
@@ -54,8 +57,10 @@ impl<'a> Matrix<'a> {
                     if id == active_id {
                         // If the id received matches the active id, display the image
                         // Request a new screen
-                        active_screen.draw(self.led_matrix.offscreen_canvas());
+                        self.get_screen(&active_id)
+                            .draw(self.led_matrix.offscreen_canvas());
                         // Now, schedule the next DISPLAY call
+                        let wait_time = self.get_screen(&active_id).next_draw();
                     }
                 }
             };
@@ -68,7 +73,7 @@ pub trait ScreenProvider {
     // Activate sets up whatever refreshing this screen needs
     // Use local reference to the matrix to get a canvas and fill it in on refreshes
     // Use push pipe to push the pipe back to the Display driver
-    fn activate(self: &Self) {}
+    fn activate(self: &mut Self) {}
 
     // Cleanup any unused resources
     // Most screens won't have to do anything here
