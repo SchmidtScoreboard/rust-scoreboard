@@ -5,6 +5,7 @@ use serde::{de::Error, Deserialize, Deserializer};
 use serde_json;
 use std::collections::HashMap;
 use std::sync::mpsc;
+use std::time::Duration;
 
 static HOCKEY_QUERY: &str = r#"
     games {
@@ -58,7 +59,6 @@ impl<'a> Hockey<'a> {
         }
     }
 }
-
 #[derive(Deserialize)]
 struct HockeyGame {
     common: game::CommonGameData,
@@ -70,6 +70,7 @@ struct HockeyGame {
 impl matrix::ScreenProvider for Hockey<'_> {
     fn activate(self: &Self) {
         let api_key = self.api_key.to_owned();
+
         let refresh_thread = std::thread::spawn(move || {
             let resp = game::fetch_games("nhl", &HOCKEY_QUERY, &api_key);
             let games: Vec<HockeyGame> =
@@ -78,13 +79,12 @@ impl matrix::ScreenProvider for Hockey<'_> {
     }
     fn deactivate(self: &Self) {}
 
-    fn draw(self: &Self, canvas: rpi_led_matrix::LedCanvas) {
-        self.sender
-            .send(common::MatrixCommand::Display(
-                common::ScreenId::Hockey,
-                canvas,
-            ))
-            .unwrap();
+    fn next_draw(self: &Self) -> Duration {
+        Duration::from_secs(5)
+    }
+
+    fn draw(self: &Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas {
+        canvas
     }
 }
 

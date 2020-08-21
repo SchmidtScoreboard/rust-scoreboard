@@ -1,6 +1,7 @@
 use rpi_led_matrix;
 use std::collections::HashMap;
 use std::sync::mpsc;
+use std::time::Duration;
 
 pub struct Matrix<'a> {
     led_matrix: &'a rpi_led_matrix::LedMatrix,
@@ -21,7 +22,7 @@ impl<'a> Matrix<'a> {
         }
     }
 
-    fn activateScreen(
+    fn activate_screen(
         self: &'a Self,
         id: common::ScreenId,
     ) -> (common::ScreenId, &'a Box<dyn ScreenProvider + 'a>) {
@@ -35,26 +36,26 @@ impl<'a> Matrix<'a> {
     // This is the main loop of the entire code
     // Call this after everything else is set up
     pub fn run(self: Self, active_id: common::ScreenId) {
-        let (mut active_id, mut active_screen) = self.activateScreen(active_id);
+        let (mut active_id, mut active_screen) = self.activate_screen(active_id);
 
-        // TODO wait on the receiver, complete MatrixCommands
         loop {
             let command = self.receiver.recv().unwrap();
             // let command = command.unwrap(); // Get the actual command
             match command {
                 common::MatrixCommand::SetActiveScreen(id) => {
-                    let (id, screen) = self.activateScreen(id); // really wish I could bind this differently
+                    let (id, screen) = self.activate_screen(id); // really wish I could bind this differently
                     active_id = id;
                     active_screen = screen;
                 }
                 common::MatrixCommand::SetPower(on) => {
                     // TODO set power to the matrix
                 }
-                common::MatrixCommand::Display(id, canvas) => {
+                common::MatrixCommand::Display(id) => {
                     if id == active_id {
                         // If the id received matches the active id, display the image
-                        self.led_matrix.swap(canvas);
                         // Request a new screen
+                        active_screen.draw(self.led_matrix.offscreen_canvas());
+                        // Now, schedule the next DISPLAY call
                     }
                 }
             };
@@ -74,6 +75,8 @@ pub trait ScreenProvider {
     // If there are owned threads, cancel them
     fn deactivate(self: &Self) {}
 
+    fn next_draw(self: &Self) -> Duration;
+
     // Request a filled in canvas at your earliest convenience
-    fn draw(self: &Self, canvas: rpi_led_matrix::LedCanvas);
+    fn draw(self: &Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas;
 }
