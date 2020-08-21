@@ -83,7 +83,7 @@ impl matrix::ScreenProvider for Hockey<'_> {
         Duration::from_secs(5)
     }
 
-    fn draw(self: &Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas {
+    fn draw(self: &mut Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas {
         // TODO: decide to draw refresh screen
         // TODO:
         canvas

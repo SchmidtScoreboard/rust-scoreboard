@@ -83,5 +83,5 @@ pub trait ScreenProvider {
     fn next_draw(self: &Self) -> Duration;
 
     // Request a filled in canvas at your earliest convenience
-    fn draw(self: &Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas;
+    fn draw(self: &mut Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas;
 }
