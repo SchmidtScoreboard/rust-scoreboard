@@ -1,7 +1,7 @@
+use crate::common;
 use rpi_led_matrix;
 use std::collections::HashMap;
 use std::sync::mpsc;
-use std::time::Duration;
 
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix,

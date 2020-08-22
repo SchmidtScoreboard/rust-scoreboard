@@ -1,4 +1,5 @@
 use rpi_led_matrix;
+
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub enum ScreenId {
     Hockey = 0,

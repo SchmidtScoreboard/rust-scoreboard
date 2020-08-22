@@ -1,3 +1,8 @@
+mod common;
+mod game;
+mod hockey;
+mod matrix;
+
 use common::ScreenId;
 use hockey::Hockey;
 use matrix::{Matrix, ScreenProvider};
