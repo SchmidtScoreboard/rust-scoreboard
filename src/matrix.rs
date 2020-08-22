@@ -65,18 +65,63 @@ impl<'a> Matrix<'a> {
     }
 }
 
+#[derive(Hash, Eq, PartialEq, Debug, Clone)]
+pub struct Dimensions {
+    pub width: i32,
+    pub height: i32,
+}
+
+impl Dimensions {
+    pub fn new(width: i32, height: i32) -> Dimensions {
+        Dimensions { width, height }
+    }
+}
+
+pub struct Font {
+    pub led_font: rpi_led_matrix::LedFont,
+    pub dimensions: Dimensions,
+}
+
+impl Font {
+    pub fn new(led_font: rpi_led_matrix::LedFont, width: i32, height: i32) -> Font {
+        Font {
+            led_font,
+            dimensions: Dimensions::new(width, height),
+        }
+    }
+
+    pub fn get_text_dimensions(self: &Self, display_text: &str) -> Dimensions {
+        Dimensions::new(
+            display_text.len() as i32 * self.dimensions.width,
+            self.dimensions.height,
+        )
+    }
+}
+
 pub struct FontBook {
-    pub font4x6: rpi_led_matrix::LedFont,
-    pub font5x8: rpi_led_matrix::LedFont,
-    pub font7x13: rpi_led_matrix::LedFont,
+    pub font4x6: Font,
+    pub font5x8: Font,
+    pub font7x13: Font,
 }
 
 impl FontBook {
     pub fn new() -> FontBook {
         FontBook {
-            font4x6: rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/4x6.bdf")).unwrap(),
-            font5x8: rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/5x8.bdf")).unwrap(),
-            font7x13: rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/7x13.bdf")).unwrap(),
+            font4x6: Font::new(
+                rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/4x6.bdf")).unwrap(),
+                4,
+                6,
+            ),
+            font5x8: Font::new(
+                rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/5x8.bdf")).unwrap(),
+                5,
+                8,
+            ),
+            font7x13: Font::new(
+                rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/7x13.bdf")).unwrap(),
+                7,
+                13,
+            ),
         }
     }
 }
