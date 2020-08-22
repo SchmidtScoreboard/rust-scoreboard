@@ -65,6 +65,32 @@ impl<'a> Matrix<'a> {
     }
 }
 
+pub struct FontBook {
+    pub Font4x6: rpi_led_matrix::LedFont,
+}
+
+impl FontBook {
+    pub fn new() -> FontBook {
+        FontBook {
+            Font4x6: rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/4x6.bdf")).unwrap(),
+        }
+    }
+}
+// Common drawing things
+fn draw_rectangle(
+    canvas: &mut rpi_led_matrix::LedCanvas,
+    topLeft: (i32, i32),
+    bottomRight: (i32, i32),
+    color: &rpi_led_matrix::LedColor,
+) {
+    let (x0, y0) = topLeft;
+    let (x1, y1) = bottomRight;
+
+    for i in y0..y1 {
+        canvas.draw_line(x0, i, x1, i, color);
+    }
+}
+
 pub trait ScreenProvider {
     // Activate is called by the Display driver
     // Activate sets up whatever refreshing this screen needs

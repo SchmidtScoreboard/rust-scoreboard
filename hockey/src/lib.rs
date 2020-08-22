@@ -113,7 +113,6 @@ impl matrix::ScreenProvider for Hockey<'_> {
                         .unwrap();
                 }
                 if let Ok(resp_string) = resp.into_string() {
-                    println!("Got response: {}", &resp_string);
                     let result: Result<game::Response<HockeyGame>, _> =
                         serde_json::from_str(&resp_string);
                     if let Ok(response) = result {
@@ -161,7 +160,14 @@ impl matrix::ScreenProvider for Hockey<'_> {
         if self.data.as_ref().map_or(false, |data| {
             now.duration_since(data.timestamp) < Duration::from_secs(120)
         }) {
-            // draw hockey or error
+            match &self.data.as_ref().unwrap().games {
+                Ok(games) => {
+                    // Draw Hockey
+                }
+                Err(message) => {
+                    // Display the error message
+                }
+            }
         } else {
             // draw refresh
         }

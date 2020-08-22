@@ -80,7 +80,6 @@ where
 
 pub fn fetch_games(endpoint: &str, query: &str, api_key: &str) -> ureq::Response {
     let url = format!("{}{}", AWS_URL, endpoint);
-    println!("Api Key {}", &api_key);
     let resp = ureq::get(&url)
         .set("X-API-KEY", api_key)
         .send_json(ureq::json!({ "query": query }));
