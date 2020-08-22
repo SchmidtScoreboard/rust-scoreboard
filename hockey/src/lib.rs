@@ -69,6 +69,7 @@ pub struct Hockey<'a> {
     data_pipe_sender: mpsc::Sender<HockeyData>,
     data_pipe_receiver: mpsc::Receiver<HockeyData>,
     refresh_control_sender: Option<mpsc::Sender<()>>,
+    fonts: matrix::FontBook,
 }
 
 impl<'a> Hockey<'a> {
@@ -81,6 +82,7 @@ impl<'a> Hockey<'a> {
             data_pipe_sender,
             data_pipe_receiver,
             refresh_control_sender: None,
+            fonts: matrix::FontBook::new(),
         }
     }
 }
@@ -124,7 +126,11 @@ impl matrix::ScreenProvider for Hockey<'_> {
                             .send(HockeyData::new(response.data.games))
                             .unwrap();
                     } else {
-                        eprintln!("Failed to parse response");
+                        eprintln!(
+                            "Failed to parse response {}, reason: {}",
+                            resp_string,
+                            result.err().unwrap()
+                        );
                         data_sender.send(HockeyData::error("Invalid Data")).unwrap();
                     }
                 } else {

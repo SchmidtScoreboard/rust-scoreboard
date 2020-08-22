@@ -66,25 +66,29 @@ impl<'a> Matrix<'a> {
 }
 
 pub struct FontBook {
-    pub Font4x6: rpi_led_matrix::LedFont,
+    pub font4x6: rpi_led_matrix::LedFont,
+    pub font5x8: rpi_led_matrix::LedFont,
+    pub font7x13: rpi_led_matrix::LedFont,
 }
 
 impl FontBook {
     pub fn new() -> FontBook {
         FontBook {
-            Font4x6: rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/4x6.bdf")).unwrap(),
+            font4x6: rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/4x6.bdf")).unwrap(),
+            font5x8: rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/5x8.bdf")).unwrap(),
+            font7x13: rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/7x13.bdf")).unwrap(),
         }
     }
 }
 // Common drawing things
 fn draw_rectangle(
     canvas: &mut rpi_led_matrix::LedCanvas,
-    topLeft: (i32, i32),
-    bottomRight: (i32, i32),
+    top_left: (i32, i32),
+    bottom_right: (i32, i32),
     color: &rpi_led_matrix::LedColor,
 ) {
-    let (x0, y0) = topLeft;
-    let (x1, y1) = bottomRight;
+    let (x0, y0) = top_left;
+    let (x1, y1) = bottom_right;
 
     for i in y0..y1 {
         canvas.draw_line(x0, i, x1, i, color);

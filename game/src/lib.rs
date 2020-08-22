@@ -21,7 +21,7 @@ pub enum GameStatus {
     PREGAME,
     ACTIVE,
     INTERMISSION,
-    FINAL,
+    END,
 }
 
 #[derive(Deserialize, Debug)]
