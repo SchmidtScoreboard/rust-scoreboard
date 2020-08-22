@@ -7,6 +7,7 @@ use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 static HOCKEY_QUERY: &str = r#"
+{
     games {
         common {
             home_team {
@@ -39,15 +40,34 @@ static HOCKEY_QUERY: &str = r#"
         away_players
         home_players
     }
+}
 "#;
+struct HockeyData {
+    games: Result<Vec<HockeyGame>, String>,
+    timestamp: Instant,
+}
 
+impl HockeyData {
+    pub fn new(games: Vec<HockeyGame>) -> HockeyData {
+        HockeyData {
+            games: Ok(games),
+            timestamp: Instant::now(),
+        }
+    }
+
+    pub fn error(error_message: &str) -> HockeyData {
+        HockeyData {
+            games: Err(error_message.to_owned()),
+            timestamp: Instant::now(),
+        }
+    }
+}
 pub struct Hockey<'a> {
     sender: mpsc::Sender<common::MatrixCommand>,
     api_key: &'a str,
-    data: Option<Vec<HockeyGame>>,
-    last_refresh_time: Option<Instant>,
-    data_pipe_sender: mpsc::Sender<Vec<HockeyGame>>,
-    data_pipe_receiver: mpsc::Receiver<Vec<HockeyGame>>,
+    data: Option<HockeyData>,
+    data_pipe_sender: mpsc::Sender<HockeyData>,
+    data_pipe_receiver: mpsc::Receiver<HockeyData>,
     refresh_control_sender: Option<mpsc::Sender<()>>,
 }
 
@@ -58,14 +78,13 @@ impl<'a> Hockey<'a> {
             sender,
             api_key,
             data: None,
-            last_refresh_time: None,
             data_pipe_sender,
             data_pipe_receiver,
             refresh_control_sender: None,
         }
     }
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct HockeyGame {
     common: game::CommonGameData,
     away_powerplay: bool,
@@ -81,17 +100,40 @@ impl matrix::ScreenProvider for Hockey<'_> {
         let (refresh_control_sender, refresh_control_receiver) = mpsc::channel();
         self.refresh_control_sender = Some(refresh_control_sender);
 
-        // TODO refresh thread needs to be able to send an error!
         let data_sender = self.data_pipe_sender.clone();
         let _refresh_thread = std::thread::spawn(move || loop {
             if let Ok(_) = refresh_control_receiver.try_recv() {
                 break;
             } else {
                 let resp = game::fetch_games("nhl", &HOCKEY_QUERY, &api_key);
-                let games: Vec<HockeyGame> =
-                    serde_json::from_str(&resp.into_string().unwrap()).unwrap();
-                // self.last_refresh_time = chrono::DateTime::
-                data_sender.send(games).unwrap();
+                if resp.error() {
+                    eprintln!("There was an error fetching NHL games");
+                    data_sender
+                        .send(HockeyData::error("Network Error"))
+                        .unwrap();
+                }
+                if let Ok(resp_string) = resp.into_string() {
+                    println!("Got response: {}", &resp_string);
+                    let result: Result<game::Response<HockeyGame>, _> =
+                        serde_json::from_str(&resp_string);
+                    if let Ok(response) = result {
+                        println!(
+                            "Successfully parsed hockey response: {:?}",
+                            &response.data.games
+                        );
+                        data_sender
+                            .send(HockeyData::new(response.data.games))
+                            .unwrap();
+                    } else {
+                        eprintln!("Failed to parse response");
+                        data_sender.send(HockeyData::error("Invalid Data")).unwrap();
+                    }
+                } else {
+                    data_sender
+                        .send(HockeyData::error("Invalid Response"))
+                        .unwrap();
+                }
+
                 std::thread::sleep(Duration::from_secs(60));
             }
         });
@@ -110,14 +152,18 @@ impl matrix::ScreenProvider for Hockey<'_> {
     }
 
     fn draw(self: &mut Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas {
-        if let Ok(games) = self.data_pipe_receiver.try_recv() {
-            self.data = Some(games);
+        // Check if there is any new data. If there is, copy it in
+        let now = Instant::now();
+        if let Ok(data) = self.data_pipe_receiver.try_recv() {
+            self.data = Some(data);
         }
 
-        if let Some(games) = &self.data { // TODO make sure the data is not stale
-             // Draw the hockey games
+        if self.data.as_ref().map_or(false, |data| {
+            now.duration_since(data.timestamp) < Duration::from_secs(120)
+        }) {
+            // draw hockey or error
         } else {
-            // Draw the refresh screen
+            // draw refresh
         }
 
         let sender = self.sender.clone();

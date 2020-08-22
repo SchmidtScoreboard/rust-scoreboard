@@ -6,6 +6,16 @@ use ureq;
 
 const AWS_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
 
+#[derive(Deserialize)]
+pub struct Response<T> {
+    pub data: ResponseData<T>,
+}
+
+#[derive(Deserialize)]
+pub struct ResponseData<T> {
+    pub games: Vec<T>,
+}
+
 #[derive(Deserialize, PartialEq, Debug)]
 pub enum GameStatus {
     PREGAME,
@@ -14,7 +24,7 @@ pub enum GameStatus {
     FINAL,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Team {
     #[serde(deserialize_with = "u32_from_string")]
     id: u32,
@@ -46,7 +56,7 @@ where
     Ok(common::new_color(red, green, blue))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct CommonGameData {
     home_team: Team,
     away_team: Team,
@@ -63,7 +73,6 @@ where
     D: Deserializer<'de>,
 {
     let s: &str = Deserialize::deserialize(deserializer)?;
-    println!("Deserialzing datetime {}", s);
     let naive_time =
         NaiveDateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M:%SZ").map_err(D::Error::custom)?;
     Ok(DateTime::<Utc>::from_utc(naive_time, Utc))
@@ -71,9 +80,10 @@ where
 
 pub fn fetch_games(endpoint: &str, query: &str, api_key: &str) -> ureq::Response {
     let url = format!("{}{}", AWS_URL, endpoint);
+    println!("Api Key {}", &api_key);
     let resp = ureq::get(&url)
-        .set("x-api-key", api_key)
-        .send_json(serde_json::from_str(query).unwrap());
+        .set("X-API-KEY", api_key)
+        .send_json(ureq::json!({ "query": query }));
     return resp;
 }
 
