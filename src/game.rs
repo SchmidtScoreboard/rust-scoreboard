@@ -1,6 +1,8 @@
 use crate::common;
+use crate::matrix;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
+use rpi_led_matrix;
 use serde::{de::Error, Deserialize, Deserializer};
 use serde_json;
 use std::sync::mpsc;
@@ -88,6 +90,66 @@ pub fn fetch_games(endpoint: &str, query: &str, api_key: &str) -> ureq::Response
     return resp;
 }
 
+fn draw_team_box(
+    canvas: &mut rpi_led_matrix::LedCanvas,
+    font: &matrix::Font,
+    team: &Team,
+    score: u8,
+    y_offset: i32,
+) -> i32 {
+    let (width, _height) = canvas.size();
+    let box_height = font.dimensions.height + 2;
+
+    // Draw outer box
+    matrix::draw_rectangle(
+        canvas,
+        (0, y_offset),
+        (width, box_height + y_offset),
+        &team.primary_color,
+    );
+    // Draw accent box
+    matrix::draw_rectangle(
+        canvas,
+        (0, y_offset),
+        (2, box_height + y_offset),
+        &team.secondary_color,
+    );
+    // Draw team name
+    canvas.draw_text(
+        &font.led_font,
+        &team.display_name,
+        5,
+        1 + y_offset,
+        &team.secondary_color,
+        0,
+        false,
+    );
+    // Draw score
+    let score_message = score.to_string();
+    let score_dimensions = font.get_text_dimensions(&score_message);
+    canvas.draw_text(
+        &font.led_font,
+        &score_message,
+        width - 3 - score_dimensions.width,
+        1 + y_offset,
+        &team.secondary_color,
+        0,
+        false,
+    );
+    box_height
+}
+
+pub fn draw_scoreboard(
+    canvas: &mut rpi_led_matrix::LedCanvas,
+    font: &matrix::Font,
+    game: &CommonGameData,
+) {
+    // draw away box
+    let box_height = draw_team_box(canvas, font, &game.away_team, game.away_score, 0);
+
+    // draw home box
+    draw_team_box(canvas, font, &game.home_team, game.home_score, box_height);
+}
 #[cfg(test)]
 mod tests {
     use super::*;

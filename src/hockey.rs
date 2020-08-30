@@ -45,23 +45,49 @@ static HOCKEY_QUERY: &str = r#"
     }
 }
 "#;
+
+// A struct representing both the current owned data and active index, and new data received
 struct HockeyData {
     games: Result<Vec<HockeyGame>, String>,
-    timestamp: Instant,
+    active_index: usize,
+    data_received_timestamp: Instant,
+    last_cycle_timestamp: Instant,
 }
 
 impl HockeyData {
     pub fn new(games: Vec<HockeyGame>) -> HockeyData {
         HockeyData {
             games: Ok(games),
-            timestamp: Instant::now(),
+            active_index: 0,
+            data_received_timestamp: Instant::now(),
+            last_cycle_timestamp: Instant::now(),
+        }
+    }
+
+    pub fn update(self: &mut Self, new_data: HockeyData) {
+        self.games = new_data.games;
+        self.data_received_timestamp = new_data.data_received_timestamp;
+    }
+
+    pub fn try_rotate(self: &mut Self) {
+        let now = Instant::now();
+        if let Ok(games) = &self.games {
+            if now.duration_since(self.last_cycle_timestamp) > Duration::from_secs(10) {
+                // Rotate the active index
+                // TODO don't rotate if there is a favorite team set
+                self.active_index = (self.active_index + 1) % games.len();
+                self.last_cycle_timestamp = now;
+                println!("Updating hockey active index: {}", self.active_index)
+            }
         }
     }
 
     pub fn error(error_message: &str) -> HockeyData {
         HockeyData {
             games: Err(error_message.to_owned()),
-            timestamp: Instant::now(),
+            active_index: 0,
+            data_received_timestamp: Instant::now(),
+            last_cycle_timestamp: Instant::now(),
         }
     }
 }
@@ -87,6 +113,20 @@ impl<'a> Hockey<'a> {
             refresh_control_sender: None,
             fonts: matrix::FontBook::new(),
         }
+    }
+
+    fn draw_refresh(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+        println!("Drawing refresh");
+    }
+    fn draw_hockey(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, hockey_game: &HockeyGame) {
+        println!("Drawing hockey");
+        game::draw_scoreboard(canvas, &self.fonts.font5x8, &hockey_game.common);
+    }
+    fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, message: &str) {
+        println!("Drawing error {}", message);
+    }
+    fn draw_no_games(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+        println!("Drawing no games today");
     }
 }
 #[derive(Deserialize, Debug)]
@@ -159,28 +199,56 @@ impl matrix::ScreenProvider for Hockey<'_> {
             .unwrap();
     }
 
-    fn draw(self: &mut Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas {
+    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         // Check if there is any new data. If there is, copy it in
         let now = Instant::now();
-        if let Ok(data) = self.data_pipe_receiver.try_recv() {
-            self.data = Some(data);
-        }
-
-        if self.data.as_ref().map_or(false, |data| {
-            now.duration_since(data.timestamp) < Duration::from_secs(120)
-        }) {
-            match &self.data.as_ref().unwrap().games {
-                Ok(games) => {
-                    // Draw Hockey
+        if let Ok(new_data) = self.data_pipe_receiver.try_recv() {
+            match &mut self.data {
+                Some(current_data) => {
+                    current_data.update(new_data);
                 }
-                Err(message) => {
-                    // Display the error message
+                None => {
+                    self.data = Some(new_data);
                 }
             }
-        } else {
-            // draw refresh
         }
 
+        // if we need to change the displayed image, do that now
+        match &mut self.data {
+            Some(current_data) => {
+                current_data.try_rotate();
+            }
+            None => (),
+        }
+
+        // Actually draw the data
+        match &self.data {
+            Some(current_data) => {
+                if now.duration_since(current_data.data_received_timestamp)
+                    > Duration::from_secs(120)
+                {
+                    self.draw_refresh(canvas);
+                } else {
+                    match &current_data.games {
+                        Ok(games) => {
+                            if games.len() > 0 {
+                                self.draw_hockey(canvas, &games[current_data.active_index]);
+                            } else {
+                                self.draw_no_games(canvas);
+                            }
+                        }
+                        Err(message) => {
+                            self.draw_error(canvas, &message);
+                        }
+                    }
+                }
+            }
+            None => {
+                self.draw_refresh(canvas);
+            }
+        }
+
+        // Schedule the next draw
         let sender = self.sender.clone();
         let _next_draw_thread = std::thread::spawn(move || {
             std::thread::sleep(Duration::from_secs(5)); // TODO better calculate how long to wait
@@ -188,8 +256,6 @@ impl matrix::ScreenProvider for Hockey<'_> {
                 .send(common::MatrixCommand::Display(common::ScreenId::Hockey))
                 .unwrap();
         });
-
-        canvas
     }
 }
 

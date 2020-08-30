@@ -56,8 +56,9 @@ impl<'a> Matrix<'a> {
                 common::MatrixCommand::Display(id) => {
                     if id == active_id {
                         // If the id received matches the active id, display the image
-                        let canvas = self.led_matrix.offscreen_canvas();
-                        self.get_mut_screen(&active_id).draw(canvas);
+                        let mut canvas = self.led_matrix.offscreen_canvas();
+                        self.get_mut_screen(&active_id).draw(&mut canvas);
+                        self.led_matrix.swap(canvas);
                     }
                 }
             };
@@ -126,7 +127,7 @@ impl FontBook {
     }
 }
 // Common drawing things
-fn draw_rectangle(
+pub fn draw_rectangle(
     canvas: &mut rpi_led_matrix::LedCanvas,
     top_left: (i32, i32),
     bottom_right: (i32, i32),
@@ -154,5 +155,5 @@ pub trait ScreenProvider {
     // Draw can check for new data on an internal try_recv, and update internal variables, but
     // it must not issue any network requests or perform any other asynchronous action
     // Asynchronous actions must be driven by a refresh thread set up in `activate`
-    fn draw(self: &mut Self, canvas: rpi_led_matrix::LedCanvas) -> rpi_led_matrix::LedCanvas;
+    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas);
 }
