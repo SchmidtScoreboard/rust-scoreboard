@@ -117,7 +117,7 @@ fn draw_team_box(
     // Draw team name
     canvas.draw_text(
         &font.led_font,
-        &team.display_name,
+        &team.display_name.to_ascii_uppercase(),
         5,
         font.dimensions.height + y_offset,
         &team.secondary_color,
