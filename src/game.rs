@@ -31,13 +31,13 @@ pub enum GameStatus {
 #[derive(Deserialize, Debug)]
 pub struct Team {
     #[serde(deserialize_with = "u32_from_string")]
-    id: u32,
-    display_name: String,
-    abbreviation: String,
+    pub id: u32,
+    pub display_name: String,
+    pub abbreviation: String,
     #[serde(deserialize_with = "led_color_from_string")]
-    primary_color: rpi_led_matrix::LedColor, // Color for background of the scoreboard
+    pub primary_color: rpi_led_matrix::LedColor, // Color for background of the scoreboard
     #[serde(deserialize_with = "led_color_from_string")]
-    secondary_color: rpi_led_matrix::LedColor, // Text color and accent color
+    pub secondary_color: rpi_led_matrix::LedColor, // Text color and accent color
 }
 
 fn u32_from_string<'de, D>(deserializer: D) -> Result<u32, D::Error>
@@ -62,14 +62,14 @@ where
 
 #[derive(Deserialize, Debug)]
 pub struct CommonGameData {
-    home_team: Team,
-    away_team: Team,
-    home_score: u8,
-    away_score: u8,
-    status: GameStatus,
-    ordinal: String,
+    pub home_team: Team,
+    pub away_team: Team,
+    pub home_score: u8,
+    pub away_score: u8,
+    pub status: GameStatus,
+    pub ordinal: String,
     #[serde(deserialize_with = "datetime_from_string")]
-    start_time: DateTime<Utc>,
+    pub start_time: DateTime<Utc>,
 }
 
 fn datetime_from_string<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>

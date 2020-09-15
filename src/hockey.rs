@@ -121,6 +121,72 @@ impl<'a> Hockey<'a> {
     fn draw_hockey(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, hockey_game: &HockeyGame) {
         println!("Drawing hockey");
         game::draw_scoreboard(canvas, &self.fonts.font5x8, &hockey_game.common);
+
+        // Draw the current period
+        let white = common::new_color(255, 255, 255);
+        let black = common::new_color(0, 0, 0);
+        let yellow = common::new_color(255, 255, 0);
+        canvas.draw_text(
+            &self.fonts.font5x8.led_font,
+            &hockey_game.common.ordinal,
+            5,
+            22,
+            &white,
+            0,
+            false,
+        );
+
+        // Draw FINAL
+        if hockey_game.common.status == game::GameStatus::END {
+            canvas.draw_text(
+                &self.fonts.font5x8.led_font,
+                "FINAL",
+                37,
+                22,
+                &yellow,
+                0,
+                false,
+            );
+        } else {
+            let mut powerplay = false;
+            let mut message: &str;
+            if hockey_game.away_powerplay {
+                powerplay = true;
+                message = &hockey_game.common.away_team.abbreviation
+            }
+            if hockey_game.home_powerplay {
+                powerplay = true;
+                message = &hockey_game.common.home_team.abbreviation
+            }
+            if hockey_game.away_players > 1
+                && hockey_game.away_players < 5
+                && hockey_game.home_players > 1
+                && hockey_game.home_players < 5
+            {
+                powerplay = true;
+                message = &format!("{}-{}", hockey_game.away_players, hockey_game.home_players)
+            }
+            if powerplay {
+                let text_dimensions = &self.fonts.font5x8.get_text_dimensions("message");
+                let (canvas_width, _) = canvas.canvas_size();
+                let rightPoint = canvas_width - 4;
+                matrix::draw_rectangle(
+                    canvas,
+                    (rightPoint, 21),
+                    (rightPoint + text_dimensions.width + 2, 30),
+                    &yellow,
+                );
+                canvas.draw_text(
+                    &self.fonts.font5x8.led_font,
+                    "message",
+                    rightPoint + 2,
+                    22,
+                    &black,
+                    0,
+                    false,
+                );
+            }
+        }
     }
     fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, message: &str) {
         println!("Drawing error {}", message);

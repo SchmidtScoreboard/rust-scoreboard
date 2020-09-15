@@ -50,7 +50,7 @@ fn main() {
     options.set_rows(32);
     options.set_cols(64);
     options.set_hardware_mapping("adafruit-hat-pwm");
-    options.set_brightness(40);
+    options.set_pwm_lsb_nanoseconds(50);
     let led_matrix: rpi_led_matrix::LedMatrix =
         rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
             .expect("Could not setup matrix");
