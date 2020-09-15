@@ -97,7 +97,7 @@ fn draw_team_box(
     score: u8,
     y_offset: i32,
 ) -> i32 {
-    let (width, _height) = canvas.size();
+    let (width, _height) = canvas.canvas_size();
     let box_height = font.dimensions.height + 2;
 
     // Draw outer box
@@ -119,7 +119,7 @@ fn draw_team_box(
         &font.led_font,
         &team.display_name,
         5,
-        1 + y_offset,
+        font.dimensions.height + y_offset,
         &team.secondary_color,
         0,
         false,
@@ -131,7 +131,7 @@ fn draw_team_box(
         &font.led_font,
         &score_message,
         width - 3 - score_dimensions.width,
-        1 + y_offset,
+        font.dimensions.height + y_offset,
         &team.secondary_color,
         0,
         false,

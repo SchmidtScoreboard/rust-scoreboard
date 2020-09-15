@@ -46,11 +46,14 @@ fn main() {
     // Setup the actual matrix and run it
     // Setup matrix options
     let mut options = rpi_led_matrix::LedMatrixOptions::new();
+    let mut rt_options = rpi_led_matrix::LedRuntimeOptions::new();
     options.set_rows(32);
     options.set_cols(64);
     options.set_hardware_mapping("adafruit-hat-pwm");
+    options.set_brightness(40);
     let led_matrix: rpi_led_matrix::LedMatrix =
-        rpi_led_matrix::LedMatrix::new(Some(options)).expect("Could not setup matrix");
+        rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
+            .expect("Could not setup matrix");
 
     let mut matrix = Matrix::new(led_matrix, rx, map);
     matrix.run(ScreenId::Hockey);
