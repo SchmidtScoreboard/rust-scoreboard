@@ -11,6 +11,7 @@ pub enum ScreenId {
     WifiDetails = 102,
     Sync = 103,
     Error = 104,
+    Animation = 1000,
 }
 
 pub enum MatrixCommand {

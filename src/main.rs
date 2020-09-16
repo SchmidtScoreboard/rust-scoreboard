@@ -1,3 +1,4 @@
+mod animation_test;
 mod aws_screen;
 mod baseball;
 mod common;
@@ -5,6 +6,7 @@ mod game;
 mod hockey;
 mod matrix;
 
+use animation_test::AnimationTestScreen;
 use aws_screen::AWSScreen;
 use baseball::BaseballGame;
 use common::ScreenId;
@@ -45,11 +47,13 @@ fn main() {
     let hockey: AWSScreen<HockeyGame> = AWSScreen::new(tx.clone(), api_key.clone());
     map.insert(ScreenId::Hockey, Box::new(hockey));
 
+    // Baseball
     let baseball: AWSScreen<BaseballGame> = AWSScreen::new(tx.clone(), api_key.clone());
     map.insert(ScreenId::Baseball, Box::new(baseball));
 
-    // TODO add Baseball
-
+    // Animation Test
+    let animation = AnimationTestScreen::new(tx.clone(), api_key.clone());
+    map.insert(ScreenId::Animation, Box::new(animation));
     // Setup the actual matrix and run it
     // Setup matrix options
     let mut options = rpi_led_matrix::LedMatrixOptions::new();
@@ -65,5 +69,6 @@ fn main() {
 
     let mut matrix = Matrix::new(led_matrix, rx, map);
     // matrix.run(ScreenId::Baseball);
-    matrix.run(ScreenId::Baseball);
+    // matrix.run(ScreenId::Baseball);
+    matrix.run(ScreenId::Animation);
 }
