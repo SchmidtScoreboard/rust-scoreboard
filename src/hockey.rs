@@ -62,7 +62,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
     }
 
     fn get_query() -> &'static str {
-        "blah"
+        HOCKEY_QUERY
     }
 
     fn get_screen_id() -> common::ScreenId {
