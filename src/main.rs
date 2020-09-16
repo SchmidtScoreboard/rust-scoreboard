@@ -1,3 +1,4 @@
+mod aws_screen;
 mod common;
 mod game;
 mod hockey;
@@ -38,7 +39,7 @@ fn main() {
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
 
     // Hockey
-    let hockey = Hockey::new(tx.clone(), &api_key);
+    let hockey = Hockey::new(tx.clone(), api_key.clone());
     map.insert(ScreenId::Hockey, Box::new(hockey));
 
     // TODO add Baseball

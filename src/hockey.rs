@@ -1,3 +1,4 @@
+use crate::aws_screen;
 use crate::common;
 use crate::game;
 use crate::matrix;
@@ -91,9 +92,9 @@ impl HockeyData {
         }
     }
 }
-pub struct Hockey<'a> {
+pub struct Hockey {
     sender: mpsc::Sender<common::MatrixCommand>,
-    api_key: &'a str,
+    api_key: String,
     data: Option<HockeyData>,
     data_pipe_sender: mpsc::Sender<HockeyData>,
     data_pipe_receiver: mpsc::Receiver<HockeyData>,
@@ -101,8 +102,8 @@ pub struct Hockey<'a> {
     fonts: matrix::FontBook,
 }
 
-impl<'a> Hockey<'a> {
-    pub fn new(sender: mpsc::Sender<common::MatrixCommand>, api_key: &'a str) -> Hockey<'a> {
+impl Hockey {
+    pub fn new(sender: mpsc::Sender<common::MatrixCommand>, api_key: String) -> Hockey {
         let (data_pipe_sender, data_pipe_receiver) = mpsc::channel();
         Hockey {
             sender,
@@ -204,9 +205,9 @@ struct HockeyGame {
     home_players: u8,
 }
 
-impl matrix::ScreenProvider for Hockey<'_> {
+impl matrix::ScreenProvider for Hockey {
     fn activate(self: &mut Self) {
-        let api_key = self.api_key.to_owned();
+        let api_key = self.api_key.clone();
 
         let (refresh_control_sender, refresh_control_receiver) = mpsc::channel();
         self.refresh_control_sender = Some(refresh_control_sender);
