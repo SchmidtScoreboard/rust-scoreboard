@@ -122,17 +122,17 @@ impl aws_screen::AWSScreenType for HockeyGame {
             if let Some(message) = powerplay_message {
                 let text_dimensions = font.get_text_dimensions("message");
                 let (canvas_width, _) = canvas.canvas_size();
-                let rightPoint = canvas_width - 4;
+                let right_point = canvas_width - 4;
                 matrix::draw_rectangle(
                     canvas,
-                    (rightPoint, 22),
-                    (rightPoint + text_dimensions.width + 2, 31),
+                    (right_point, 22),
+                    (right_point + text_dimensions.width + 2, 31),
                     &yellow,
                 );
                 canvas.draw_text(
                     &font.led_font,
                     &message,
-                    rightPoint + 2,
+                    right_point + 2,
                     23 + font.dimensions.height,
                     &black,
                     0,

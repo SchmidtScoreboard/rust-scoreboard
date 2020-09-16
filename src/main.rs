@@ -1,3 +1,5 @@
+#![feature(proc_macro_hygiene, decl_macro)]
+
 mod animation_test;
 mod aws_screen;
 mod baseball;
@@ -5,6 +7,7 @@ mod common;
 mod game;
 mod hockey;
 mod matrix;
+mod webserver;
 
 use animation_test::AnimationTestScreen;
 use aws_screen::AWSScreen;
@@ -31,12 +34,12 @@ fn main() {
     let api_key = fs::read_to_string(secrets).unwrap();
     // TODO read Scoreboard Settings
 
-    // TODO read secrets.txt
-
     // Set up original channel
     let (tx, rx) = mpsc::channel();
-
-    // TODO setup webserver with sender end of channel
+    let webserver_sender = tx.clone();
+    std::thread::spawn(move || {
+        webserver::run_webserver(webserver_sender);
+    });
 
     // TODO setup button listener with sender end of channel
 
