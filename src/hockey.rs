@@ -76,7 +76,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
     ) {
         println!("Drawing hockey");
         let font = &font_book.font5x8;
-        game::draw_scoreboard(canvas, &font, &self.common);
+        game::draw_scoreboard(canvas, &font, &self.common, 2);
 
         // Draw the current period
         let white = common::new_color(255, 255, 255);
@@ -86,7 +86,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
             &font.led_font,
             &self.common.ordinal,
             5,
-            22,
+            23 + font.dimensions.height,
             &white,
             0,
             false,
@@ -94,41 +94,46 @@ impl aws_screen::AWSScreenType for HockeyGame {
 
         // Draw FINAL
         if self.common.status == game::GameStatus::END {
-            canvas.draw_text(&font.led_font, "FINAL", 37, 22, &yellow, 0, false);
+            canvas.draw_text(
+                &font.led_font,
+                "FINAL",
+                37,
+                23 + font.dimensions.width,
+                &yellow,
+                0,
+                false,
+            );
         } else {
-            let mut powerplay = false;
-            let mut message: &str;
+            let mut powerplay_message: Option<String> = None;
             if self.away_powerplay {
-                powerplay = true;
-                message = &self.common.away_team.abbreviation
+                powerplay_message = Some(self.common.away_team.abbreviation.clone());
             }
             if self.home_powerplay {
-                powerplay = true;
-                message = &self.common.home_team.abbreviation
+                powerplay_message = Some(self.common.home_team.abbreviation.clone());
             }
             if self.away_players > 1
                 && self.away_players < 5
                 && self.home_players > 1
                 && self.home_players < 5
             {
-                powerplay = true;
-                message = &format!("{}-{}", self.away_players, self.home_players)
+                powerplay_message = Some(format!("{}-{}", self.away_players, self.home_players));
             }
-            if powerplay {
+
+            if let Some(message) = powerplay_message {
                 let text_dimensions = font.get_text_dimensions("message");
                 let (canvas_width, _) = canvas.canvas_size();
                 let rightPoint = canvas_width - 4;
                 matrix::draw_rectangle(
                     canvas,
-                    (rightPoint, 21),
-                    (rightPoint + text_dimensions.width + 2, 30),
+                    (rightPoint, 22),
+                    (rightPoint + text_dimensions.width + 2, 31),
                     &yellow,
                 );
                 canvas.draw_text(
                     &font.led_font,
-                    "message",
+                    &message,
                     rightPoint + 2,
-                    22,
+                    23 + font.dimensions.height,
                     &black,
                     0,
                     false,

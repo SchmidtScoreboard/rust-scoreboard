@@ -52,7 +52,9 @@ impl<T> AWSData<T> {
             if now.duration_since(self.last_cycle_timestamp) > Duration::from_secs(10) {
                 // Rotate the active index
                 // TODO don't rotate if there is a favorite team set
-                self.active_index = (self.active_index + 1) % games.len();
+                if (games.len() > 0) {
+                    self.active_index = (self.active_index + 1) % games.len();
+                }
                 self.last_cycle_timestamp = now;
                 println!("Updating active index: {}", self.active_index)
             }

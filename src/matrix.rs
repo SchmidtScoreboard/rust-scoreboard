@@ -111,12 +111,12 @@ impl FontBook {
             font4x6: Font::new(
                 rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/4x6.bdf")).unwrap(),
                 4,
-                6,
+                5, // True text height is 5
             ),
             font5x8: Font::new(
                 rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/5x8.bdf")).unwrap(),
                 5,
-                8,
+                6, // True text height is 6
             ),
             font7x13: Font::new(
                 rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/7x13.bdf")).unwrap(),

@@ -96,9 +96,10 @@ fn draw_team_box(
     team: &Team,
     score: u8,
     y_offset: i32,
+    spacing: i32,
 ) -> i32 {
     let (width, _height) = canvas.canvas_size();
-    let box_height = font.dimensions.height + 2;
+    let box_height = font.dimensions.height + 2 * spacing;
 
     // Draw outer box
     matrix::draw_rectangle(
@@ -119,7 +120,7 @@ fn draw_team_box(
         &font.led_font,
         &team.display_name.to_ascii_uppercase(),
         5,
-        font.dimensions.height + y_offset,
+        font.dimensions.height + y_offset + spacing,
         &team.secondary_color,
         0,
         false,
@@ -131,7 +132,7 @@ fn draw_team_box(
         &font.led_font,
         &score_message,
         width - 3 - score_dimensions.width,
-        font.dimensions.height + y_offset,
+        font.dimensions.height + y_offset + spacing,
         &team.secondary_color,
         0,
         false,
@@ -143,12 +144,20 @@ pub fn draw_scoreboard(
     canvas: &mut rpi_led_matrix::LedCanvas,
     font: &matrix::Font,
     game: &CommonGameData,
+    spacing: i32,
 ) {
     // draw away box
-    let box_height = draw_team_box(canvas, font, &game.away_team, game.away_score, 0);
+    let box_height = draw_team_box(canvas, font, &game.away_team, game.away_score, 0, spacing);
 
     // draw home box
-    draw_team_box(canvas, font, &game.home_team, game.home_score, box_height);
+    draw_team_box(
+        canvas,
+        font,
+        &game.home_team,
+        game.home_score,
+        box_height,
+        spacing,
+    );
 }
 #[cfg(test)]
 mod tests {
