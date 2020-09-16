@@ -4,8 +4,9 @@ mod game;
 mod hockey;
 mod matrix;
 
+use aws_screen::AWSScreen;
 use common::ScreenId;
-use hockey::Hockey;
+use hockey::HockeyGame;
 use matrix::{Matrix, ScreenProvider};
 use rpi_led_matrix;
 use std::collections::HashMap;
@@ -39,7 +40,7 @@ fn main() {
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
 
     // Hockey
-    let hockey = Hockey::new(tx.clone(), api_key.clone());
+    let hockey: AWSScreen<HockeyGame> = AWSScreen::new(tx.clone(), api_key.clone());
     map.insert(ScreenId::Hockey, Box::new(hockey));
 
     // TODO add Baseball

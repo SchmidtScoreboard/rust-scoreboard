@@ -17,7 +17,11 @@ pub trait AWSScreenType {
 
     fn get_screen_id() -> common::ScreenId;
 
-    fn draw_screen(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas);
+    fn draw_screen(
+        self: &Self,
+        canvas: &mut rpi_led_matrix::LedCanvas,
+        font_book: &matrix::FontBook,
+    );
 }
 
 struct AWSData<T> {
@@ -203,7 +207,7 @@ impl<
                     match &current_data.games {
                         Ok(games) => {
                             if games.len() > 0 {
-                                &games[current_data.active_index].draw_screen(canvas);
+                                &games[current_data.active_index].draw_screen(canvas, &self.fonts);
                             } else {
                                 self.draw_no_games(canvas);
                             }
