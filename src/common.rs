@@ -1,6 +1,10 @@
 use rpi_led_matrix;
 
-#[derive(Hash, Eq, PartialEq, Debug, Clone)]
+use serde::{de::Error, Deserialize, Serialize, Deserializer};
+use serde_repr::*;
+
+#[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr)]
+#[repr(u16)]
 pub enum ScreenId {
     Hockey = 0,
     Baseball = 1,

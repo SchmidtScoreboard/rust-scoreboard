@@ -1,6 +1,7 @@
 use crate::common;
 use crate::game;
 use crate::matrix;
+use crate::scoreboard_settings;
 
 use rpi_led_matrix;
 use serde::de::DeserializeOwned;
@@ -52,7 +53,7 @@ impl<T> AWSData<T> {
             if now.duration_since(self.last_cycle_timestamp) > Duration::from_secs(10) {
                 // Rotate the active index
                 // TODO don't rotate if there is a favorite team set
-                if (games.len() > 0) {
+                if games.len() > 0 {
                     self.active_index = (self.active_index + 1) % games.len();
                 }
                 self.last_cycle_timestamp = now;
@@ -176,6 +177,8 @@ impl<
             .unwrap();
     }
 
+    fn update_settings(self: &mut Self, settings: scoreboard_settings::ScoreboardSettingsData) {}
+
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         // Check if there is any new data. If there is, copy it in
         let now = Instant::now();
@@ -202,10 +205,8 @@ impl<
         match &self.data {
             Some(current_data) => {
                 if now.duration_since(current_data.data_received_timestamp)
-                    > Duration::from_secs(120)
+                    < Duration::from_secs(120)
                 {
-                    self.draw_refresh(canvas);
-                } else {
                     match &current_data.games {
                         Ok(games) => {
                             if games.len() > 0 {

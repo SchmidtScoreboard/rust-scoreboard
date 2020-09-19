@@ -7,6 +7,7 @@ mod common;
 mod game;
 mod hockey;
 mod matrix;
+mod scoreboard_settings;
 mod webserver;
 
 use animation_test::AnimationTestScreen;
@@ -19,26 +20,34 @@ use rpi_led_matrix;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 
 fn main() {
     let mut arguments = env::args();
     arguments.next(); // skip program name
-    let secrets = match arguments.next() {
-        Some(arg) => arg,
-        None => String::from("/home/pi/rust-scoreboard/secrets.txt"),
+    let root_path = match arguments.next() {
+        Some(arg) => PathBuf::from(arg),
+        None => PathBuf::from("/home/pi/rust-scoreboard/"),
     };
 
-    println!("Loading secrets from {}", secrets);
+    let secrets_path = root_path.join("secrets.txt");
+    let settings_path = root_path.join("scoreboard_settings.json");
+    println!("Loading secrets from {:?}", secrets_path);
+    println!("Loading secrets from {:?}", settings_path);
 
-    let api_key = fs::read_to_string(secrets).unwrap();
-    // TODO read Scoreboard Settings
+    let api_key = fs::read_to_string(secrets_path).unwrap();
+
+    let settings_data: scoreboard_settings::ScoreboardSettingsData =
+        serde_json::from_str(&fs::read_to_string(&settings_path).unwrap()).unwrap();
+
+    let settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
 
     // Set up original channel
     let (tx, rx) = mpsc::channel();
     let webserver_sender = tx.clone();
     std::thread::spawn(move || {
-        webserver::run_webserver(webserver_sender);
+        webserver::run_webserver(webserver_sender, settings);
     });
 
     // TODO setup button listener with sender end of channel

@@ -1,8 +1,8 @@
 use crate::common;
+use crate::scoreboard_settings;
 use rpi_led_matrix;
 use std::collections::HashMap;
 use std::sync::mpsc;
-
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix,
     receiver: mpsc::Receiver<common::MatrixCommand>,
@@ -156,4 +156,8 @@ pub trait ScreenProvider {
     // it must not issue any network requests or perform any other asynchronous action
     // Asynchronous actions must be driven by a refresh thread set up in `activate`
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas);
+
+    // Handle recieving new scoreboard settings
+    // This may change timezone and any other screen specific features
+    fn update_settings(self: &mut Self, settings: scoreboard_settings::ScoreboardSettingsData) {}
 }
