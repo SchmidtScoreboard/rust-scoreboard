@@ -4,7 +4,7 @@ use crate::game;
 use crate::matrix;
 
 use rpi_led_matrix;
-use serde::{Deserialize};
+use serde::Deserialize;
 
 static BASEBALL_QUERY: &str = r#"
 {
@@ -67,6 +67,15 @@ impl aws_screen::AWSScreenType for BaseballGame {
         common::ScreenId::Baseball
     }
 
+    fn get_refresh_texts() -> Vec<&'static str> {
+        return vec![
+            "Warming up",
+            "Pitching change",
+            "Loading bases",
+            "Batter up!",
+        ];
+    }
+
     fn draw_screen(
         self: &Self,
         canvas: &mut rpi_led_matrix::LedCanvas,
@@ -108,8 +117,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
             18,
             &white,
             0,
-            false
+            false,
         );
-
     }
 }

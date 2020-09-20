@@ -1,3 +1,4 @@
+use crate::animation;
 use crate::common;
 use crate::common::ScoreboardSettingsData;
 use crate::game;
@@ -20,6 +21,8 @@ pub trait AWSScreenType {
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
     );
+
+    fn get_refresh_texts() -> Vec<&'static str>;
 }
 
 struct AWSData<T> {
@@ -76,6 +79,7 @@ pub struct AWSScreen<T: AWSScreenType> {
     data_pipe_sender: mpsc::Sender<AWSData<T>>,
     data_pipe_receiver: mpsc::Receiver<AWSData<T>>,
     refresh_control_sender: Option<mpsc::Sender<()>>,
+    loading_animation: animation::LoadingAnimation,
     fonts: matrix::FontBook,
 }
 
@@ -91,19 +95,32 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             data_pipe_sender,
             data_pipe_receiver,
             refresh_control_sender: None,
+            loading_animation: animation::LoadingAnimation::new(),
             fonts: matrix::FontBook::new(),
         }
     }
 
-    fn draw_refresh(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
-        println!("Drawing refresh");
+    fn draw_refresh(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+        let flavor_text = T::get_refresh_texts()[0]; // TODO pick a random refresh text
+        let font = &self.fonts.font4x6;
+        let text_dimensions = font.get_text_dimensions(flavor_text);
+        let white = common::new_color(255, 255, 255);
+        canvas.draw_text(
+            &font.led_font,
+            &flavor_text,
+            1,
+            1 + text_dimensions.height,
+            &white,
+            0,
+            false,
+        );
+
+        let (canvas_width, canvas_height) = canvas.canvas_size();
+        self.loading_animation
+            .draw(canvas, (canvas_width - 5, canvas_height - 5));
     }
-    fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, message: &str) {
-        println!("Drawing error {}", message);
-    }
-    fn draw_no_games(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
-        println!("Drawing no games today");
-    }
+    fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, message: &str) {}
+    fn draw_no_games(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {}
 
     fn run_refresh_thread(
         refresh_control_receiver: mpsc::Receiver<()>,
@@ -152,6 +169,7 @@ impl<
 {
     fn activate(self: &mut Self) {
         let api_key = self.api_key.clone();
+        println!("Activating screen {}", T::get_endpoint());
 
         let (refresh_control_sender, refresh_control_receiver) = mpsc::channel();
         self.refresh_control_sender = Some(refresh_control_sender);
@@ -174,7 +192,7 @@ impl<
             .unwrap();
     }
 
-    fn update_settings(self: &mut Self, settings: ScoreboardSettingsData) {}
+    fn update_settings(self: &mut Self, _settings: ScoreboardSettingsData) {}
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         // Check if there is any new data. If there is, copy it in
@@ -226,7 +244,7 @@ impl<
         // Schedule the next draw
         let sender = self.sender.clone();
         let _next_draw_thread = std::thread::spawn(move || {
-            std::thread::sleep(Duration::from_secs(5)); // TODO better calculate how long to wait
+            std::thread::sleep(Duration::from_millis(30));
             sender
                 .send(common::MatrixCommand::Display(T::get_screen_id()))
                 .unwrap();

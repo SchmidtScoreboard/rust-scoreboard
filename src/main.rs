@@ -1,6 +1,6 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-mod animation_test;
+mod animation;
 mod aws_screen;
 mod baseball;
 mod common;
@@ -12,7 +12,7 @@ mod webserver;
 #[macro_use]
 extern crate rust_embed;
 
-use animation_test::AnimationTestScreen;
+use animation::AnimationTestScreen;
 use aws_screen::AWSScreen;
 use baseball::BaseballGame;
 use common::ScreenId;
@@ -61,7 +61,7 @@ fn main() {
     map.insert(ScreenId::Baseball, Box::new(baseball));
 
     // Animation Test
-    let animation = AnimationTestScreen::new(tx.clone(), api_key.clone());
+    let animation = AnimationTestScreen::new(tx.clone());
     map.insert(ScreenId::Animation, Box::new(animation));
     // Setup the actual matrix and run it
     // Setup matrix options
@@ -88,7 +88,5 @@ fn main() {
         webserver::run_webserver(webserver_sender, settings);
     });
 
-    // matrix.run(ScreenId::Baseball);
-    // matrix.run(ScreenId::Baseball);
     matrix.run();
 }

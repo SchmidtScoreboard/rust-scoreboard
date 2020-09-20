@@ -53,7 +53,7 @@ fn configure(
     (*state).settings.update_settings(new_settings.into_inner());
     (*state).sender.send(MatrixCommand::UpdateSettings(
         (*state).settings.get_settings_clone(),
-    ));
+    )).unwrap();
     Json((*state).settings.get_settings_clone())
 }
 
@@ -66,7 +66,7 @@ fn set_power(
     (*state).settings.set_power(&power_request.screen_on);
     (*state)
         .sender
-        .send(MatrixCommand::SetPower(power_request.screen_on));
+        .send(MatrixCommand::SetPower(power_request.screen_on)).unwrap();
     Json((*state).settings.get_settings_clone())
 }
 
@@ -79,7 +79,7 @@ fn set_sport(
     (*state).settings.set_active_screen(&sport_request.sport);
     (*state)
         .sender
-        .send(MatrixCommand::SetActiveScreen(sport_request.sport));
+        .send(MatrixCommand::SetActiveScreen(sport_request.sport)).unwrap();
     Json((*state).settings.get_settings_clone())
 }
 
@@ -88,14 +88,15 @@ fn wifi(
     wifi_request: Json<WifiRequest>,
     state: State<Mutex<ServerState>>,
 ) -> Json<ScoreboardSettingsData> {
-    let mut state = state.lock().unwrap();
+    let state = state.lock().unwrap();
     // TODO send matrix command to start restart with wifi
+
     Json((*state).settings.get_settings_clone())
 }
 
 #[get("/logs")]
 fn logs(state: State<Mutex<ServerState>>) -> Json<()> {
-    let mut state = state.lock().unwrap();
+    let state = state.lock().unwrap();
     // TODO read log file and send response
     // let log_path = (*state).settings.file_path.pop().join("scoreboard.log");
     Json(())
@@ -126,7 +127,7 @@ fn reboot(
     state: State<Mutex<ServerState>>,
     reboot_request: Json<RebootRequest>,
 ) -> Json<ScoreboardSettingsData> {
-    let mut state = state.lock().unwrap();
+    let state = state.lock().unwrap();
     // TODO use reboot request
     Json((*state).settings.get_settings_clone())
 }

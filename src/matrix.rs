@@ -36,11 +36,6 @@ impl<'a> Matrix<'a> {
             .get_mut(&id)
             .expect(&format!("Could not find screen {:?}", id))
     }
-    fn get_screen(self: &Self, id: &common::ScreenId) -> &Box<dyn ScreenProvider + 'a> {
-        self.screens_map
-            .get(id)
-            .expect(&format!("Could not find screen {:?}", id))
-    }
 
     fn activate_screen(self: &mut Self) {
         let screen = self.get_mut_screen(self.active_id.clone());
@@ -66,11 +61,13 @@ impl<'a> Matrix<'a> {
     // This is the main loop of the entire code
     // Call this after everything else is set up
     pub fn run(self: &mut Self) {
+        self.handle_power(true);
         loop {
             let command = self.receiver.recv().unwrap();
             // let command = command.unwrap(); // Get the actual command
             match command {
                 common::MatrixCommand::SetActiveScreen(id) => {
+                    self.active_id = id;
                     self.handle_power(true);
                 }
                 common::MatrixCommand::SetPower(on) => {
@@ -85,7 +82,9 @@ impl<'a> Matrix<'a> {
                         self.led_matrix.swap(canvas);
                     }
                 }
-                common::MatrixCommand::UpdateSettings(settings) => {}
+                common::MatrixCommand::UpdateSettings(settings) => {
+                    self.get_mut_screen(self.active_id.clone()).update_settings(settings);
+                }
             };
         }
     }
@@ -159,10 +158,6 @@ pub struct Pixels {
 }
 
 impl Pixels {
-    fn new(data: Vec<Vec<rpi_led_matrix::LedColor>>) -> Pixels {
-        Pixels { data }
-    }
-
     pub fn from_file(file: &'static str) -> Result<Pixels, Box<dyn Error>> {
         let contents = Asset::get(file).unwrap();
         let contents = str::from_utf8(&contents).unwrap();
@@ -234,5 +229,5 @@ pub trait ScreenProvider {
 
     // Handle recieving new scoreboard settings
     // This may change timezone and any other screen specific features
-    fn update_settings(self: &mut Self, settings: ScoreboardSettingsData) {}
+    fn update_settings(self: &mut Self, settings: ScoreboardSettingsData);
 }

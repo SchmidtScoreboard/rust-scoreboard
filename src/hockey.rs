@@ -4,7 +4,7 @@ use crate::game;
 use crate::matrix;
 
 use rpi_led_matrix;
-use serde::{Deserialize};
+use serde::Deserialize;
 
 static HOCKEY_QUERY: &str = r#"
 {
@@ -63,6 +63,9 @@ impl aws_screen::AWSScreenType for HockeyGame {
 
     fn get_screen_id() -> common::ScreenId {
         common::ScreenId::Hockey
+    }
+    fn get_refresh_texts() -> Vec<&'static str> {
+        return vec!["Warming up", "Icing", "Calling Toronto"];
     }
 
     fn draw_screen(
