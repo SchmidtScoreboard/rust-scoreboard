@@ -2,13 +2,9 @@ use crate::common;
 use crate::common::ScoreboardSettingsData;
 use crate::game;
 use crate::matrix;
-use crate::scoreboard_settings;
 
 use rpi_led_matrix;
-use serde::de::DeserializeOwned;
-use serde::{de::Error, Deserialize, Deserializer};
 use serde_json;
-use std::collections::HashMap;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 

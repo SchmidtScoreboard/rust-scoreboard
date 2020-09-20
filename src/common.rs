@@ -1,6 +1,6 @@
 use rpi_led_matrix;
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_repr::*;
 use std::error::Error;
 

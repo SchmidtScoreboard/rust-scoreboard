@@ -3,9 +3,7 @@ use crate::scoreboard_settings::ScoreboardSettings;
 use rocket::config::{Config, Environment};
 use rocket::{get, post, routes, State};
 use rocket_contrib::json::Json;
-use serde::{de::Error, Deserialize, Deserializer, Serialize};
-
-use std::fs;
+use serde::{Deserialize, Serialize};
 
 use std::sync::mpsc;
 use std::sync::Mutex;

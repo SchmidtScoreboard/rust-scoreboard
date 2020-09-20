@@ -12,7 +12,6 @@ mod webserver;
 #[macro_use]
 extern crate rust_embed;
 
-use crate::common::ScoreboardSettingsData;
 use animation_test::AnimationTestScreen;
 use aws_screen::AWSScreen;
 use baseball::BaseballGame;
@@ -23,7 +22,7 @@ use rpi_led_matrix;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::mpsc;
 
 fn main() {

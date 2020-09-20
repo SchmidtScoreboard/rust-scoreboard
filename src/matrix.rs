@@ -1,6 +1,5 @@
 use crate::common;
 use crate::common::ScoreboardSettingsData;
-use crate::scoreboard_settings;
 use rpi_led_matrix;
 use std::collections::HashMap;
 use std::error::Error;
@@ -155,7 +154,6 @@ impl FontBook {
         }
     }
 }
-
 pub struct Pixels {
     pub data: Vec<Vec<rpi_led_matrix::LedColor>>,
 }

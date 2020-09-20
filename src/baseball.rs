@@ -4,11 +4,7 @@ use crate::game;
 use crate::matrix;
 
 use rpi_led_matrix;
-use serde::{de::Error, Deserialize, Deserializer};
-use serde_json;
-use std::collections::HashMap;
-use std::sync::mpsc;
-use std::time::{Duration, Instant};
+use serde::{Deserialize};
 
 static BASEBALL_QUERY: &str = r#"
 {
@@ -102,5 +98,18 @@ impl aws_screen::AWSScreenType for BaseballGame {
                 matrix::draw_pixels(canvas, &down_arrow, (ordinal_dimensions.width + 1, 23));
             }
         }
+
+        let balls_strikes = format!("{}-{}", self.balls, self.strikes);
+        let balls_strikes_dimensions = font.get_text_dimensions(&balls_strikes);
+        canvas.draw_text(
+            &font.led_font,
+            &balls_strikes,
+            61 - balls_strikes_dimensions.width,
+            18,
+            &white,
+            0,
+            false
+        );
+
     }
 }

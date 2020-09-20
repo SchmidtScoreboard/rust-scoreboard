@@ -1,6 +1,4 @@
 use crate::common::{ScoreboardSettingsData, ScreenId, SetupState};
-use serde::{de::Error, Deserialize, Deserializer, Serialize};
-use serde_repr::*;
 use std::fs;
 use std::path::PathBuf;
 

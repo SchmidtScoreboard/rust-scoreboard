@@ -4,11 +4,7 @@ use crate::game;
 use crate::matrix;
 
 use rpi_led_matrix;
-use serde::{de::Error, Deserialize, Deserializer};
-use serde_json;
-use std::collections::HashMap;
-use std::sync::mpsc;
-use std::time::{Duration, Instant};
+use serde::{Deserialize};
 
 static HOCKEY_QUERY: &str = r#"
 {
