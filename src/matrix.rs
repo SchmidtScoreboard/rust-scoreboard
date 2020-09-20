@@ -165,7 +165,7 @@ impl Pixels {
         Pixels { data }
     }
 
-    fn from_file(file: &'static str) -> Result<Pixels, Box<dyn Error>> {
+    pub fn from_file(file: &'static str) -> Result<Pixels, Box<dyn Error>> {
         let contents = Asset::get(file).unwrap();
         let contents = str::from_utf8(&contents).unwrap();
 
@@ -179,6 +179,15 @@ impl Pixels {
             .collect();
 
         Ok(Pixels { data: data? })
+    }
+
+    pub fn flip_vertical(self: &mut Self) {
+        self.data.reverse();
+    }
+    pub fn flip_horizontal(self: &mut Self) {
+        self.data.iter().for_each(|row| {
+            row.reverse();
+        });
     }
 }
 // Common drawing things
@@ -199,9 +208,9 @@ pub fn draw_rectangle(
 pub fn draw_pixels(canvas: &mut rpi_led_matrix::LedCanvas, pixels: &Pixels, top_left: (i32, i32)) {
     let (x0, y0) = top_left;
     let mut x = 0;
-    pixels.data.iter().map(|row| {
+    pixels.data.iter().for_each(|row| {
         let mut y = 0;
-        row.iter().map(|pixel| {
+        row.iter().for_each(|pixel| {
             canvas.set(x0 + x, y0 + y, &pixel);
             y += 1;
         });
