@@ -1,42 +1,12 @@
-use crate::common;
+use crate::common::{ScoreboardSettingsData, ScreenId, SetupState};
 use serde::{de::Error, Deserialize, Deserializer, Serialize};
 use serde_repr::*;
 use std::fs;
 use std::path::PathBuf;
 
-#[derive(Deserialize_repr, Serialize_repr, PartialEq, Debug, Clone)]
-#[repr(u8)]
-pub enum SetupState {
-    Factory = 0,
-    Hotspot = 1,
-    WifiConnect = 2,
-    Sync = 3,
-    Ready = 10,
-}
-#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
-pub struct ScreenSettings {
-    rotation_time: u32,
-    subtitle: String,
-    focus_teams: Vec<u32>,
-    id: common::ScreenId,
-    always_rotate: bool,
-    name: String,
-}
-
-#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
-pub struct ScoreboardSettingsData {
-    pub timezone: String,
-    pub setup_state: SetupState,
-    pub active_screen: common::ScreenId,
-    pub mac_address: String,
-    pub screens: Vec<ScreenSettings>,
-    pub screen_on: bool,
-    pub version: u32,
-}
-
 #[derive(PartialEq, Debug)]
 pub struct ScoreboardSettings {
-    pub data: ScoreboardSettingsData,
+    data: ScoreboardSettingsData,
     pub file_path: PathBuf,
 }
 
@@ -45,17 +15,40 @@ impl ScoreboardSettings {
         ScoreboardSettings { data, file_path }
     }
 
-    pub fn update_settings(
-        self: &mut Self,
-        new_settings: ScoreboardSettingsData,
-    ) -> &ScoreboardSettingsData {
-        self.data = new_settings;
+    pub fn get_settings(self: &Self) -> &ScoreboardSettingsData {
+        &self.data
+    }
+
+    pub fn get_settings_clone(self: &Self) -> ScoreboardSettingsData {
+        self.data.clone()
+    }
+
+    fn write_settings(self: &Self) {
         fs::write(
             &self.file_path,
             serde_json::to_string_pretty(&self.data).unwrap(),
         )
         .unwrap();
-        &self.data
+    }
+
+    pub fn update_settings(self: &mut Self, new_settings: ScoreboardSettingsData) {
+        self.data = new_settings;
+        self.write_settings();
+    }
+
+    pub fn set_active_screen(self: &mut Self, id: &ScreenId) {
+        self.data.active_screen = *id;
+        self.write_settings();
+    }
+
+    pub fn set_power(self: &mut Self, screen_on: &bool) {
+        self.data.screen_on = *screen_on;
+        self.write_settings();
+    }
+
+    pub fn set_setup_state(self: &mut Self, setup_state: &SetupState) {
+        self.data.setup_state = *setup_state;
+        self.write_settings();
     }
 }
 

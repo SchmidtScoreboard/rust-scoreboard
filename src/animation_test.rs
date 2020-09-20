@@ -94,7 +94,6 @@ impl matrix::ScreenProvider for AnimationTestScreen {
             .unwrap();
     }
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
-        println!("Drawing animation screen");
         self.loading_anim.draw(canvas, (0, 0));
         let sender = self.sender.clone();
         let _next_draw_thread = std::thread::spawn(move || {

@@ -1,4 +1,5 @@
 use crate::common;
+use crate::common::ScoreboardSettingsData;
 use crate::scoreboard_settings;
 use rpi_led_matrix;
 use std::collections::HashMap;
@@ -7,6 +8,8 @@ pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix,
     receiver: mpsc::Receiver<common::MatrixCommand>,
     screens_map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
+    screen_on: bool,
+    active_id: common::ScreenId,
 }
 
 impl<'a> Matrix<'a> {
@@ -14,17 +17,21 @@ impl<'a> Matrix<'a> {
         led_matrix: rpi_led_matrix::LedMatrix,
         receiver: mpsc::Receiver<common::MatrixCommand>,
         map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
+        screen_on: bool,
+        active_id: common::ScreenId,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
             receiver,
             screens_map: map,
+            screen_on,
+            active_id,
         }
     }
 
-    fn get_mut_screen(self: &mut Self, id: &common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
+    fn get_mut_screen(self: &mut Self, id: common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
         self.screens_map
-            .get_mut(id)
+            .get_mut(&id)
             .expect("Could not find screen {id}")
     }
     fn get_screen(self: &Self, id: &common::ScreenId) -> &Box<dyn ScreenProvider + 'a> {
@@ -33,34 +40,50 @@ impl<'a> Matrix<'a> {
             .expect("Could not find screen {id}")
     }
 
-    fn activate_screen(self: &mut Self, id: common::ScreenId) -> common::ScreenId {
-        let screen = self.get_mut_screen(&id);
+    fn activate_screen(self: &mut Self) {
+        let screen = self.get_mut_screen(self.active_id.clone());
         screen.activate();
-        id
+    }
+    fn deactivate_screen(self: &mut Self) {
+        let screen = self.get_mut_screen(self.active_id.clone());
+        screen.deactivate();
+    }
+
+    fn handle_power(self: &mut Self, screen_on: bool) {
+        // TODO set power to the matrix
+        self.screen_on = screen_on;
+        if self.screen_on {
+            self.activate_screen();
+        } else {
+            self.deactivate_screen();
+            let mut canvas = self.led_matrix.offscreen_canvas();
+            canvas.clear();
+            self.led_matrix.swap(canvas);
+        }
     }
     // This is the main loop of the entire code
     // Call this after everything else is set up
-    pub fn run(self: &mut Self, active_id: common::ScreenId) {
-        let mut active_id = self.activate_screen(active_id);
-
+    pub fn run(self: &mut Self) {
         loop {
             let command = self.receiver.recv().unwrap();
             // let command = command.unwrap(); // Get the actual command
             match command {
                 common::MatrixCommand::SetActiveScreen(id) => {
-                    active_id = self.activate_screen(id);
+                    self.handle_power(true);
                 }
                 common::MatrixCommand::SetPower(on) => {
-                    // TODO set power to the matrix
+                    self.handle_power(on);
                 }
                 common::MatrixCommand::Display(id) => {
-                    if id == active_id {
+                    if id == self.active_id && self.screen_on {
                         // If the id received matches the active id, display the image
                         let mut canvas = self.led_matrix.offscreen_canvas();
-                        self.get_mut_screen(&active_id).draw(&mut canvas);
+                        self.get_mut_screen(self.active_id.clone())
+                            .draw(&mut canvas);
                         self.led_matrix.swap(canvas);
                     }
                 }
+                common::MatrixCommand::UpdateSettings(settings) => {}
             };
         }
     }
@@ -159,5 +182,5 @@ pub trait ScreenProvider {
 
     // Handle recieving new scoreboard settings
     // This may change timezone and any other screen specific features
-    fn update_settings(self: &mut Self, settings: scoreboard_settings::ScoreboardSettingsData) {}
+    fn update_settings(self: &mut Self, settings: ScoreboardSettingsData) {}
 }

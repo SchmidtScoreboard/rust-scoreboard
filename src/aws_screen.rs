@@ -1,4 +1,5 @@
 use crate::common;
+use crate::common::ScoreboardSettingsData;
 use crate::game;
 use crate::matrix;
 use crate::scoreboard_settings;
@@ -177,7 +178,7 @@ impl<
             .unwrap();
     }
 
-    fn update_settings(self: &mut Self, settings: scoreboard_settings::ScoreboardSettingsData) {}
+    fn update_settings(self: &mut Self, settings: ScoreboardSettingsData) {}
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         // Check if there is any new data. If there is, copy it in

@@ -10,6 +10,7 @@ mod matrix;
 mod scoreboard_settings;
 mod webserver;
 
+use crate::common::ScoreboardSettingsData;
 use animation_test::AnimationTestScreen;
 use aws_screen::AWSScreen;
 use baseball::BaseballGame;
@@ -38,19 +39,14 @@ fn main() {
 
     let api_key = fs::read_to_string(secrets_path).unwrap();
 
-    let settings_data: scoreboard_settings::ScoreboardSettingsData =
+    let settings_data: common::ScoreboardSettingsData =
         serde_json::from_str(&fs::read_to_string(&settings_path).unwrap()).unwrap();
 
     let settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
 
-    // Set up original channel
-    let (tx, rx) = mpsc::channel();
-    let webserver_sender = tx.clone();
-    std::thread::spawn(move || {
-        webserver::run_webserver(webserver_sender, settings);
-    });
-
     // TODO setup button listener with sender end of channel
+
+    let (tx, rx) = mpsc::channel();
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
@@ -78,9 +74,20 @@ fn main() {
     let led_matrix: rpi_led_matrix::LedMatrix =
         rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
             .expect("Could not setup matrix");
+    let mut matrix = Matrix::new(
+        led_matrix,
+        rx,
+        map,
+        true,
+        settings.get_settings().active_screen,
+    );
 
-    let mut matrix = Matrix::new(led_matrix, rx, map);
+    let webserver_sender = tx.clone();
+    std::thread::spawn(move || {
+        webserver::run_webserver(webserver_sender, settings);
+    });
+
     // matrix.run(ScreenId::Baseball);
     // matrix.run(ScreenId::Baseball);
-    matrix.run(ScreenId::Animation);
+    matrix.run();
 }
