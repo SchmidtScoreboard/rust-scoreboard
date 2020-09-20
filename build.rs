@@ -1,5 +1,9 @@
+use std::env;
+
 fn main() {
     println!("cargo:rustc-flags=-l dylib=stdc++");
 
-    println!("cargo:rustc-link-search=/home/pi/rpi-rgb-led-matrix/lib");
+    let matrix_lib = env::var("MATRIX_LIB").expect("Must specify a path for the RGB Matrix Library");
+
+    println!("cargo:rustc-link-search=/{}", matrix_lib);
 }

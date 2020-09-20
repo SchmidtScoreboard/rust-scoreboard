@@ -185,9 +185,9 @@ impl Pixels {
         self.data.reverse();
     }
     pub fn flip_horizontal(self: &mut Self) {
-        self.data.iter().for_each(|row| {
-            row.reverse();
-        });
+        // self.data.iter().for_each(|&mut row| {
+        //     row.reverse();
+        // });
     }
 }
 // Common drawing things
