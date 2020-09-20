@@ -3,7 +3,10 @@ use crate::common::ScoreboardSettingsData;
 use crate::scoreboard_settings;
 use rpi_led_matrix;
 use std::collections::HashMap;
+use std::error::Error;
+use std::str;
 use std::sync::mpsc;
+
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix,
     receiver: mpsc::Receiver<common::MatrixCommand>,
@@ -32,12 +35,12 @@ impl<'a> Matrix<'a> {
     fn get_mut_screen(self: &mut Self, id: common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
         self.screens_map
             .get_mut(&id)
-            .expect("Could not find screen {id}")
+            .expect(&format!("Could not find screen {:?}", id))
     }
     fn get_screen(self: &Self, id: &common::ScreenId) -> &Box<dyn ScreenProvider + 'a> {
         self.screens_map
             .get(id)
-            .expect("Could not find screen {id}")
+            .expect(&format!("Could not find screen {:?}", id))
     }
 
     fn activate_screen(self: &mut Self) {
@@ -121,6 +124,9 @@ impl Font {
         )
     }
 }
+#[derive(RustEmbed)]
+#[folder = "assets"]
+struct Asset;
 
 pub struct FontBook {
     pub font4x6: Font,
@@ -149,6 +155,32 @@ impl FontBook {
         }
     }
 }
+
+pub struct Pixels {
+    pub data: Vec<Vec<rpi_led_matrix::LedColor>>,
+}
+
+impl Pixels {
+    fn new(data: Vec<Vec<rpi_led_matrix::LedColor>>) -> Pixels {
+        Pixels { data }
+    }
+
+    fn from_file(file: &'static str) -> Result<Pixels, Box<dyn Error>> {
+        let contents = Asset::get(file).unwrap();
+        let contents = str::from_utf8(&contents).unwrap();
+
+        let data: Result<Vec<_>, _> = contents
+            .lines()
+            .map(|line| {
+                line.split(' ')
+                    .map(|word| common::color_from_string(&word[2..]))
+                    .collect()
+            })
+            .collect();
+
+        Ok(Pixels { data: data? })
+    }
+}
 // Common drawing things
 pub fn draw_rectangle(
     canvas: &mut rpi_led_matrix::LedCanvas,
@@ -162,6 +194,19 @@ pub fn draw_rectangle(
     for i in y0..y1 {
         canvas.draw_line(x0, i, x1, i, color);
     }
+}
+
+pub fn draw_pixels(canvas: &mut rpi_led_matrix::LedCanvas, pixels: &Pixels, top_left: (i32, i32)) {
+    let (x0, y0) = top_left;
+    let mut x = 0;
+    pixels.data.iter().map(|row| {
+        let mut y = 0;
+        row.iter().map(|pixel| {
+            canvas.set(x0 + x, y0 + y, &pixel);
+            y += 1;
+        });
+        x += 1;
+    });
 }
 
 pub trait ScreenProvider {

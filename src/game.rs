@@ -53,11 +53,7 @@ where
     D: Deserializer<'de>,
 {
     let s: &str = Deserialize::deserialize(deserializer)?;
-    let get_value = |slice| u8::from_str_radix(slice, 16).map_err(D::Error::custom);
-    let red = get_value(&s[0..2])?;
-    let green = get_value(&s[2..4])?;
-    let blue = get_value(&s[4..6])?;
-    Ok(common::new_color(red, green, blue))
+    common::color_from_string(s).map_err(D::Error::custom)
 }
 
 #[derive(Deserialize, Debug)]

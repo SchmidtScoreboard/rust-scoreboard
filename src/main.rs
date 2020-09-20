@@ -9,6 +9,8 @@ mod hockey;
 mod matrix;
 mod scoreboard_settings;
 mod webserver;
+#[macro_use]
+extern crate rust_embed;
 
 use crate::common::ScoreboardSettingsData;
 use animation_test::AnimationTestScreen;
