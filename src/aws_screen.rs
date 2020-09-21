@@ -20,6 +20,7 @@ pub trait AWSScreenType {
         self: &Self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
+        timezone: &str,
     );
 
     fn get_refresh_texts() -> Vec<&'static str>;
@@ -75,6 +76,7 @@ impl<T> AWSData<T> {
 pub struct AWSScreen<T: AWSScreenType> {
     sender: mpsc::Sender<common::MatrixCommand>,
     api_key: String,
+    timezone: String,
     data: Option<AWSData<T>>,
     data_pipe_sender: mpsc::Sender<AWSData<T>>,
     data_pipe_receiver: mpsc::Receiver<AWSData<T>>,
@@ -86,11 +88,16 @@ pub struct AWSScreen<T: AWSScreenType> {
 impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::marker::Send>
     AWSScreen<T>
 {
-    pub fn new(sender: mpsc::Sender<common::MatrixCommand>, api_key: String) -> AWSScreen<T> {
+    pub fn new(
+        sender: mpsc::Sender<common::MatrixCommand>,
+        api_key: String,
+        timezone: String,
+    ) -> AWSScreen<T> {
         let (data_pipe_sender, data_pipe_receiver) = mpsc::channel();
         AWSScreen {
             sender,
             api_key,
+            timezone,
             data: None,
             data_pipe_sender,
             data_pipe_receiver,
@@ -249,7 +256,11 @@ impl<
                     match &current_data.games {
                         Ok(games) => {
                             if games.len() > 0 {
-                                &games[current_data.active_index].draw_screen(canvas, &self.fonts);
+                                &games[current_data.active_index].draw_screen(
+                                    canvas,
+                                    &self.fonts,
+                                    &self.timezone,
+                                );
                             } else {
                                 self.draw_no_games(canvas);
                             }

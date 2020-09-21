@@ -80,8 +80,8 @@ impl aws_screen::AWSScreenType for BaseballGame {
         self: &Self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
+        timezone: &str,
     ) {
-        println!("Drawing baseball");
         let font = &font_book.font4x6;
         game::draw_scoreboard(canvas, &font, &self.common, 1);
 
@@ -89,7 +89,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
         let ordinal_dimensions = font.get_text_dimensions(&self.common.ordinal);
         canvas.draw_text(
             &font.led_font,
-            &self.common.ordinal,
+            &self.common.get_ordinal_text(timezone),
             5,
             23 + font.dimensions.height,
             &white,
@@ -106,18 +106,17 @@ impl aws_screen::AWSScreenType for BaseballGame {
                 let down_arrow = matrix::Pixels::from_file("small_arrow.pix").unwrap();
                 matrix::draw_pixels(canvas, &down_arrow, (ordinal_dimensions.width + 1, 23));
             }
+            let balls_strikes = format!("{}-{}", self.balls, self.strikes);
+            let balls_strikes_dimensions = font.get_text_dimensions(&balls_strikes);
+            canvas.draw_text(
+                &font.led_font,
+                &balls_strikes,
+                61 - balls_strikes_dimensions.width,
+                18,
+                &white,
+                0,
+                false,
+            );
         }
-
-        let balls_strikes = format!("{}-{}", self.balls, self.strikes);
-        let balls_strikes_dimensions = font.get_text_dimensions(&balls_strikes);
-        canvas.draw_text(
-            &font.led_font,
-            &balls_strikes,
-            61 - balls_strikes_dimensions.width,
-            18,
-            &white,
-            0,
-            false,
-        );
     }
 }

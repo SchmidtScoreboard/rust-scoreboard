@@ -72,8 +72,8 @@ impl aws_screen::AWSScreenType for HockeyGame {
         self: &Self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
+        timezone: &str,
     ) {
-        println!("Drawing hockey");
         let font = &font_book.font5x8;
         game::draw_scoreboard(canvas, &font, &self.common, 2);
 
@@ -81,9 +81,10 @@ impl aws_screen::AWSScreenType for HockeyGame {
         let white = common::new_color(255, 255, 255);
         let black = common::new_color(0, 0, 0);
         let yellow = common::new_color(255, 255, 0);
+
         canvas.draw_text(
             &font.led_font,
-            &self.common.ordinal,
+            &self.common.get_ordinal_text(timezone),
             5,
             23 + font.dimensions.height,
             &white,

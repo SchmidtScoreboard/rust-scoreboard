@@ -2,6 +2,7 @@ use crate::common;
 use crate::matrix;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono_tz::Tz;
 use rpi_led_matrix;
 use serde::{de::Error, Deserialize, Deserializer};
 use ureq;
@@ -64,6 +65,17 @@ pub struct CommonGameData {
     pub ordinal: String,
     #[serde(deserialize_with = "datetime_from_string")]
     pub start_time: DateTime<Utc>,
+}
+
+impl CommonGameData {
+    pub fn get_ordinal_text(self: &Self, timezone: &str) -> String {
+        if self.status == GameStatus::PREGAME {
+            let tz: Tz = timezone.parse().expect("Failed to parse timezone");
+            format!("{}", self.start_time.with_timezone(&tz).format("%-I:%M %p"))
+        } else {
+            self.ordinal.clone()
+        }
+    }
 }
 
 fn datetime_from_string<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>

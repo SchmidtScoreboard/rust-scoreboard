@@ -53,11 +53,19 @@ fn main() {
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
 
     // Hockey
-    let hockey: AWSScreen<HockeyGame> = AWSScreen::new(tx.clone(), api_key.clone());
+    let hockey: AWSScreen<HockeyGame> = AWSScreen::new(
+        tx.clone(),
+        api_key.clone(),
+        settings.get_settings().timezone.clone(),
+    );
     map.insert(ScreenId::Hockey, Box::new(hockey));
 
     // Baseball
-    let baseball: AWSScreen<BaseballGame> = AWSScreen::new(tx.clone(), api_key.clone());
+    let baseball: AWSScreen<BaseballGame> = AWSScreen::new(
+        tx.clone(),
+        api_key.clone(),
+        settings.get_settings().timezone.clone(),
+    );
     map.insert(ScreenId::Baseball, Box::new(baseball));
 
     // Animation Test

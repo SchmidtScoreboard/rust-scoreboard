@@ -3,6 +3,7 @@ use crate::common::ScoreboardSettingsData;
 use rpi_led_matrix;
 use std::collections::HashMap;
 use std::error::Error;
+use std::fs;
 use std::str;
 use std::sync::mpsc;
 
@@ -109,9 +110,18 @@ pub struct Font {
 }
 
 impl Font {
-    pub fn new(led_font: rpi_led_matrix::LedFont, width: i32, height: i32) -> Font {
+    fn dump_file(file_name: &str) {
+        let bytes =
+            FontAssets::get(file_name).expect(&format!("Could not find font {}", file_name));
+        fs::create_dir("fonts");
+        fs::write(format!("fonts/{}", file_name), bytes).expect("Failed to write file");
+    }
+    pub fn new(font_file: &str, width: i32, height: i32) -> Font {
+        Font::dump_file(font_file);
+        let full_path = format!("fonts/{}", font_file);
         Font {
-            led_font,
+            led_font: rpi_led_matrix::LedFont::new(std::path::Path::new(&full_path))
+                .expect(&format!("Failed to find font file {}", &full_path)),
             dimensions: Dimensions::new(width, height),
         }
     }
@@ -123,9 +133,10 @@ impl Font {
         )
     }
 }
+
 #[derive(RustEmbed)]
-#[folder = "assets"]
-struct Asset;
+#[folder = "fonts"]
+struct FontAssets;
 
 pub struct FontBook {
     pub font4x6: Font,
@@ -137,23 +148,19 @@ impl FontBook {
     pub fn new() -> FontBook {
         FontBook {
             font4x6: Font::new(
-                rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/4x6.bdf")).unwrap(),
-                4,
-                5, // True text height is 5
+                "4x6.bdf", 4, 5, // True text height is 5
             ),
             font5x8: Font::new(
-                rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/5x8.bdf")).unwrap(),
-                5,
-                6, // True text height is 6
+                "5x8.bdf", 5, 6, // True text height is 6
             ),
-            font7x13: Font::new(
-                rpi_led_matrix::LedFont::new(std::path::Path::new("fonts/7x13.bdf")).unwrap(),
-                7,
-                13,
-            ),
+            font7x13: Font::new("7x13.bdf", 7, 13),
         }
     }
 }
+#[derive(RustEmbed)]
+#[folder = "assets"]
+struct Asset;
+
 pub struct Pixels {
     pub data: Vec<Vec<rpi_led_matrix::LedColor>>,
 }
