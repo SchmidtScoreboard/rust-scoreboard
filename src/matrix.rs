@@ -83,7 +83,8 @@ impl<'a> Matrix<'a> {
                     }
                 }
                 common::MatrixCommand::UpdateSettings(settings) => {
-                    self.get_mut_screen(self.active_id.clone()).update_settings(settings);
+                    self.get_mut_screen(self.active_id.clone())
+                        .update_settings(settings);
                 }
             };
         }
@@ -177,10 +178,10 @@ impl Pixels {
     pub fn flip_vertical(self: &mut Self) {
         self.data.reverse();
     }
-    pub fn flip_horizontal(self: &mut Self) {
-        // self.data.iter().for_each(|&mut row| {
-        //     row.reverse();
-        // });
+    pub fn _flip_horizontal(self: &mut Self) {
+        self.data.iter_mut().for_each(|row| {
+            row.reverse();
+        });
     }
 }
 // Common drawing things

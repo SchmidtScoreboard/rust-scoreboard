@@ -119,8 +119,32 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
         self.loading_animation
             .draw(canvas, (canvas_width - 5, canvas_height - 5));
     }
-    fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, message: &str) {}
-    fn draw_no_games(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {}
+    fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+        let font = &self.fonts.font4x6;
+        let red = common::new_color(255, 0, 0);
+        canvas.draw_text(
+            &font.led_font,
+            "Connection Error",
+            1,
+            1 + font.dimensions.height,
+            &red,
+            0,
+            false,
+        );
+    }
+    fn draw_no_games(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+        let font = &self.fonts.font4x6;
+        let white = common::new_color(255, 255, 255);
+        canvas.draw_text(
+            &font.led_font,
+            "No games today",
+            1,
+            1 + font.dimensions.height,
+            &white,
+            0,
+            false,
+        );
+    }
 
     fn run_refresh_thread(
         refresh_control_receiver: mpsc::Receiver<()>,
@@ -231,7 +255,8 @@ impl<
                             }
                         }
                         Err(message) => {
-                            self.draw_error(canvas, &message);
+                            eprintln!("Failed to fetch games with error {}", message);
+                            self.draw_error(canvas);
                         }
                     }
                 }

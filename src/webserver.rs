@@ -51,9 +51,12 @@ fn configure(
 ) -> Json<ScoreboardSettingsData> {
     let mut state = state.lock().unwrap();
     (*state).settings.update_settings(new_settings.into_inner());
-    (*state).sender.send(MatrixCommand::UpdateSettings(
-        (*state).settings.get_settings_clone(),
-    )).unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::UpdateSettings(
+            (*state).settings.get_settings_clone(),
+        ))
+        .unwrap();
     Json((*state).settings.get_settings_clone())
 }
 
@@ -66,7 +69,8 @@ fn set_power(
     (*state).settings.set_power(&power_request.screen_on);
     (*state)
         .sender
-        .send(MatrixCommand::SetPower(power_request.screen_on)).unwrap();
+        .send(MatrixCommand::SetPower(power_request.screen_on))
+        .unwrap();
     Json((*state).settings.get_settings_clone())
 }
 
@@ -79,13 +83,14 @@ fn set_sport(
     (*state).settings.set_active_screen(&sport_request.sport);
     (*state)
         .sender
-        .send(MatrixCommand::SetActiveScreen(sport_request.sport)).unwrap();
+        .send(MatrixCommand::SetActiveScreen(sport_request.sport))
+        .unwrap();
     Json((*state).settings.get_settings_clone())
 }
 
-#[post("/wifi", format = "json", data = "<wifi_request>")]
+#[post("/wifi", format = "json", data = "<_wifi_request>")]
 fn wifi(
-    wifi_request: Json<WifiRequest>,
+    _wifi_request: Json<WifiRequest>,
     state: State<Mutex<ServerState>>,
 ) -> Json<ScoreboardSettingsData> {
     let state = state.lock().unwrap();
@@ -96,7 +101,7 @@ fn wifi(
 
 #[get("/logs")]
 fn logs(state: State<Mutex<ServerState>>) -> Json<()> {
-    let state = state.lock().unwrap();
+    let _state = state.lock().unwrap();
     // TODO read log file and send response
     // let log_path = (*state).settings.file_path.pop().join("scoreboard.log");
     Json(())
@@ -122,10 +127,10 @@ fn show_sync(state: State<Mutex<ServerState>>) -> Json<ScoreboardSettingsData> {
     }
     Json((*state).settings.get_settings_clone())
 }
-#[post("/reboot", format = "json", data = "<reboot_request>")]
+#[post("/reboot", format = "json", data = "<_reboot_request>")]
 fn reboot(
     state: State<Mutex<ServerState>>,
-    reboot_request: Json<RebootRequest>,
+    _reboot_request: Json<RebootRequest>,
 ) -> Json<ScoreboardSettingsData> {
     let state = state.lock().unwrap();
     // TODO use reboot request

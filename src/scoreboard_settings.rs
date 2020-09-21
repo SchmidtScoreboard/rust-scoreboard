@@ -92,6 +92,6 @@ mod tests {
 
         }"#;
 
-        let settings: ScoreboardSettingsData = serde_json::from_str(data).unwrap();
+        let _settings: ScoreboardSettingsData = serde_json::from_str(data).unwrap();
     }
 }
