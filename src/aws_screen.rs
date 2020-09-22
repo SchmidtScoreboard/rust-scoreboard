@@ -92,6 +92,7 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
         sender: mpsc::Sender<common::MatrixCommand>,
         api_key: String,
         timezone: String,
+        root_path: &std::path::Path,
     ) -> AWSScreen<T> {
         let (data_pipe_sender, data_pipe_receiver) = mpsc::channel();
         AWSScreen {
@@ -103,7 +104,7 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             data_pipe_receiver,
             refresh_control_sender: None,
             loading_animation: animation::LoadingAnimation::new(),
-            fonts: matrix::FontBook::new(),
+            fonts: matrix::FontBook::new(root_path),
         }
     }
 

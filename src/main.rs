@@ -30,7 +30,7 @@ fn main() {
     arguments.next(); // skip program name
     let root_path = match arguments.next() {
         Some(arg) => PathBuf::from(arg),
-        None => PathBuf::from("/home/pi/rust-scoreboard/"),
+        None => PathBuf::from("/var/lib/scoreboard/"),
     };
 
     let secrets_path = root_path.join("secrets.txt");
@@ -38,10 +38,17 @@ fn main() {
     println!("Loading secrets from {:?}", secrets_path);
     println!("Loading secrets from {:?}", settings_path);
 
-    let api_key = fs::read_to_string(secrets_path).unwrap();
+    let api_key = fs::read_to_string(secrets_path).expect(format!(
+        "Could not read from secrets.txt at path {:?}",
+        &secrets_path
+    ));
 
     let settings_data: common::ScoreboardSettingsData =
-        serde_json::from_str(&fs::read_to_string(&settings_path).unwrap()).unwrap();
+        serde_json::from_str(&fs::read_to_string(&settings_path).expect(format!(
+            "Could not read scoreboard settings at path {:?}",
+            &settings_path
+        )))
+        .expect("Could not parse scoreboard settings from json");
 
     let settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
 
@@ -57,6 +64,7 @@ fn main() {
         tx.clone(),
         api_key.clone(),
         settings.get_settings().timezone.clone(),
+        &root_path,
     );
     map.insert(ScreenId::Hockey, Box::new(hockey));
 
@@ -65,6 +73,7 @@ fn main() {
         tx.clone(),
         api_key.clone(),
         settings.get_settings().timezone.clone(),
+        &root_path,
     );
     map.insert(ScreenId::Baseball, Box::new(baseball));
 

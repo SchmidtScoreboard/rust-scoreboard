@@ -110,18 +110,19 @@ pub struct Font {
 }
 
 impl Font {
-    fn dump_file(file_name: &str) {
+    fn dump_file(root_path: &std::path::Path, file_name: &str) {
         let bytes =
             FontAssets::get(file_name).expect(&format!("Could not find font {}", file_name));
-        fs::create_dir("fonts");
-        fs::write(format!("fonts/{}", file_name), bytes).expect("Failed to write file");
+        let target_dir = root_path.join("fonts");
+        fs::create_dir(&target_dir);
+        fs::write(&target_dir.join(file_name), bytes).expect("Failed to write file");
     }
-    pub fn new(font_file: &str, width: i32, height: i32) -> Font {
-        Font::dump_file(font_file);
-        let full_path = format!("fonts/{}", font_file);
+    pub fn new(root_path: &std::path::Path, font_file: &str, width: i32, height: i32) -> Font {
+        Font::dump_file(root_path, font_file);
+        let full_path = root_path.join(format!("fonts/{}", font_file));
         Font {
             led_font: rpi_led_matrix::LedFont::new(std::path::Path::new(&full_path))
-                .expect(&format!("Failed to find font file {}", &full_path)),
+                .expect(&format!("Failed to find font file {:?}", &full_path)),
             dimensions: Dimensions::new(width, height),
         }
     }
@@ -145,15 +146,15 @@ pub struct FontBook {
 }
 
 impl FontBook {
-    pub fn new() -> FontBook {
+    pub fn new(root_path: &std::path::Path) -> FontBook {
         FontBook {
             font4x6: Font::new(
-                "4x6.bdf", 4, 5, // True text height is 5
+                root_path, "4x6.bdf", 4, 5, // True text height is 5
             ),
             font5x8: Font::new(
-                "5x8.bdf", 5, 6, // True text height is 6
+                root_path, "5x8.bdf", 5, 6, // True text height is 6
             ),
-            font7x13: Font::new("7x13.bdf", 7, 13),
+            font7x13: Font::new(root_path, "7x13.bdf", 7, 13),
         }
     }
 }
