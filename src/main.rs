@@ -3,6 +3,7 @@
 mod animation;
 mod aws_screen;
 mod baseball;
+mod clock;
 mod common;
 mod game;
 mod hockey;
@@ -101,6 +102,14 @@ fn main() {
         &root_path,
     );
     map.insert(ScreenId::Baseball, Box::new(baseball));
+
+    // Clock
+    let clock = clock::Clock::new(
+        tx.clone(),
+        settings.get_settings().timezone.clone(),
+        &root_path,
+    );
+    map.insert(ScreenId::Clock, Box::new(clock));
 
     // Animation Test
     let animation = AnimationTestScreen::new(tx.clone());
