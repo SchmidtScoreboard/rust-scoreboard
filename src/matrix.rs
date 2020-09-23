@@ -114,7 +114,7 @@ impl Font {
         let bytes =
             FontAssets::get(file_name).expect(&format!("Could not find font {}", file_name));
         let target_dir = root_path.join("fonts");
-        fs::create_dir(&target_dir);
+        let _create_dir_result = fs::create_dir(&target_dir);
         fs::write(&target_dir.join(file_name), bytes).expect("Failed to write file");
     }
     pub fn new(root_path: &std::path::Path, font_file: &str, width: i32, height: i32) -> Font {

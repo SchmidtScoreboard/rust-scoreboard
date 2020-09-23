@@ -4,6 +4,7 @@ use rocket::config::{Config, Environment};
 use rocket::{get, post, routes, State};
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
+use std::fs;
 
 use std::sync::mpsc;
 use std::sync::Mutex;
@@ -100,11 +101,15 @@ fn wifi(
 }
 
 #[get("/logs")]
-fn logs(state: State<Mutex<ServerState>>) -> Json<()> {
-    let _state = state.lock().unwrap();
+fn logs(state: State<Mutex<ServerState>>) -> String {
+    let state = state.lock().unwrap();
     // TODO read log file and send response
-    // let log_path = (*state).settings.file_path.pop().join("scoreboard.log");
-    Json(())
+    let log_path = {
+        let mut path = (*state).settings.file_path.clone();
+        path.pop();
+        path.join("logs/scoreboard-log")
+    };
+    fs::read_to_string(log_path).unwrap_or("Could not read logs".to_string())
 }
 
 #[post("/showSync")]
@@ -120,7 +125,7 @@ fn show_sync(state: State<Mutex<ServerState>>) -> Json<ScoreboardSettingsData> {
         SetupState::Sync => {
             (*state).settings.set_setup_state(&SetupState::Ready);
         }
-        _ => eprintln!(
+        _ => error!(
             "Cannot set sync mode while in setup state {:?}",
             (*state).settings.get_settings().setup_state
         ),
@@ -147,7 +152,7 @@ fn sync(state: State<Mutex<ServerState>>) -> Json<ScoreboardSettingsData> {
             (*state).settings.set_setup_state(&SetupState::Ready);
             // TODO fire matrix command
         }
-        _ => eprintln!(
+        _ => error!(
             "Cannot sync while in setup state {:?}",
             (*state).settings.get_settings().setup_state
         ),
@@ -164,7 +169,7 @@ fn connect(state: State<Mutex<ServerState>>) -> Json<ScoreboardSettingsData> {
             (*state).settings.set_setup_state(&SetupState::WifiConnect);
             // TODO fire matrix command
         }
-        _ => eprintln!(
+        _ => error!(
             "Cannot connect while in setup state {:?}",
             (*state).settings.get_settings().setup_state
         ),

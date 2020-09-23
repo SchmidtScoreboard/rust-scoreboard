@@ -14,6 +14,8 @@ extern crate rust_embed;
 
 #[macro_use]
 extern crate log;
+extern crate simplelog;
+use simplelog::*;
 
 use animation::AnimationTestScreen;
 use aws_screen::AWSScreen;
@@ -27,21 +29,39 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::mpsc;
+extern crate pipe_logger_lib;
+
+use pipe_logger_lib::*;
 
 fn main() {
-    env_logger::init();
-
     let mut arguments = env::args();
     arguments.next(); // skip program name
     let root_path = match arguments.next() {
         Some(arg) => PathBuf::from(arg),
         None => PathBuf::from("/var/lib/scoreboard/"),
     };
+    let log_dir = root_path.join("logs");
+    let _create_dir_result = fs::create_dir(&log_dir);
+    let log_path = log_dir.join("scoreboard-log");
+
+    let mut builder = PipeLoggerBuilder::new(&log_path);
+    builder
+        .set_rotate(Some(RotateMethod::FileSize(10000))) // bytes
+        .set_count(Some(10))
+        .set_compress(false);
+
+    let logger = builder.build().unwrap();
+
+    CombinedLogger::init(vec![
+        TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed),
+        WriteLogger::new(LevelFilter::Info, Config::default(), logger),
+    ])
+    .unwrap();
 
     let secrets_path = root_path.join("secrets.txt");
     let settings_path = root_path.join("scoreboard_settings.json");
-    println!("Loading secrets from {:?}", secrets_path);
-    println!("Loading secrets from {:?}", settings_path);
+    info!("Loading secrets from {:?}", secrets_path);
+    info!("Loading settings from {:?}", settings_path);
 
     let api_key = fs::read_to_string(&secrets_path).expect(&format!(
         "Could not read from secrets.txt at path {:?}",

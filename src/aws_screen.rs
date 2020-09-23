@@ -58,7 +58,6 @@ impl<T> AWSData<T> {
                     self.active_index = (self.active_index + 1) % games.len();
                 }
                 self.last_cycle_timestamp = now;
-                println!("Updating active index: {}", self.active_index)
             }
         }
     }
@@ -165,7 +164,7 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             } else {
                 let resp = game::fetch_games(T::get_endpoint(), T::get_query(), &api_key);
                 if resp.error() {
-                    eprintln!(
+                    error!(
                         "There was an error fetching games for endpoint {}",
                         T::get_endpoint()
                     );
@@ -174,10 +173,10 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
                 if let Ok(resp_string) = resp.into_string() {
                     let result: Result<game::Response<T>, _> = serde_json::from_str(&resp_string);
                     if let Ok(response) = result {
-                        println!("Successfully parsed response: {:?}", &response.data.games);
+                        info!("Successfully parsed response: {:?}", &response.data.games);
                         data_sender.send(AWSData::new(response.data.games)).unwrap();
                     } else {
-                        eprintln!(
+                        error!(
                             "Failed to parse response {}, reason: {}",
                             resp_string,
                             result.err().unwrap()
@@ -201,7 +200,7 @@ impl<
 {
     fn activate(self: &mut Self) {
         let api_key = self.api_key.clone();
-        println!("Activating screen {}", T::get_endpoint());
+        info!("Activating screen {}", T::get_endpoint());
 
         let (refresh_control_sender, refresh_control_receiver) = mpsc::channel();
         self.refresh_control_sender = Some(refresh_control_sender);
@@ -267,7 +266,7 @@ impl<
                             }
                         }
                         Err(message) => {
-                            eprintln!("Failed to fetch games with error {}", message);
+                            error!("Failed to fetch games with error {}", message);
                             self.draw_error(canvas);
                         }
                     }
