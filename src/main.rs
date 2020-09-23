@@ -12,6 +12,9 @@ mod webserver;
 #[macro_use]
 extern crate rust_embed;
 
+#[macro_use]
+extern crate log;
+
 use animation::AnimationTestScreen;
 use aws_screen::AWSScreen;
 use baseball::BaseballGame;
@@ -26,6 +29,8 @@ use std::path::PathBuf;
 use std::sync::mpsc;
 
 fn main() {
+    env_logger::init();
+
     let mut arguments = env::args();
     arguments.next(); // skip program name
     let root_path = match arguments.next() {
@@ -38,13 +43,13 @@ fn main() {
     println!("Loading secrets from {:?}", secrets_path);
     println!("Loading secrets from {:?}", settings_path);
 
-    let api_key = fs::read_to_string(secrets_path).expect(format!(
+    let api_key = fs::read_to_string(&secrets_path).expect(&format!(
         "Could not read from secrets.txt at path {:?}",
         &secrets_path
     ));
 
     let settings_data: common::ScoreboardSettingsData =
-        serde_json::from_str(&fs::read_to_string(&settings_path).expect(format!(
+        serde_json::from_str(&fs::read_to_string(&settings_path).expect(&format!(
             "Could not read scoreboard settings at path {:?}",
             &settings_path
         )))
