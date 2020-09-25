@@ -154,7 +154,7 @@ impl FontBook {
             font5x8: Font::new(
                 root_path, "5x8.bdf", 5, 6, // True text height is 6
             ),
-            font7x13: Font::new(root_path, "7x13.bdf", 7, 13),
+            font7x13: Font::new(root_path, "7x13.bdf", 7, 9), // True text height is 9
         }
     }
 }
