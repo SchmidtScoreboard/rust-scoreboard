@@ -29,6 +29,13 @@ pub enum MatrixCommand {
 pub fn new_color(red: u8, green: u8, blue: u8) -> rpi_led_matrix::LedColor {
     rpi_led_matrix::LedColor { red, green, blue }
 }
+pub fn color_from_slice(slice: &[u8]) -> rpi_led_matrix::LedColor {
+    rpi_led_matrix::LedColor {
+        red: slice[0],
+        green: slice[1],
+        blue: slice[2],
+    }
+}
 
 pub fn color_from_string(s: &str) -> Result<rpi_led_matrix::LedColor, Box<dyn Error>> {
     let get_value = |slice| u8::from_str_radix(slice, 16);

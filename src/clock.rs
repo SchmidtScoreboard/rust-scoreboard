@@ -17,12 +17,12 @@ impl Clock {
     pub fn new(
         sender: mpsc::Sender<common::MatrixCommand>,
         timezone: String,
-        root_path: &std::path::Path,
+        fonts: matrix::FontBook,
     ) -> Clock {
         Clock {
             sender,
             timezone: timezone.parse().expect("Failed to parse timezone"),
-            fonts: matrix::FontBook::new(root_path),
+            fonts,
         }
     }
 }

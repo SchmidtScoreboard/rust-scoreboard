@@ -20,3 +20,4 @@ rust-embed={version="5.6.0", features = ["debug-embed"]}
 log = "0.4.0"
 simplelog = "0.8.0"
 pipe-logger-lib = "1.1.12"
+png = "0.16.7"

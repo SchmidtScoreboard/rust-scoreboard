@@ -20,6 +20,7 @@ pub trait AWSScreenType {
         self: &Self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
+        pixels_book: &matrix::PixelBook,
         timezone: &str,
     );
 
@@ -82,6 +83,7 @@ pub struct AWSScreen<T: AWSScreenType> {
     refresh_control_sender: Option<mpsc::Sender<()>>,
     loading_animation: animation::LoadingAnimation,
     fonts: matrix::FontBook,
+    pixels: matrix::PixelBook,
 }
 
 impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::marker::Send>
@@ -91,7 +93,8 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
         sender: mpsc::Sender<common::MatrixCommand>,
         api_key: String,
         timezone: String,
-        root_path: &std::path::Path,
+        fonts: matrix::FontBook,
+        pixels: matrix::PixelBook,
     ) -> AWSScreen<T> {
         let (data_pipe_sender, data_pipe_receiver) = mpsc::channel();
         AWSScreen {
@@ -103,7 +106,8 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             data_pipe_receiver,
             refresh_control_sender: None,
             loading_animation: animation::LoadingAnimation::new(),
-            fonts: matrix::FontBook::new(root_path),
+            fonts: fonts,
+            pixels: pixels,
         }
     }
 
@@ -259,6 +263,7 @@ impl<
                                 &games[current_data.active_index].draw_screen(
                                     canvas,
                                     &self.fonts,
+                                    &self.pixels,
                                     &self.timezone,
                                 );
                             } else {

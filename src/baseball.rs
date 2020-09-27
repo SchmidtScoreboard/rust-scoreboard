@@ -80,6 +80,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
         self: &Self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
+        pixels_book: &matrix::PixelBook,
         timezone: &str,
     ) {
         let font = &font_book.font4x6;
@@ -99,11 +100,11 @@ impl aws_screen::AWSScreenType for BaseballGame {
 
         if self.common.status == game::GameStatus::ACTIVE {
             if self.is_inning_top {
-                let mut up_arrow = matrix::Pixels::from_file("small_arrow.pix").unwrap();
+                let mut up_arrow = pixels_book.small_arrow.clone();
                 up_arrow.flip_vertical();
                 matrix::draw_pixels(canvas, &up_arrow, (ordinal_dimensions.width + 1, 20));
             } else {
-                let down_arrow = matrix::Pixels::from_file("small_arrow.pix").unwrap();
+                let down_arrow = &pixels_book.small_arrow;
                 matrix::draw_pixels(canvas, &down_arrow, (ordinal_dimensions.width + 1, 23));
             }
             let balls_strikes = format!("{}-{}", self.balls, self.strikes);
@@ -117,6 +118,16 @@ impl aws_screen::AWSScreenType for BaseballGame {
                 0,
                 false,
             );
+
+            for i in 0..3 {
+                let x = 61 - balls_strikes_dimensions.width + i * 4;
+                let y = 19 + balls_strikes_dimensions.height + 3;
+                if self.outs as i32 > i {
+                    matrix::draw_pixels(canvas, &pixels_book.filled_square, (x, y));
+                } else {
+                    matrix::draw_pixels(canvas, &pixels_book.empty_square, (x, y));
+                }
+            }
         }
     }
 }

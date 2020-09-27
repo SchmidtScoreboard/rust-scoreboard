@@ -72,6 +72,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
         self: &Self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
+        _pixels_book: &matrix::PixelBook,
         timezone: &str,
     ) {
         let font = &font_book.font5x8;

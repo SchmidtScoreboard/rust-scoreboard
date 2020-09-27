@@ -90,7 +90,8 @@ fn main() {
         tx.clone(),
         api_key.clone(),
         settings.get_settings().timezone.clone(),
-        &root_path,
+        matrix::FontBook::new(&root_path),
+        matrix::PixelBook::new(&root_path),
     );
     map.insert(ScreenId::Hockey, Box::new(hockey));
 
@@ -99,7 +100,8 @@ fn main() {
         tx.clone(),
         api_key.clone(),
         settings.get_settings().timezone.clone(),
-        &root_path,
+        matrix::FontBook::new(&root_path),
+        matrix::PixelBook::new(&root_path),
     );
     map.insert(ScreenId::Baseball, Box::new(baseball));
 
@@ -107,13 +109,14 @@ fn main() {
     let clock = clock::Clock::new(
         tx.clone(),
         settings.get_settings().timezone.clone(),
-        &root_path,
+        matrix::FontBook::new(&root_path),
     );
     map.insert(ScreenId::Clock, Box::new(clock));
 
     // Animation Test
     let animation = AnimationTestScreen::new(tx.clone());
     map.insert(ScreenId::Animation, Box::new(animation));
+
     // Setup the actual matrix and run it
     // Setup matrix options
     let mut options = rpi_led_matrix::LedMatrixOptions::new();

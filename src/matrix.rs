@@ -7,6 +7,8 @@ use std::fs;
 use std::str;
 use std::sync::mpsc;
 
+use png;
+
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix,
     receiver: mpsc::Receiver<common::MatrixCommand>,
@@ -162,25 +164,57 @@ impl FontBook {
 #[folder = "assets"]
 struct Asset;
 
+#[derive(Clone)]
 pub struct Pixels {
     pub data: Vec<Vec<rpi_led_matrix::LedColor>>,
 }
 
+pub struct PixelBook {
+    pub small_arrow: Pixels,
+    pub empty_square: Pixels,
+    pub filled_square: Pixels,
+}
+
+impl PixelBook {
+    pub fn new(root_path: &std::path::Path) -> PixelBook {
+        PixelBook {
+            small_arrow: Pixels::from_file(root_path, "small_arrow.png")
+                .expect("Could not load small arrow"),
+            empty_square: Pixels::from_file(root_path, "empty_square.png")
+                .expect("Could not load empty square"),
+            filled_square: Pixels::from_file(root_path, "filled_square.png")
+                .expect("Could not load filled square"),
+        }
+    }
+}
+
 impl Pixels {
-    pub fn from_file(file: &'static str) -> Result<Pixels, Box<dyn Error>> {
-        let contents = Asset::get(file).unwrap();
-        let contents = str::from_utf8(&contents).unwrap();
+    pub fn dump_file(root_path: &std::path::Path, file_name: &str) {
+        let target_dir = root_path.join("assets");
+        let _create_dir_result = fs::create_dir(&target_dir);
+        let contents = Asset::get(file_name).unwrap();
+        fs::write(&target_dir.join(file_name), contents).expect("Failed to write file");
+    }
 
-        let data: Result<Vec<_>, _> = contents
-            .lines()
-            .map(|line| {
-                line.split(' ')
-                    .map(|word| common::color_from_string(&word[2..]))
-                    .collect()
-            })
-            .collect();
-
-        Ok(Pixels { data: data? })
+    pub fn from_file(
+        root_path: &std::path::Path,
+        file: &'static str,
+    ) -> Result<Pixels, Box<dyn Error>> {
+        Pixels::dump_file(root_path, file);
+        let full_path = root_path.join(format!("assets/{}", file));
+        let decoder = png::Decoder::new(fs::File::open(full_path).unwrap());
+        let (info, mut reader) = decoder.read_info().unwrap();
+        let mut data: Vec<Vec<rpi_led_matrix::LedColor>> = vec![];
+        for _ in 0..info.height {
+            let row = reader.next_row().unwrap().unwrap();
+            let mut row_vec: Vec<rpi_led_matrix::LedColor> = vec![];
+            for i in 0usize..(info.width as usize) {
+                let index = i * 4;
+                row_vec.push(common::color_from_slice(&row[index..index + 3]));
+            }
+            data.push(row_vec);
+        }
+        Ok(Pixels { data: data })
     }
 
     pub fn flip_vertical(self: &mut Self) {
