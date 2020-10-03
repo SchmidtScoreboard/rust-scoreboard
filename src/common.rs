@@ -12,9 +12,7 @@ pub enum ScreenId {
     Clock = 50,
     Reboot = 99,
     Refresh = 100,
-    Hotspot = 101,
-    WifiDetails = 102,
-    Sync = 103,
+    Setup = 101,
     Error = 104,
     Animation = 1000,
 }

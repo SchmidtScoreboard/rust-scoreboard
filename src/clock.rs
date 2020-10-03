@@ -44,7 +44,6 @@ impl matrix::ScreenProvider for Clock {
         let text_dimensions = font.get_text_dimensions(&clock_text);
         let (canvas_width, canvas_height) = canvas.canvas_size();
         let color = common::new_color(255, 255, 255);
-        println!("text dimensions {:?}", text_dimensions);
         canvas.draw_text(
             &font.led_font,
             &clock_text,

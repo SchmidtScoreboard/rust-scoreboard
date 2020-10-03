@@ -15,8 +15,6 @@ extern crate rust_embed;
 
 #[macro_use]
 extern crate log;
-extern crate simplelog;
-use simplelog::*;
 
 use animation::AnimationTestScreen;
 use aws_screen::AWSScreen;
@@ -30,9 +28,6 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::mpsc;
-extern crate pipe_logger_lib;
-
-use pipe_logger_lib::*;
 
 fn main() {
     let mut arguments = env::args();
@@ -43,21 +38,19 @@ fn main() {
     };
     let log_dir = root_path.join("logs");
     let _create_dir_result = fs::create_dir(&log_dir);
-    let log_path = log_dir.join("scoreboard-log");
 
-    let mut builder = PipeLoggerBuilder::new(&log_path);
-    builder
-        .set_rotate(Some(RotateMethod::FileSize(10000))) // bytes
-        .set_count(Some(10))
-        .set_compress(false);
-
-    let logger = builder.build().unwrap();
-
-    CombinedLogger::init(vec![
-        TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed),
-        WriteLogger::new(LevelFilter::Info, Config::default(), logger),
-    ])
-    .unwrap();
+    flexi_logger::Logger::with_env()
+        .log_to_file()
+        .directory(log_dir)
+        .duplicate_to_stdout(flexi_logger::Duplicate::All)
+        .format_for_stdout(flexi_logger::colored_detailed_format)
+        .rotate(
+            flexi_logger::Criterion::Age(flexi_logger::Age::Day),
+            flexi_logger::Naming::Timestamps,
+            flexi_logger::Cleanup::KeepLogFiles(3),
+        )
+        .start()
+        .unwrap();
 
     let secrets_path = root_path.join("secrets.txt");
     let settings_path = root_path.join("scoreboard_settings.json");
@@ -76,8 +69,11 @@ fn main() {
         )))
         .expect("Could not parse scoreboard settings from json");
 
-    let settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
+    let mut settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
 
+    if settings.get_settings_clone().setup_state == common::SetupState::Factory {
+        settings.set_setup_state(&common::SetupState::Hotspot);
+    }
     // TODO setup button listener with sender end of channel
 
     let (tx, rx) = mpsc::channel();
@@ -141,6 +137,5 @@ fn main() {
     std::thread::spawn(move || {
         webserver::run_webserver(webserver_sender, settings);
     });
-
     matrix.run();
 }

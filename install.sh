@@ -25,4 +25,4 @@ function ctrl_c() {
 
 ssh pi@$PI_IP 'sudo pkill scoreboard-rust'
 rsync -avzhe ssh target/$TARGET/debug/scoreboard-rust pi@$PI_IP:/home/pi/rust-scoreboard/
-ssh pi@$PI_IP 'sudo ./rust-scoreboard/scoreboard-rust'
+ssh pi@$PI_IP 'sudo RUST_LOG="debug, rocket= error" ./rust-scoreboard/scoreboard-rust'
