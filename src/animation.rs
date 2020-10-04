@@ -77,16 +77,18 @@ impl matrix::ScreenProvider for AnimationTestScreen {
         self.sender
             .send(common::MatrixCommand::Display(common::ScreenId::Animation))
             .unwrap();
+        self.send_draw_command(None);
     }
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         self.loading_anim.draw(canvas, (0, 0));
-        let sender = self.sender.clone();
-        let _next_draw_thread = std::thread::spawn(move || {
-            std::thread::sleep(Duration::from_millis(20));
-            sender
-                .send(common::MatrixCommand::Display(common::ScreenId::Animation))
-                .unwrap();
-        });
+        self.send_draw_command(Some(Duration::from_secs(30)));
     }
     fn update_settings(self: &mut Self, _settings: common::ScoreboardSettingsData) {}
+
+    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
+        self.sender.clone()
+    }
+    fn get_screen_id(self: &Self) -> common::ScreenId {
+        common::ScreenId::Animation
+    }
 }

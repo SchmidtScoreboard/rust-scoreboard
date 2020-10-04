@@ -214,9 +214,7 @@ impl<
         let _refresh_thread = std::thread::spawn(move || {
             AWSScreen::run_refresh_thread(refresh_control_receiver, api_key, data_sender)
         });
-        self.sender
-            .send(common::MatrixCommand::Display(T::get_screen_id()))
-            .unwrap();
+        self.send_draw_command(None);
     }
     fn deactivate(self: &Self) {
         // Sends a deactivate command to the refresh thread
@@ -283,12 +281,14 @@ impl<
         }
 
         // Schedule the next draw
-        let sender = self.sender.clone();
-        let _next_draw_thread = std::thread::spawn(move || {
-            std::thread::sleep(Duration::from_millis(30));
-            sender
-                .send(common::MatrixCommand::Display(T::get_screen_id()))
-                .unwrap();
-        });
+        self.send_draw_command(Some(Duration::from_secs(30)));
+    }
+
+    fn get_screen_id(self: &Self) -> common::ScreenId {
+        T::get_screen_id()
+    }
+
+    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
+        self.sender.clone()
     }
 }

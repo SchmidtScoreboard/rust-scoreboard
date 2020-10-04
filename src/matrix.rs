@@ -1,13 +1,14 @@
 use crate::common;
 use crate::common::ScoreboardSettingsData;
+use png;
 use rpi_led_matrix;
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::error::Error;
 use std::fs;
 use std::str;
 use std::sync::mpsc;
-
-use png;
+use std::time::Duration;
 
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix,
@@ -173,6 +174,8 @@ pub struct PixelBook {
     pub small_arrow: Pixels,
     pub empty_square: Pixels,
     pub filled_square: Pixels,
+    pub wifi: Pixels,
+    pub phone_frame: Pixels,
 }
 
 impl PixelBook {
@@ -184,6 +187,9 @@ impl PixelBook {
                 .expect("Could not load empty square"),
             filled_square: Pixels::from_file(root_path, "filled_square.png")
                 .expect("Could not load filled square"),
+            wifi: Pixels::from_file(root_path, "wifi.png").expect("Could not load wifi"),
+            phone_frame: Pixels::from_file(root_path, "phone_frame.png")
+                .expect("Could not load phone frame"),
         }
     }
 }
@@ -217,13 +223,24 @@ impl Pixels {
         Ok(Pixels { data: data })
     }
 
-    pub fn flip_vertical(self: &mut Self) {
-        self.data.reverse();
+    pub fn size(self: &Self) -> Dimensions {
+        Dimensions::new(
+            self.data[0].len().try_into().unwrap(),
+            self.data.len().try_into().unwrap(),
+        )
     }
-    pub fn _flip_horizontal(self: &mut Self) {
-        self.data.iter_mut().for_each(|row| {
+
+    pub fn flip_vertical(self: &Self) -> Pixels {
+        let mut copy = self.data.to_vec();
+        copy.reverse();
+        Pixels { data: copy }
+    }
+    pub fn _flip_horizontal(self: &Self) -> Pixels {
+        let mut copy = self.data.to_vec();
+        copy.iter_mut().for_each(|row| {
             row.reverse();
         });
+        Pixels { data: copy }
     }
 }
 // Common drawing things
@@ -273,4 +290,25 @@ pub trait ScreenProvider {
     // Handle recieving new scoreboard settings
     // This may change timezone and any other screen specific features
     fn update_settings(self: &mut Self, settings: ScoreboardSettingsData);
+
+    fn get_screen_id(self: &Self) -> common::ScreenId;
+
+    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand>;
+
+    fn send_draw_command(self: &Self, duration: Option<Duration>) {
+        let id = self.get_screen_id();
+        let sender = self.get_sender();
+        if let Some(duration) = duration {
+            let _next_draw_thread = std::thread::spawn(move || {
+                std::thread::sleep(duration);
+                draw_command(sender, id);
+            });
+        } else {
+            draw_command(sender, id);
+        }
+    }
+}
+
+fn draw_command(sender: mpsc::Sender<common::MatrixCommand>, id: common::ScreenId) {
+    sender.send(common::MatrixCommand::Display(id)).unwrap();
 }

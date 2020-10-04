@@ -6,6 +6,7 @@ use chrono::Utc;
 use chrono_tz::Tz;
 use rpi_led_matrix;
 use std::sync::mpsc;
+use std::time::Duration;
 
 pub struct Clock {
     sender: mpsc::Sender<common::MatrixCommand>,
@@ -29,10 +30,7 @@ impl Clock {
 impl matrix::ScreenProvider for Clock {
     fn activate(self: &mut Self) {
         info!("Activating Clock");
-
-        self.sender
-            .send(common::MatrixCommand::Display(common::ScreenId::Clock))
-            .unwrap();
+        self.send_draw_command(None);
     }
 
     fn update_settings(self: &mut Self, _settings: ScoreboardSettingsData) {}
@@ -53,5 +51,14 @@ impl matrix::ScreenProvider for Clock {
             0,
             false,
         );
+        self.send_draw_command(Some(Duration::from_secs(30)));
+    }
+
+    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
+        self.sender.clone()
+    }
+
+    fn get_screen_id(self: &Self) -> common::ScreenId {
+        common::ScreenId::Clock
     }
 }

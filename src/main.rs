@@ -9,6 +9,7 @@ mod game;
 mod hockey;
 mod matrix;
 mod scoreboard_settings;
+mod setup_screen;
 mod webserver;
 #[macro_use]
 extern crate rust_embed;
@@ -43,7 +44,7 @@ fn main() {
         .log_to_file()
         .directory(log_dir)
         .duplicate_to_stdout(flexi_logger::Duplicate::All)
-        .format_for_stdout(flexi_logger::colored_detailed_format)
+        .format_for_stdout(flexi_logger::colored_default_format)
         .rotate(
             flexi_logger::Criterion::Age(flexi_logger::Age::Day),
             flexi_logger::Naming::Timestamps,
@@ -109,6 +110,14 @@ fn main() {
     );
     map.insert(ScreenId::Clock, Box::new(clock));
 
+    let setup_screen = setup_screen::SetupScreen::new(
+        tx.clone(),
+        settings.get_settings().setup_state,
+        matrix::FontBook::new(&root_path),
+        matrix::PixelBook::new(&root_path),
+    );
+    map.insert(ScreenId::Setup, Box::new(setup_screen));
+
     // Animation Test
     let animation = AnimationTestScreen::new(tx.clone());
     map.insert(ScreenId::Animation, Box::new(animation));
@@ -125,6 +134,7 @@ fn main() {
     let led_matrix: rpi_led_matrix::LedMatrix =
         rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
             .expect("Could not setup matrix");
+
     let mut matrix = Matrix::new(
         led_matrix,
         rx,

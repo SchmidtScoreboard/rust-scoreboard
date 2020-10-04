@@ -100,8 +100,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
 
         if self.common.status == game::GameStatus::ACTIVE {
             if self.is_inning_top {
-                let mut up_arrow = pixels_book.small_arrow.clone();
-                up_arrow.flip_vertical();
+                let up_arrow = &pixels_book.small_arrow.flip_vertical();
                 matrix::draw_pixels(canvas, &up_arrow, (ordinal_dimensions.width + 1, 20));
             } else {
                 let down_arrow = &pixels_book.small_arrow;
