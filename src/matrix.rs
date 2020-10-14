@@ -210,15 +210,16 @@ impl Pixels {
         let full_path = root_path.join(format!("assets/{}", file));
         let decoder = png::Decoder::new(fs::File::open(full_path).unwrap());
         let (info, mut reader) = decoder.read_info().unwrap();
-        let mut data: Vec<Vec<rpi_led_matrix::LedColor>> = vec![];
-        for _ in 0..info.height {
+        let width = info.width as usize;
+        let height = info.height as usize;
+        let mut data: Vec<Vec<rpi_led_matrix::LedColor>> =
+            vec![vec![common::new_color(0, 0, 0); width]; height];
+        for y in 0..height {
             let row = reader.next_row().unwrap().unwrap();
-            let mut row_vec: Vec<rpi_led_matrix::LedColor> = vec![];
-            for i in 0usize..(info.width as usize) {
-                let index = i * 4;
-                row_vec.push(common::color_from_slice(&row[index..index + 3]));
+            for x in 0..width {
+                let index = x * 4;
+                data[y][x] = common::color_from_slice(&row[index..index + 3]);
             }
-            data.push(row_vec);
         }
         Ok(Pixels { data: data })
     }
@@ -260,14 +261,14 @@ pub fn draw_rectangle(
 
 pub fn draw_pixels(canvas: &mut rpi_led_matrix::LedCanvas, pixels: &Pixels, top_left: (i32, i32)) {
     let (x0, y0) = top_left;
-    let mut x = 0;
+    let mut y = 0;
     pixels.data.iter().for_each(|row| {
-        let mut y = 0;
+        let mut x = 0;
         row.iter().for_each(|pixel| {
             canvas.set(x0 + x, y0 + y, &pixel);
-            y += 1;
+            x += 1;
         });
-        x += 1;
+        y += 1;
     });
 }
 
