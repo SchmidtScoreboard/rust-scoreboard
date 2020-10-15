@@ -176,6 +176,7 @@ pub struct PixelBook {
     pub filled_square: Pixels,
     pub wifi: Pixels,
     pub phone_frame: Pixels,
+    pub green_check: Pixels,
 }
 
 impl PixelBook {
@@ -190,6 +191,8 @@ impl PixelBook {
             wifi: Pixels::from_file(root_path, "wifi.png").expect("Could not load wifi"),
             phone_frame: Pixels::from_file(root_path, "phone_frame.png")
                 .expect("Could not load phone frame"),
+            green_check: Pixels::from_file(root_path, "check.png")
+                .expect("Could not load green check"),
         }
     }
 }
@@ -256,6 +259,32 @@ pub fn draw_rectangle(
 
     for i in y0..y1 {
         canvas.draw_line(x0, i, x1, i, color);
+    }
+}
+
+pub fn draw_lines(
+    canvas: &mut rpi_led_matrix::LedCanvas,
+    lines: &[&str],
+    x_baseline: i32,
+    font: &Font,
+    color: &rpi_led_matrix::LedColor,
+) {
+    let spacing = 2;
+    let total_height = (lines.len() - 1) * spacing + lines.len() * font.dimensions.height as usize;
+    let top_offset =
+        (canvas.canvas_size().1 as usize - total_height) / 2 + font.dimensions.height as usize;
+    let top_offset: i32 = top_offset.try_into().unwrap();
+    for (i, text) in lines.iter().enumerate() {
+        let index: i32 = i.try_into().unwrap();
+        canvas.draw_text(
+            &font.led_font,
+            &text,
+            x_baseline,
+            top_offset + (index * (&font.dimensions.height + spacing as i32)),
+            &color,
+            0,
+            false,
+        );
     }
 }
 
