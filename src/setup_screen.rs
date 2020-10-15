@@ -95,7 +95,7 @@ impl matrix::ScreenProvider for SetupScreen {
                     .draw(canvas, (canvas_width - 5, canvas_height - 5));
             }
             common::SetupState::Sync => {
-                debug!("Drawing wifi screen");
+                // debug!("Drawing wifi screen");
             }
             common::SetupState::Ready => {
                 error!("Should not display setup screen while ready");

@@ -1025,9 +1025,9 @@ dependencies = [
 
 [[package]]
 name = "rpi-led-matrix"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e29439f908f166966683d867542fc2028c97bc36a525ae731238253c9551091"
+checksum = "5b27442bb974a0fa23b9e6d630490679c3020ac1037c229c666e144d09d883b5"
 dependencies = [
  "embedded-graphics",
  "gcc",

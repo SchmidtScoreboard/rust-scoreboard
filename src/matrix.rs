@@ -57,14 +57,12 @@ impl<'a> Matrix<'a> {
             self.activate_screen();
         } else {
             self.deactivate_screen();
-            let mut canvas = self.led_matrix.offscreen_canvas();
-            canvas.clear();
-            self.led_matrix.swap(canvas);
         }
     }
     // This is the main loop of the entire code
     // Call this after everything else is set up
     pub fn run(self: &mut Self) {
+        let mut canvas = self.led_matrix.offscreen_canvas();
         self.handle_power(true);
         loop {
             let command = self.receiver.recv().unwrap();
@@ -80,10 +78,10 @@ impl<'a> Matrix<'a> {
                 common::MatrixCommand::Display(id) => {
                     if id == self.active_id && self.screen_on {
                         // If the id received matches the active id, display the image
-                        let mut canvas = self.led_matrix.offscreen_canvas();
                         self.get_mut_screen(self.active_id.clone())
                             .draw(&mut canvas);
-                        self.led_matrix.swap(canvas);
+                        canvas = self.led_matrix.swap(canvas);
+                        canvas.clear();
                     }
                 }
                 common::MatrixCommand::UpdateSettings(settings) => {
