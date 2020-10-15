@@ -50,30 +50,30 @@ impl<'a> Matrix<'a> {
         screen.deactivate();
     }
 
-    fn handle_power(self: &mut Self, screen_on: bool) {
-        // TODO set power to the matrix
-        self.screen_on = screen_on;
-        if self.screen_on {
-            self.activate_screen();
-        } else {
-            self.deactivate_screen();
-        }
-    }
     // This is the main loop of the entire code
     // Call this after everything else is set up
     pub fn run(self: &mut Self) {
         let mut canvas = self.led_matrix.offscreen_canvas();
-        self.handle_power(true);
+        self.screen_on = true;
+        self.activate_screen();
         loop {
             let command = self.receiver.recv().unwrap();
             // let command = command.unwrap(); // Get the actual command
             match command {
                 common::MatrixCommand::SetActiveScreen(id) => {
                     self.active_id = id;
-                    self.handle_power(true);
+                    self.screen_on = true;
+                    self.activate_screen();
                 }
                 common::MatrixCommand::SetPower(on) => {
-                    self.handle_power(on);
+                    self.screen_on = on;
+                    if self.screen_on {
+                        self.activate_screen();
+                    } else {
+                        self.deactivate_screen();
+                    }
+                    canvas.clear();
+                    canvas = self.led_matrix.swap(canvas);
                 }
                 common::MatrixCommand::Display(id) => {
                     if id == self.active_id && self.screen_on {
