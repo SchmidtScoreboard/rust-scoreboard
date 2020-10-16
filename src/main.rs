@@ -135,17 +135,12 @@ fn main() {
         rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
             .expect("Could not setup matrix");
 
-    let mut matrix = Matrix::new(
-        led_matrix,
-        rx,
-        map,
-        true,
-        settings.get_settings().active_screen,
-    );
+    let (web_response_sender, web_response_receiver) = mpsc::channel();
+    let mut matrix = Matrix::new(led_matrix, rx, map, settings, web_response_sender);
 
     let webserver_sender = tx.clone();
     std::thread::spawn(move || {
-        webserver::run_webserver(webserver_sender, settings);
+        webserver::run_webserver(webserver_sender, web_response_receiver, root_path);
     });
     matrix.run();
 }

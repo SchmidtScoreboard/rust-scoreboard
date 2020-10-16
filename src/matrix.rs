@@ -1,5 +1,6 @@
 use crate::common;
 use crate::common::ScoreboardSettingsData;
+use crate::scoreboard_settings::ScoreboardSettings;
 use png;
 use rpi_led_matrix;
 use std::collections::HashMap;
@@ -14,8 +15,8 @@ pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix,
     receiver: mpsc::Receiver<common::MatrixCommand>,
     screens_map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
-    screen_on: bool,
-    active_id: common::ScreenId,
+    settings: ScoreboardSettings,
+    webserver_responder: mpsc::Sender<common::WebserverResponse>,
 }
 
 impl<'a> Matrix<'a> {
@@ -23,30 +24,43 @@ impl<'a> Matrix<'a> {
         led_matrix: rpi_led_matrix::LedMatrix,
         receiver: mpsc::Receiver<common::MatrixCommand>,
         map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
-        screen_on: bool,
-        active_id: common::ScreenId,
+        settings: ScoreboardSettings,
+        webserver_responder: mpsc::Sender<common::WebserverResponse>,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
             receiver,
             screens_map: map,
-            screen_on,
-            active_id,
+            settings,
+            webserver_responder,
         }
     }
 
-    fn get_mut_screen(self: &mut Self, id: common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
+    fn get_mut_screen(self: &mut Self, id: &common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
         self.screens_map
-            .get_mut(&id)
+            .get_mut(id)
+            .expect(&format!("Could not find screen {:?}", id))
+    }
+
+    fn get_mut_active_screen(self: &mut Self) -> &mut Box<dyn ScreenProvider + 'a> {
+        let id = self.settings.get_active_screen();
+        self.screens_map
+            .get_mut(id)
             .expect(&format!("Could not find screen {:?}", id))
     }
 
     fn activate_screen(self: &mut Self) {
-        let screen = self.get_mut_screen(self.active_id.clone());
+        let screen = self.get_mut_active_screen();
         screen.activate();
     }
+
+    fn update_settings_on_active_screen(self: &mut Self) {
+        let settings_copy = self.settings.get_settings_clone();
+        let screen = self.get_mut_active_screen();
+        screen.update_settings(settings_copy);
+    }
     fn deactivate_screen(self: &mut Self) {
-        let screen = self.get_mut_screen(self.active_id.clone());
+        let screen = self.get_mut_active_screen();
         screen.deactivate();
     }
 
@@ -54,39 +68,155 @@ impl<'a> Matrix<'a> {
     // Call this after everything else is set up
     pub fn run(self: &mut Self) {
         let mut canvas = self.led_matrix.offscreen_canvas();
-        self.screen_on = true;
+        self.settings.set_power(&true);
         self.activate_screen();
         loop {
             let command = self.receiver.recv().unwrap();
             // let command = command.unwrap(); // Get the actual command
             match command {
                 common::MatrixCommand::SetActiveScreen(id) => {
-                    self.active_id = id;
-                    self.screen_on = true;
+                    self.settings.set_active_screen(&id);
+                    self.settings.set_power(&true);
                     self.activate_screen();
+                    self.webserver_responder
+                        .send(common::WebserverResponse::SetActiveScreenResponse(
+                            self.settings.get_settings_clone(),
+                        ))
+                        .unwrap();
                 }
-                common::MatrixCommand::SetPower(on) => {
-                    self.screen_on = on;
-                    if self.screen_on {
+                common::MatrixCommand::SetPower {
+                    from_webserver,
+                    power,
+                } => {
+                    let on = match power {
+                        Some(power) => power,
+                        None => !self.settings.get_power(),
+                    };
+                    self.settings.set_power(&on);
+                    if *self.settings.get_power() {
                         self.activate_screen();
                     } else {
                         self.deactivate_screen();
                     }
                     canvas.clear();
                     canvas = self.led_matrix.swap(canvas);
+                    if from_webserver {
+                        self.webserver_responder
+                            .send(common::WebserverResponse::SetPowerResponse(
+                                self.settings.get_settings_clone(),
+                            ))
+                            .unwrap();
+                    }
                 }
                 common::MatrixCommand::Display(id) => {
-                    if id == self.active_id && self.screen_on {
+                    if id == *self.settings.get_active_screen() && *self.settings.get_power() {
                         // If the id received matches the active id, display the image
-                        self.get_mut_screen(self.active_id.clone())
-                            .draw(&mut canvas);
+                        self.get_mut_screen(&id).draw(&mut canvas);
                         canvas = self.led_matrix.swap(canvas);
                         canvas.clear();
                     }
                 }
+                common::MatrixCommand::GetSettings() => {
+                    self.webserver_responder
+                        .send(common::WebserverResponse::GetSettingsResponse(
+                            self.settings.get_settings_clone(),
+                        ))
+                        .unwrap();
+                }
                 common::MatrixCommand::UpdateSettings(settings) => {
-                    self.get_mut_screen(self.active_id.clone())
-                        .update_settings(settings);
+                    self.settings.update_settings(settings);
+                    self.update_settings_on_active_screen();
+                    self.webserver_responder
+                        .send(common::WebserverResponse::UpdateSettingsResponse(
+                            self.settings.get_settings_clone(),
+                        ))
+                        .unwrap();
+                }
+                common::MatrixCommand::Reboot { from_webserver } => {
+                    // Send and/or schedule the reboot
+                    if from_webserver {
+                        self.webserver_responder
+                            .send(common::WebserverResponse::RebootResponse(Some(
+                                self.settings.get_settings_clone(),
+                            )))
+                            .unwrap();
+                    }
+                }
+                common::MatrixCommand::Reset { from_webserver } => {
+                    // Reset scoreboard settings, then reboot
+                    if from_webserver {
+                        self.webserver_responder
+                            .send(common::WebserverResponse::ResetResponse(Some(
+                                self.settings.get_settings_clone(),
+                            )))
+                            .unwrap();
+                    }
+                }
+                common::MatrixCommand::GotHotspotConnection() => {
+                    // Change setup state
+                    self.update_settings_on_active_screen();
+                    self.webserver_responder
+                        .send(common::WebserverResponse::GotHotspotConnectionResponse(
+                            Some(self.settings.get_settings_clone()),
+                        ))
+                        .unwrap();
+                }
+                common::MatrixCommand::GotWifiDetails {
+                    ssid: _,
+                    password: _,
+                } => {
+                    // Got wifi details, set the wpa supplicant file and restart
+                    if self.settings.get_setup_state() == &common::SetupState::WifiConnect {
+                        self.settings.set_setup_state(&common::SetupState::Sync);
+                        self.update_settings_on_active_screen();
+                        self.webserver_responder
+                            .send(common::WebserverResponse::GotWifiDetailsResponse(Some(
+                                self.settings.get_settings_clone(),
+                            )))
+                            .unwrap();
+                    } else {
+                        self.webserver_responder
+                            .send(common::WebserverResponse::GotWifiDetailsResponse(None))
+                            .unwrap();
+                    }
+                }
+                common::MatrixCommand::SyncCommand {
+                    from_webserver,
+                    show_sync,
+                } => {
+                    // Got a sync command with optional showSync.
+                    let current_setup_state = self.settings.get_setup_state();
+                    if current_setup_state == &common::SetupState::Ready
+                        || current_setup_state == &common::SetupState::Sync
+                    {
+                        self.deactivate_screen();
+                        let show_sync = match show_sync {
+                            Some(show_sync) => show_sync,
+                            None => self.settings.get_setup_state() == &common::SetupState::Sync,
+                        };
+                        if show_sync {
+                            self.settings.set_setup_state(&common::SetupState::Sync);
+                            self.settings.set_active_screen(&common::ScreenId::Setup);
+                        } else {
+                            self.settings.set_setup_state(&common::SetupState::Ready);
+                            self.settings.set_active_screen(&common::ScreenId::Hockey);
+                        }
+                        self.update_settings_on_active_screen();
+                        self.activate_screen();
+                        if from_webserver {
+                            self.webserver_responder
+                                .send(common::WebserverResponse::SyncCommandRespones(Some(
+                                    self.settings.get_settings_clone(),
+                                )))
+                                .unwrap();
+                        }
+                    } else {
+                        if from_webserver {
+                            self.webserver_responder
+                                .send(common::WebserverResponse::SyncCommandRespones(None))
+                                .unwrap();
+                        }
+                    }
                 }
             };
         }

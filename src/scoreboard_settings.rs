@@ -34,6 +34,16 @@ impl ScoreboardSettings {
         self.write_settings();
     }
 
+    pub fn get_active_screen(self: &Self) -> &ScreenId {
+        &self.data.active_screen
+    }
+    pub fn get_power(self: &Self) -> &bool {
+        &self.data.screen_on
+    }
+    pub fn get_setup_state(self: &Self) -> &SetupState {
+        &self.data.setup_state
+    }
+
     pub fn set_active_screen(self: &mut Self, id: &ScreenId) {
         self.data.active_screen = *id;
         self.write_settings();

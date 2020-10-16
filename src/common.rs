@@ -19,9 +19,42 @@ pub enum ScreenId {
 
 pub enum MatrixCommand {
     SetActiveScreen(ScreenId),
-    SetPower(bool),
+    SetPower {
+        from_webserver: bool,
+        power: Option<bool>,
+    },
     Display(ScreenId),
     UpdateSettings(ScoreboardSettingsData),
+
+    // Setup Commands
+    GetSettings(), // Fetch the settings
+    Reboot {
+        from_webserver: bool,
+    }, // Reboot the scoreboard
+    Reset {
+        from_webserver: bool,
+    }, // Reset the scoreboard to factory settings (Long Press)
+    GotHotspotConnection(), // User connected to hotspot, waiting on wifi details
+    GotWifiDetails {
+        ssid: String,
+        password: String,
+    }, // User sent wifi details
+    SyncCommand {
+        from_webserver: bool,
+        show_sync: Option<bool>,
+    }, // Show sync, hide sync, or swap sync
+}
+
+pub enum WebserverResponse {
+    UpdateSettingsResponse(ScoreboardSettingsData),
+    SetPowerResponse(ScoreboardSettingsData),
+    SetActiveScreenResponse(ScoreboardSettingsData),
+    GetSettingsResponse(ScoreboardSettingsData),
+    RebootResponse(Option<ScoreboardSettingsData>),
+    ResetResponse(Option<ScoreboardSettingsData>),
+    GotHotspotConnectionResponse(Option<ScoreboardSettingsData>),
+    GotWifiDetailsResponse(Option<ScoreboardSettingsData>),
+    SyncCommandRespones(Option<ScoreboardSettingsData>),
 }
 
 pub fn new_color(red: u8, green: u8, blue: u8) -> rpi_led_matrix::LedColor {

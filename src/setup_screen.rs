@@ -3,7 +3,6 @@ use crate::common;
 use crate::matrix;
 
 use rpi_led_matrix;
-use std::convert::TryInto;
 use std::sync::mpsc;
 use std::time::Duration;
 

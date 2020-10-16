@@ -1,10 +1,11 @@
-use crate::common::{MatrixCommand, ScoreboardSettingsData, ScreenId, SetupState};
-use crate::scoreboard_settings::ScoreboardSettings;
+use crate::common::{MatrixCommand, ScoreboardSettingsData, ScreenId, WebserverResponse};
 use rocket::config::{Config, Environment};
+use rocket::response::status;
 use rocket::{get, post, routes, State};
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::path::PathBuf;
 
 use std::sync::mpsc;
 use std::sync::Mutex;
@@ -30,154 +31,248 @@ struct RebootRequest {
 
 struct ServerState {
     sender: mpsc::Sender<MatrixCommand>,
-    settings: ScoreboardSettings,
+    receiver: mpsc::Receiver<WebserverResponse>,
+    file_path: PathBuf,
 }
 
 impl ServerState {
-    fn new(sender: mpsc::Sender<MatrixCommand>, settings: ScoreboardSettings) -> ServerState {
-        ServerState { sender, settings }
+    fn new(
+        sender: mpsc::Sender<MatrixCommand>,
+        receiver: mpsc::Receiver<WebserverResponse>,
+        file_path: PathBuf,
+    ) -> ServerState {
+        ServerState {
+            sender,
+            receiver,
+            file_path,
+        }
     }
 }
 
 #[get("/")]
-fn index(state: State<Mutex<ServerState>>) -> Json<ScoreboardSettingsData> {
+fn index(
+    state: State<Mutex<ServerState>>,
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
     let state = state.lock().unwrap();
-    let copy = (*state).settings.get_settings_clone();
-    Json(copy)
+
+    (*state).sender.send(MatrixCommand::GetSettings()).unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::GetSettingsResponse(settings) => Ok(Json(settings)),
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
 }
 #[post("/configure", format = "json", data = "<new_settings>")]
 fn configure(
     new_settings: Json<ScoreboardSettingsData>,
     state: State<Mutex<ServerState>>,
-) -> Json<ScoreboardSettingsData> {
-    let mut state = state.lock().unwrap();
-    (*state).settings.update_settings(new_settings.into_inner());
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+    let state = state.lock().unwrap();
     (*state)
         .sender
-        .send(MatrixCommand::UpdateSettings(
-            (*state).settings.get_settings_clone(),
-        ))
+        .send(MatrixCommand::UpdateSettings(new_settings.into_inner()))
         .unwrap();
-    Json((*state).settings.get_settings_clone())
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::UpdateSettingsResponse(settings) => Ok(Json(settings)),
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
 }
 
 #[post("/setPower", format = "json", data = "<power_request>")]
 fn set_power(
     power_request: Json<PowerRequest>,
     state: State<Mutex<ServerState>>,
-) -> Json<ScoreboardSettingsData> {
-    let mut state = state.lock().unwrap();
-    (*state).settings.set_power(&power_request.screen_on);
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+    let state = state.lock().unwrap();
     (*state)
         .sender
-        .send(MatrixCommand::SetPower(power_request.screen_on))
+        .send(MatrixCommand::SetPower {
+            from_webserver: true,
+            power: Some(power_request.screen_on),
+        })
         .unwrap();
-    Json((*state).settings.get_settings_clone())
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::SetPowerResponse(settings) => Ok(Json(settings)),
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
 }
 
 #[post("/setSport", format = "json", data = "<sport_request>")]
 fn set_sport(
     sport_request: Json<SportRequest>,
     state: State<Mutex<ServerState>>,
-) -> Json<ScoreboardSettingsData> {
-    let mut state = state.lock().unwrap();
-    (*state).settings.set_active_screen(&sport_request.sport);
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+    let state = state.lock().unwrap();
     (*state)
         .sender
         .send(MatrixCommand::SetActiveScreen(sport_request.sport))
         .unwrap();
-    Json((*state).settings.get_settings_clone())
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::SetPowerResponse(settings) => Ok(Json(settings)),
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
 }
 
-#[post("/wifi", format = "json", data = "<_wifi_request>")]
+#[post("/wifi", format = "json", data = "<wifi_request>")]
 fn wifi(
-    _wifi_request: Json<WifiRequest>,
+    wifi_request: Json<WifiRequest>,
     state: State<Mutex<ServerState>>,
-) -> Json<ScoreboardSettingsData> {
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
     let state = state.lock().unwrap();
-    // TODO send matrix command to start restart with wifi
-
-    Json((*state).settings.get_settings_clone())
+    (*state)
+        .sender
+        .send(MatrixCommand::GotWifiDetails {
+            ssid: wifi_request.ssid.clone(),
+            password: wifi_request.psk.clone(),
+        })
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::GotWifiDetailsResponse(settings) => match settings {
+            Some(settings) => Ok(Json(settings)),
+            None => Err(status::NotFound("Failed to setup wifi".to_string())),
+        },
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
 }
 
 #[get("/logs")]
-fn logs(state: State<Mutex<ServerState>>) -> String {
+fn logs(state: State<Mutex<ServerState>>) -> Result<String, std::io::Error> {
     let state = state.lock().unwrap();
-    // TODO read log file and send response
-    let log_path = {
-        let mut path = (*state).settings.file_path.clone();
-        path.pop();
-        path.join("logs/scoreboard-log")
+    let logs_dir = {
+        let path = (*state).file_path.clone();
+        path.join("logs/")
     };
-    fs::read_to_string(log_path).unwrap_or("Could not read logs".to_string())
+    let entries = fs::read_dir(logs_dir)?;
+    let mut out: String = format!("Begin log file\n");
+    for entry in entries {
+        debug!("entry {:?}", entry);
+        match entry {
+            Ok(entry) => {
+                let log_output = fs::read_to_string(entry.path())?;
+                out.push_str(&format!("\n\nNEW LOG FILE {:?} \n\n", entry.path()));
+                out.push_str(&log_output);
+            }
+            _ => {}
+        }
+    }
+    Ok(out)
 }
 
 #[post("/showSync")]
-fn show_sync(state: State<Mutex<ServerState>>) -> Json<ScoreboardSettingsData> {
-    let mut state = state.lock().unwrap();
-
-    // Matrix command turn on screen
-    (*state).settings.set_power(&true);
-    match (*state).settings.get_settings().setup_state {
-        SetupState::Ready => {
-            (*state).settings.set_setup_state(&SetupState::Sync);
-        }
-        SetupState::Sync => {
-            (*state).settings.set_setup_state(&SetupState::Ready);
-        }
-        _ => error!(
-            "Cannot set sync mode while in setup state {:?}",
-            (*state).settings.get_settings().setup_state
-        ),
+fn show_sync(
+    state: State<Mutex<ServerState>>,
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+    let state = state.lock().unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::SyncCommand {
+            from_webserver: true,
+            show_sync: Some(true),
+        })
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::SyncCommandRespones(settings) => match settings {
+            Some(settings) => Ok(Json(settings)),
+            None => Err(status::NotFound("Failed to show sync".to_string())),
+        },
+        _ => Err(status::NotFound("Internal error".to_string())),
     }
-    Json((*state).settings.get_settings_clone())
 }
 #[post("/reboot", format = "json", data = "<_reboot_request>")]
 fn reboot(
     state: State<Mutex<ServerState>>,
     _reboot_request: Json<RebootRequest>,
-) -> Json<ScoreboardSettingsData> {
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
     let state = state.lock().unwrap();
     // TODO use reboot request
-    Json((*state).settings.get_settings_clone())
+    (*state)
+        .sender
+        .send(MatrixCommand::Reboot {
+            from_webserver: true,
+        })
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::RebootResponse(settings) => match settings {
+            Some(settings) => Ok(Json(settings)),
+            None => Err(status::NotFound("Failed to init reboot".to_string())),
+        },
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
+}
+#[post("/reset")]
+fn reset(
+    state: State<Mutex<ServerState>>,
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+    let state = state.lock().unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::Reset {
+            from_webserver: true,
+        })
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::ResetResponse(settings) => match settings {
+            Some(settings) => Ok(Json(settings)),
+            None => Err(status::NotFound("Failed to init reboot".to_string())),
+        },
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
 }
 
 #[post("/sync")]
-fn sync(state: State<Mutex<ServerState>>) -> Json<ScoreboardSettingsData> {
-    let mut state = state.lock().unwrap();
-    (*state).settings.set_power(&true);
-    // Matrix command turn on screen
-    match (*state).settings.get_settings().setup_state {
-        SetupState::Sync => {
-            (*state).settings.set_setup_state(&SetupState::Ready);
-            // TODO fire matrix command
-        }
-        _ => error!(
-            "Cannot sync while in setup state {:?}",
-            (*state).settings.get_settings().setup_state
-        ),
+fn sync(
+    state: State<Mutex<ServerState>>,
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+    let state = state.lock().unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::SyncCommand {
+            from_webserver: true,
+            show_sync: Some(false),
+        })
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::SyncCommandRespones(settings) => match settings {
+            Some(settings) => Ok(Json(settings)),
+            None => Err(status::NotFound("Failed to move to ready".to_string())),
+        },
+        _ => Err(status::NotFound("Internal error".to_string())),
     }
-    Json((*state).settings.get_settings_clone())
 }
 #[post("/connect")]
-fn connect(state: State<Mutex<ServerState>>) -> Json<ScoreboardSettingsData> {
-    let mut state = state.lock().unwrap();
-    (*state).settings.set_power(&true);
-    // Matrix command turn on screen
-    match (*state).settings.get_settings().setup_state {
-        SetupState::Hotspot => {
-            (*state).settings.set_setup_state(&SetupState::WifiConnect);
-            // TODO fire matrix command
-        }
-        _ => error!(
-            "Cannot connect while in setup state {:?}",
-            (*state).settings.get_settings().setup_state
-        ),
+fn connect(
+    state: State<Mutex<ServerState>>,
+) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+    let state = state.lock().unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::GotHotspotConnection())
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::GotHotspotConnectionResponse(settings) => match settings {
+            Some(settings) => Ok(Json(settings)),
+            None => Err(status::NotFound(
+                "Failed to handle hotspot connection".to_string(),
+            )),
+        },
+        _ => Err(status::NotFound("Internal error".to_string())),
     }
-    Json((*state).settings.get_settings_clone())
 }
 
-pub fn run_webserver(sender: mpsc::Sender<MatrixCommand>, settings: ScoreboardSettings) {
+pub fn run_webserver(
+    sender: mpsc::Sender<MatrixCommand>,
+    receiver: mpsc::Receiver<WebserverResponse>,
+    file_path: PathBuf,
+) {
     let config = Config::build(Environment::Staging)
         .address("0.0.0.0")
         .port(5005)
@@ -185,11 +280,11 @@ pub fn run_webserver(sender: mpsc::Sender<MatrixCommand>, settings: ScoreboardSe
         .unwrap();
 
     rocket::custom(config)
-        .manage(Mutex::new(ServerState::new(sender, settings)))
+        .manage(Mutex::new(ServerState::new(sender, receiver, file_path)))
         .mount(
             "/",
             routes![
-                index, configure, set_power, set_sport, wifi, logs, show_sync, reboot, sync,
+                index, configure, set_power, set_sport, wifi, logs, show_sync, reboot, reset, sync,
                 connect
             ],
         )
