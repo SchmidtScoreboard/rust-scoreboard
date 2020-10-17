@@ -3,10 +3,10 @@
 mod animation;
 mod aws_screen;
 mod baseball;
+mod button;
 mod clock;
 mod common;
 mod game;
-mod button;
 mod hockey;
 mod matrix;
 mod scoreboard_settings;
@@ -79,7 +79,10 @@ fn main() {
 
     let (tx, rx) = mpsc::channel();
 
-    let gpio = 
+    // let button_handler = button::ButtonHandler::new(tx.clone());
+    // std::thread::spawn(move || {
+    //     button_handler.run();
+    // });
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();

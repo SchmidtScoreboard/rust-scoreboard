@@ -1,5 +1,6 @@
 use crate::common;
 use std::sync::mpsc;
+use sysfs_gpio;
 
 pub struct ButtonHandler {
     commandSender: mpsc::Sender<common::MatrixCommand>,
@@ -12,6 +13,7 @@ impl ButtonHandler {
 
     pub fn run(self: &Self) {
         // Main run thread
+        let input = sysfs_gpio::Pin::new(25);
     }
 
     // Send display on/off command
@@ -36,10 +38,10 @@ impl ButtonHandler {
 
     // Reset scoreboard to factory settings
     fn handle_long_press(self: &Self) {
-        self.commandSender.
+        self.commandSender
             .send(common::MatrixCommand::Reset {
                 from_webserver: false,
             })
-            .unwrap();
+            .unwrap()
     }
 }

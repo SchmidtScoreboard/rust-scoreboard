@@ -81,7 +81,7 @@ pub struct AWSScreen<T: AWSScreenType> {
     data_pipe_sender: mpsc::Sender<AWSData<T>>,
     data_pipe_receiver: mpsc::Receiver<AWSData<T>>,
     refresh_control_sender: Option<mpsc::Sender<()>>,
-    loading_animation: animation::LoadingAnimation,
+    loading_animation: animation::WavesAnimation,
     fonts: matrix::FontBook,
     pixels: matrix::PixelBook,
 }
@@ -105,7 +105,7 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             data_pipe_sender,
             data_pipe_receiver,
             refresh_control_sender: None,
-            loading_animation: animation::LoadingAnimation::new(),
+            loading_animation: animation::WavesAnimation::new(64),
             fonts: fonts,
             pixels: pixels,
         }
@@ -126,9 +126,8 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             false,
         );
 
-        let (canvas_width, canvas_height) = canvas.canvas_size();
-        self.loading_animation
-            .draw(canvas, (canvas_width - 5, canvas_height - 5));
+        // let (canvas_width, canvas_height) = canvas.canvas_size();
+        self.loading_animation.draw(canvas);
     }
     fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         let font = &self.fonts.font4x6;
@@ -281,7 +280,7 @@ impl<
         }
 
         // Schedule the next draw
-        self.send_draw_command(Some(Duration::from_secs(30)));
+        self.send_draw_command(Some(Duration::from_millis(20)));
     }
 
     fn get_screen_id(self: &Self) -> common::ScreenId {

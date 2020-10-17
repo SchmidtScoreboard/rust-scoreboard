@@ -83,16 +83,16 @@ impl aws_screen::AWSScreenType for BaseballGame {
         pixels_book: &matrix::PixelBook,
         timezone: &str,
     ) {
-        let font = &font_book.font4x6;
+        let font = &font_book.font5x8;
         game::draw_scoreboard(canvas, &font, &self.common, 1);
-
+        let ordinal_x_offset = 5;
         let white = common::new_color(255, 255, 255);
         let ordinal_dimensions = font.get_text_dimensions(&self.common.ordinal);
         canvas.draw_text(
             &font.led_font,
             &self.common.get_ordinal_text(timezone),
-            5,
-            23 + font.dimensions.height,
+            ordinal_x_offset,
+            21 + font.dimensions.height,
             &white,
             0,
             false,
@@ -101,18 +101,28 @@ impl aws_screen::AWSScreenType for BaseballGame {
         if self.common.status == game::GameStatus::ACTIVE {
             if self.is_inning_top {
                 let up_arrow = &pixels_book.small_arrow.flip_vertical();
-                matrix::draw_pixels(canvas, &up_arrow, (ordinal_dimensions.width + 1, 20));
+                matrix::draw_pixels(
+                    canvas,
+                    &up_arrow,
+                    (ordinal_dimensions.width + ordinal_x_offset, 21),
+                );
             } else {
                 let down_arrow = &pixels_book.small_arrow;
-                matrix::draw_pixels(canvas, &down_arrow, (ordinal_dimensions.width + 1, 23));
+                matrix::draw_pixels(
+                    canvas,
+                    &down_arrow,
+                    (ordinal_dimensions.width + ordinal_x_offset, 24),
+                );
             }
+
+            let font = &font_book.font4x6;
             let balls_strikes = format!("{}-{}", self.balls, self.strikes);
             let balls_strikes_dimensions = font.get_text_dimensions(&balls_strikes);
             canvas.draw_text(
                 &font.led_font,
                 &balls_strikes,
                 61 - balls_strikes_dimensions.width,
-                18,
+                18 + balls_strikes_dimensions.height,
                 &white,
                 0,
                 false,
@@ -120,7 +130,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
 
             for i in 0..3 {
                 let x = 61 - balls_strikes_dimensions.width + i * 4;
-                let y = 19 + balls_strikes_dimensions.height + 3;
+                let y = 19 + balls_strikes_dimensions.height;
                 if self.outs as i32 > i {
                     matrix::draw_pixels(canvas, &pixels_book.filled_square, (x, y));
                 } else {
