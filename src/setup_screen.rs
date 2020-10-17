@@ -5,10 +5,10 @@ use crate::matrix;
 use rpi_led_matrix;
 use std::sync::mpsc;
 use std::time::Duration;
-
 pub struct SetupScreen {
     sender: mpsc::Sender<common::MatrixCommand>,
     loading_anim: animation::LoadingAnimation,
+    wave_anim: animation::WavesAnimation,
     state: common::SetupState,
     fonts: matrix::FontBook,
     pixels: matrix::PixelBook,
@@ -24,6 +24,7 @@ impl SetupScreen {
         SetupScreen {
             sender,
             loading_anim: animation::LoadingAnimation::new(),
+            wave_anim: animation::WavesAnimation::new(64),
             state,
             fonts,
             pixels,
@@ -94,7 +95,24 @@ impl matrix::ScreenProvider for SetupScreen {
                     .draw(canvas, (canvas_width - 5, canvas_height - 5));
             }
             common::SetupState::Sync => {
-                // debug!("Drawing wifi screen");
+                let offset: i32 = 9;
+                let spacing: i32 = 10;
+                let sync_code = "HKGMAEBY"; // TODO get IP address into sync code
+                let help_text = "Sync Code:";
+                let help_font = &self.fonts.font4x6;
+                let sync_code_font = &self.fonts.font7x13;
+                let white = common::new_color(255, 255, 255);
+                matrix::draw_text_centered_horizontally(
+                    canvas, help_text, offset, help_font, &white,
+                );
+                matrix::draw_text_centered_horizontally(
+                    canvas,
+                    sync_code,
+                    offset + spacing,
+                    sync_code_font,
+                    &white,
+                );
+                self.wave_anim.draw(canvas);
             }
             common::SetupState::Ready => {
                 error!("Should not display setup screen while ready");

@@ -64,6 +64,10 @@ impl<'a> Matrix<'a> {
         screen.deactivate();
     }
 
+    fn send_response(self: &Self, response: common::WebserverResponse) {
+        self.webserver_responder.send(response).unwrap();
+    }
+
     // This is the main loop of the entire code
     // Call this after everything else is set up
     pub fn run(self: &mut Self) {
@@ -78,11 +82,9 @@ impl<'a> Matrix<'a> {
                     self.settings.set_active_screen(&id);
                     self.settings.set_power(&true);
                     self.activate_screen();
-                    self.webserver_responder
-                        .send(common::WebserverResponse::SetActiveScreenResponse(
-                            self.settings.get_settings_clone(),
-                        ))
-                        .unwrap();
+                    self.send_response(common::WebserverResponse::SetActiveScreenResponse(
+                        self.settings.get_settings_clone(),
+                    ));
                 }
                 common::MatrixCommand::SetPower {
                     from_webserver,
@@ -101,11 +103,9 @@ impl<'a> Matrix<'a> {
                     canvas.clear();
                     canvas = self.led_matrix.swap(canvas);
                     if from_webserver {
-                        self.webserver_responder
-                            .send(common::WebserverResponse::SetPowerResponse(
-                                self.settings.get_settings_clone(),
-                            ))
-                            .unwrap();
+                        self.send_response(common::WebserverResponse::SetPowerResponse(
+                            self.settings.get_settings_clone(),
+                        ));
                     }
                 }
                 common::MatrixCommand::Display(id) => {
@@ -117,49 +117,48 @@ impl<'a> Matrix<'a> {
                     }
                 }
                 common::MatrixCommand::GetSettings() => {
-                    self.webserver_responder
-                        .send(common::WebserverResponse::GetSettingsResponse(
-                            self.settings.get_settings_clone(),
-                        ))
-                        .unwrap();
+                    self.send_response(common::WebserverResponse::GetSettingsResponse(
+                        self.settings.get_settings_clone(),
+                    ));
                 }
                 common::MatrixCommand::UpdateSettings(settings) => {
                     self.settings.update_settings(settings);
                     self.update_settings_on_active_screen();
-                    self.webserver_responder
-                        .send(common::WebserverResponse::UpdateSettingsResponse(
-                            self.settings.get_settings_clone(),
-                        ))
-                        .unwrap();
+                    self.send_response(common::WebserverResponse::UpdateSettingsResponse(
+                        self.settings.get_settings_clone(),
+                    ));
                 }
-                common::MatrixCommand::Reboot { from_webserver } => {
-                    // Send and/or schedule the reboot
-                    if from_webserver {
-                        self.webserver_responder
-                            .send(common::WebserverResponse::RebootResponse(Some(
-                                self.settings.get_settings_clone(),
-                            )))
-                            .unwrap();
-                    }
+                common::MatrixCommand::Reboot() => {
+                    // TODO start a reboot, update the screen to show the message
+                    self.send_response(common::WebserverResponse::RebootResponse(Some(
+                        self.settings.get_settings_clone(),
+                    )));
                 }
                 common::MatrixCommand::Reset { from_webserver } => {
-                    // Reset scoreboard settings, then reboot
+                    // Reset scoreboard settings, then reboot, updating the screen to show the message
                     if from_webserver {
-                        self.webserver_responder
-                            .send(common::WebserverResponse::ResetResponse(Some(
-                                self.settings.get_settings_clone(),
-                            )))
-                            .unwrap();
+                        self.send_response(common::WebserverResponse::ResetResponse(Some(
+                            self.settings.get_settings_clone(),
+                        )));
                     }
                 }
                 common::MatrixCommand::GotHotspotConnection() => {
                     // Change setup state
+                    if self.settings.get_setup_state() == &common::SetupState::Hotspot {
+                        self.settings
+                            .set_setup_state(&common::SetupState::WifiConnect);
+                        self.update_settings_on_active_screen();
+                        self.send_response(
+                            common::WebserverResponse::GotHotspotConnectionResponse(Some(
+                                self.settings.get_settings_clone(),
+                            )),
+                        );
+                    } else {
+                        self.send_response(
+                            common::WebserverResponse::GotHotspotConnectionResponse(None),
+                        );
+                    }
                     self.update_settings_on_active_screen();
-                    self.webserver_responder
-                        .send(common::WebserverResponse::GotHotspotConnectionResponse(
-                            Some(self.settings.get_settings_clone()),
-                        ))
-                        .unwrap();
                 }
                 common::MatrixCommand::GotWifiDetails {
                     ssid: _,
@@ -169,15 +168,11 @@ impl<'a> Matrix<'a> {
                     if self.settings.get_setup_state() == &common::SetupState::WifiConnect {
                         self.settings.set_setup_state(&common::SetupState::Sync);
                         self.update_settings_on_active_screen();
-                        self.webserver_responder
-                            .send(common::WebserverResponse::GotWifiDetailsResponse(Some(
-                                self.settings.get_settings_clone(),
-                            )))
-                            .unwrap();
+                        self.send_response(common::WebserverResponse::GotWifiDetailsResponse(
+                            Some(self.settings.get_settings_clone()),
+                        ));
                     } else {
-                        self.webserver_responder
-                            .send(common::WebserverResponse::GotWifiDetailsResponse(None))
-                            .unwrap();
+                        self.send_response(common::WebserverResponse::GotWifiDetailsResponse(None));
                     }
                 }
                 common::MatrixCommand::SyncCommand {
@@ -204,17 +199,15 @@ impl<'a> Matrix<'a> {
                         self.update_settings_on_active_screen();
                         self.activate_screen();
                         if from_webserver {
-                            self.webserver_responder
-                                .send(common::WebserverResponse::SyncCommandRespones(Some(
-                                    self.settings.get_settings_clone(),
-                                )))
-                                .unwrap();
+                            self.send_response(common::WebserverResponse::SyncCommandResponse(
+                                Some(self.settings.get_settings_clone()),
+                            ));
                         }
                     } else {
                         if from_webserver {
-                            self.webserver_responder
-                                .send(common::WebserverResponse::SyncCommandRespones(None))
-                                .unwrap();
+                            self.send_response(common::WebserverResponse::SyncCommandResponse(
+                                None,
+                            ));
                         }
                     }
                 }
@@ -388,6 +381,26 @@ pub fn draw_rectangle(
     for i in y0..y1 {
         canvas.draw_line(x0, i, x1, i, color);
     }
+}
+
+pub fn draw_text_centered_horizontally(
+    canvas: &mut rpi_led_matrix::LedCanvas,
+    text: &str,
+    y_center: i32,
+    font: &Font,
+    color: &rpi_led_matrix::LedColor,
+) {
+    let text_dim = font.get_text_dimensions(text);
+    let (canvas_width, _canvas_height) = canvas.canvas_size();
+    canvas.draw_text(
+        &font.led_font,
+        text,
+        (canvas_width - text_dim.width) / 2,
+        y_center + (text_dim.height / 2),
+        color,
+        0,
+        false,
+    );
 }
 
 pub fn draw_lines(

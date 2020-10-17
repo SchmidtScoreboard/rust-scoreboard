@@ -176,7 +176,7 @@ fn show_sync(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SyncCommandRespones(settings) => match settings {
+        WebserverResponse::SyncCommandResponse(settings) => match settings {
             Some(settings) => Ok(Json(settings)),
             None => Err(status::NotFound("Failed to show sync".to_string())),
         },
@@ -190,12 +190,7 @@ fn reboot(
 ) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
     let state = state.lock().unwrap();
     // TODO use reboot request
-    (*state)
-        .sender
-        .send(MatrixCommand::Reboot {
-            from_webserver: true,
-        })
-        .unwrap();
+    (*state).sender.send(MatrixCommand::Reboot()).unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::RebootResponse(settings) => match settings {
@@ -240,7 +235,7 @@ fn sync(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SyncCommandRespones(settings) => match settings {
+        WebserverResponse::SyncCommandResponse(settings) => match settings {
             Some(settings) => Ok(Json(settings)),
             None => Err(status::NotFound("Failed to move to ready".to_string())),
         },

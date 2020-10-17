@@ -6,6 +6,7 @@ mod baseball;
 mod clock;
 mod common;
 mod game;
+mod button;
 mod hockey;
 mod matrix;
 mod scoreboard_settings;
@@ -44,7 +45,7 @@ fn main() {
         .log_to_file()
         .directory(log_dir)
         .duplicate_to_stdout(flexi_logger::Duplicate::All)
-        .format_for_stdout(flexi_logger::colored_default_format)
+        .format_for_stdout(flexi_logger::opt_format)
         .rotate(
             flexi_logger::Criterion::Age(flexi_logger::Age::Day),
             flexi_logger::Naming::Timestamps,
@@ -75,9 +76,10 @@ fn main() {
     if settings.get_settings_clone().setup_state == common::SetupState::Factory {
         settings.set_setup_state(&common::SetupState::Hotspot);
     }
-    // TODO setup button listener with sender end of channel
 
     let (tx, rx) = mpsc::channel();
+
+    let gpio = 
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
@@ -142,5 +144,6 @@ fn main() {
     std::thread::spawn(move || {
         webserver::run_webserver(webserver_sender, web_response_receiver, root_path);
     });
+    info!("Starting matrix runner");
     matrix.run();
 }

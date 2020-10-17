@@ -1,14 +1,12 @@
 use crate::common;
 use crate::matrix;
+use rand;
+use rand::distributions::{Distribution, Uniform};
+use rand_distr::Normal;
 
 use rpi_led_matrix;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
-
-pub struct AnimationTestScreen {
-    sender: mpsc::Sender<common::MatrixCommand>,
-    loading_anim: LoadingAnimation,
-}
 
 pub struct LoadingAnimation {
     frame: i32,
@@ -63,11 +61,90 @@ impl LoadingAnimation {
     }
 }
 
+pub struct WavesAnimation {
+    last_update: Option<Instant>,
+    columns: Vec<(i32, Instant, Duration)>,
+}
+fn get_random_duration(mean: f32, stddev: f32) -> Duration {
+    let mut rng = rand::thread_rng(); // TODO keep this as a class constnat
+    let distribution = Normal::new(mean, stddev).unwrap();
+    Duration::from_millis(distribution.sample(&mut rng) as u64)
+}
+
+impl WavesAnimation {
+    pub fn new(canvas_width: usize) -> WavesAnimation {
+        let mut rng = rand::thread_rng();
+        let range = Uniform::from(0..5);
+        let columns: Vec<(i32, Instant, Duration)> = (0..canvas_width)
+            .map(|_| {
+                (
+                    range.sample(&mut rng),
+                    Instant::now(),
+                    get_random_duration(120.0, 50.0),
+                )
+            })
+            .collect();
+        WavesAnimation {
+            last_update: None,
+            columns,
+        }
+    }
+
+    pub fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+        let color = common::new_color(255, 255, 255);
+        let (_width, height) = canvas.canvas_size();
+
+        let now = Instant::now();
+        if let Some(last_update) = self.last_update {
+            if now.duration_since(last_update) > Duration::from_millis(20) {
+                let mut rng = rand::thread_rng();
+                // Update the columns
+                self.columns = self
+                    .columns
+                    .iter()
+                    .map(|(height, column_last_update, next_update)| {
+                        if now.duration_since(*column_last_update) > *next_update {
+                            let distribution = Normal::new(3.5 - *height as f32, 0.5).unwrap();
+                            let modified =
+                                *height as f32 + distribution.sample(&mut rng).max(-1.0).min(1.0);
+                            let final_height = modified.max(0.0) as i32;
+                            (
+                                final_height,
+                                Instant::now(),
+                                get_random_duration(250.0, 50.0),
+                            )
+                        } else {
+                            (*height, *column_last_update, *next_update)
+                        }
+                    })
+                    .collect();
+                self.last_update = Some(now);
+            }
+        } else {
+            self.last_update = Some(now);
+        }
+
+        // Now, actually draw the columns
+        for (x, (column_height, _, _)) in self.columns.iter().enumerate() {
+            for y in 0..*column_height {
+                canvas.set(x as i32, height - y as i32, &color);
+            }
+        }
+    }
+}
+
+pub struct AnimationTestScreen {
+    sender: mpsc::Sender<common::MatrixCommand>,
+    loading_anim: LoadingAnimation,
+    waves_anim: WavesAnimation,
+}
+
 impl AnimationTestScreen {
     pub fn new(sender: mpsc::Sender<common::MatrixCommand>) -> AnimationTestScreen {
         AnimationTestScreen {
             sender,
             loading_anim: LoadingAnimation::new(),
+            waves_anim: WavesAnimation::new(64),
         }
     }
 }
@@ -81,7 +158,8 @@ impl matrix::ScreenProvider for AnimationTestScreen {
     }
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         self.loading_anim.draw(canvas, (0, 0));
-        self.send_draw_command(Some(Duration::from_secs(30)));
+        self.waves_anim.draw(canvas);
+        self.send_draw_command(Some(Duration::from_millis(20)));
     }
     fn update_settings(self: &mut Self, _settings: common::ScoreboardSettingsData) {}
 

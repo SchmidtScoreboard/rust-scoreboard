@@ -28,9 +28,7 @@ pub enum MatrixCommand {
 
     // Setup Commands
     GetSettings(), // Fetch the settings
-    Reboot {
-        from_webserver: bool,
-    }, // Reboot the scoreboard
+    Reboot(),
     Reset {
         from_webserver: bool,
     }, // Reset the scoreboard to factory settings (Long Press)
@@ -54,7 +52,7 @@ pub enum WebserverResponse {
     ResetResponse(Option<ScoreboardSettingsData>),
     GotHotspotConnectionResponse(Option<ScoreboardSettingsData>),
     GotWifiDetailsResponse(Option<ScoreboardSettingsData>),
-    SyncCommandRespones(Option<ScoreboardSettingsData>),
+    SyncCommandResponse(Option<ScoreboardSettingsData>),
 }
 
 pub fn new_color(red: u8, green: u8, blue: u8) -> rpi_led_matrix::LedColor {
