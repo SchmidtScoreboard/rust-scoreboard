@@ -37,6 +37,8 @@ pub enum MatrixCommand {
         ssid: String,
         password: String,
     }, // User sent wifi details
+    SuccessfulWifiConnection(),
+    FailedWifiConnection(),
     SyncCommand {
         from_webserver: bool,
         show_sync: Option<bool>,
@@ -53,6 +55,20 @@ pub enum WebserverResponse {
     GotHotspotConnectionResponse(Option<ScoreboardSettingsData>),
     GotWifiDetailsResponse(Option<ScoreboardSettingsData>),
     SyncCommandResponse(Option<ScoreboardSettingsData>),
+}
+
+pub enum ShellCommand {
+    Reboot {
+        settings: ScoreboardSettingsData, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
+    },
+    Reset {
+        from_webserver: Option<ScoreboardSettingsData>, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
+    },
+    SetupWifi {
+        ssid: String,
+        password: String,
+        settings: ScoreboardSettingsData,
+    },
 }
 
 pub fn new_color(red: u8, green: u8, blue: u8) -> rpi_led_matrix::LedColor {

@@ -11,6 +11,7 @@ mod hockey;
 mod matrix;
 mod scoreboard_settings;
 mod setup_screen;
+mod shell_executor;
 mod webserver;
 #[macro_use]
 extern crate rust_embed;
@@ -141,8 +142,25 @@ fn main() {
             .expect("Could not setup matrix");
 
     let (web_response_sender, web_response_receiver) = mpsc::channel();
-    let mut matrix = Matrix::new(led_matrix, rx, map, settings, web_response_sender);
+    let (shell_sender, shell_receiver) = mpsc::channel();
 
+    let shell = shell_executor::CommandExecutor::new(
+        web_response_sender.clone(),
+        tx.clone(),
+        shell_receiver,
+    );
+    std::thread::spawn(move || {
+        shell.run();
+    });
+
+    let mut matrix = Matrix::new(
+        led_matrix,
+        rx,
+        map,
+        settings,
+        web_response_sender,
+        shell_sender.clone(),
+    );
     let webserver_sender = tx.clone();
     std::thread::spawn(move || {
         webserver::run_webserver(webserver_sender, web_response_receiver, root_path);

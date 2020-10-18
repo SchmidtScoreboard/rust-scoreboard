@@ -271,6 +271,7 @@ pub fn run_webserver(
     let config = Config::build(Environment::Staging)
         .address("0.0.0.0")
         .port(5005)
+        .workers(1)
         .finalize()
         .unwrap();
 

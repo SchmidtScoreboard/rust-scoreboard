@@ -17,6 +17,7 @@ pub struct Matrix<'a> {
     screens_map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
     settings: ScoreboardSettings,
     webserver_responder: mpsc::Sender<common::WebserverResponse>,
+    shell_sender: mpsc::Sender<common::ShellCommand>,
 }
 
 impl<'a> Matrix<'a> {
@@ -26,6 +27,7 @@ impl<'a> Matrix<'a> {
         map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
         settings: ScoreboardSettings,
         webserver_responder: mpsc::Sender<common::WebserverResponse>,
+        shell_sender: mpsc::Sender<common::ShellCommand>,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
@@ -33,6 +35,7 @@ impl<'a> Matrix<'a> {
             screens_map: map,
             settings,
             webserver_responder,
+            shell_sender,
         }
     }
 
@@ -62,6 +65,9 @@ impl<'a> Matrix<'a> {
     fn deactivate_screen(self: &mut Self) {
         let screen = self.get_mut_active_screen();
         screen.deactivate();
+    }
+    fn send_command(self: &Self, response: common::ShellCommand) {
+        self.shell_sender.send(response).unwrap();
     }
 
     fn send_response(self: &Self, response: common::WebserverResponse) {
@@ -129,18 +135,22 @@ impl<'a> Matrix<'a> {
                     ));
                 }
                 common::MatrixCommand::Reboot() => {
-                    // TODO start a reboot, update the screen to show the message
-                    self.send_response(common::WebserverResponse::RebootResponse(Some(
-                        self.settings.get_settings_clone(),
-                    )));
+                    // TODO update the screen to show the message
+                    self.send_command(common::ShellCommand::Reboot {
+                        settings: self.settings.get_settings_clone(),
+                    });
                 }
                 common::MatrixCommand::Reset { from_webserver } => {
-                    // Reset scoreboard settings, then reboot, updating the screen to show the message
-                    if from_webserver {
-                        self.send_response(common::WebserverResponse::ResetResponse(Some(
-                            self.settings.get_settings_clone(),
-                        )));
-                    }
+                    // Reset scoreboard settings,  updating the screen to show the message
+                    // TODO update to show "RESETTING" message
+                    self.settings.set_setup_state(&common::SetupState::Hotspot);
+                    self.send_command(common::ShellCommand::Reset {
+                        from_webserver: if from_webserver {
+                            Some(self.settings.get_settings_clone())
+                        } else {
+                            None
+                        },
+                    });
                 }
                 common::MatrixCommand::GotHotspotConnection() => {
                     // Change setup state
@@ -160,20 +170,24 @@ impl<'a> Matrix<'a> {
                     }
                     self.update_settings_on_active_screen();
                 }
-                common::MatrixCommand::GotWifiDetails {
-                    ssid: _,
-                    password: _,
-                } => {
+                common::MatrixCommand::GotWifiDetails { ssid, password } => {
                     // Got wifi details, set the wpa supplicant file and restart
                     if self.settings.get_setup_state() == &common::SetupState::WifiConnect {
-                        self.settings.set_setup_state(&common::SetupState::Sync);
-                        self.update_settings_on_active_screen();
-                        self.send_response(common::WebserverResponse::GotWifiDetailsResponse(
-                            Some(self.settings.get_settings_clone()),
-                        ));
+                        self.send_command(common::ShellCommand::SetupWifi {
+                            ssid,
+                            password,
+                            settings: self.settings.get_settings_clone(),
+                        });
                     } else {
                         self.send_response(common::WebserverResponse::GotWifiDetailsResponse(None));
                     }
+                }
+                common::MatrixCommand::SuccessfulWifiConnection() => {
+                    self.settings.set_setup_state(&common::SetupState::Sync);
+                    self.update_settings_on_active_screen();
+                }
+                common::MatrixCommand::FailedWifiConnection() => {
+                    // TODO display an error
                 }
                 common::MatrixCommand::SyncCommand {
                     from_webserver,
