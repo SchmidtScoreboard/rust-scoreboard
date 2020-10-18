@@ -4,6 +4,7 @@ use crate::common::ScoreboardSettingsData;
 use crate::game;
 use crate::matrix;
 
+use rand::seq::SliceRandom;
 use rpi_led_matrix;
 use serde_json;
 use std::sync::mpsc;
@@ -84,6 +85,7 @@ pub struct AWSScreen<T: AWSScreenType> {
     loading_animation: animation::WavesAnimation,
     fonts: matrix::FontBook,
     pixels: matrix::PixelBook,
+    flavor_text: Option<String>,
 }
 
 impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::marker::Send>
@@ -108,17 +110,30 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             loading_animation: animation::WavesAnimation::new(64),
             fonts: fonts,
             pixels: pixels,
+            flavor_text: None,
         }
     }
 
     fn draw_refresh(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
-        let flavor_text = T::get_refresh_texts()[0]; // TODO pick a random refresh text
+        let flavor_text = {
+            if let Some(text) = &self.flavor_text {
+                text
+            } else {
+                let text = T::get_refresh_texts()
+                    .choose(&mut rand::thread_rng())
+                    .unwrap_or(&"Refreshing...")
+                    .to_string();
+                self.flavor_text = Some(text);
+                self.flavor_text.as_ref().unwrap()
+            }
+        };
+        // let flavor_text = T::get_refresh_texts()[0]; // TODO pick a random refresh text
         let font = &self.fonts.font4x6;
         let text_dimensions = font.get_text_dimensions(flavor_text);
         let white = common::new_color(255, 255, 255);
         canvas.draw_text(
             &font.led_font,
-            &flavor_text,
+            flavor_text,
             1,
             1 + text_dimensions.height,
             &white,
