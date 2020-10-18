@@ -128,17 +128,11 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             }
         };
         // let flavor_text = T::get_refresh_texts()[0]; // TODO pick a random refresh text
-        let font = &self.fonts.font4x6;
-        let text_dimensions = font.get_text_dimensions(flavor_text);
-        let white = common::new_color(255, 255, 255);
-        canvas.draw_text(
-            &font.led_font,
+        matrix::draw_message(
+            canvas,
+            &self.fonts.font4x6,
             flavor_text,
-            1,
-            1 + text_dimensions.height,
-            &white,
-            0,
-            false,
+            &mut self.loading_animation,
         );
 
         // let (canvas_width, canvas_height) = canvas.canvas_size();

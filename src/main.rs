@@ -9,6 +9,7 @@ mod common;
 mod game;
 mod hockey;
 mod matrix;
+mod message;
 mod scoreboard_settings;
 mod setup_screen;
 mod shell_executor;
@@ -155,11 +156,13 @@ fn main() {
 
     let mut matrix = Matrix::new(
         led_matrix,
+        tx.clone(),
         rx,
         map,
         settings,
         web_response_sender,
         shell_sender.clone(),
+        root_path.clone(),
     );
     let webserver_sender = tx.clone();
     std::thread::spawn(move || {

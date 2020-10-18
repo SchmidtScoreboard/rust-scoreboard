@@ -24,8 +24,11 @@ impl CommandExecutor {
             receiver,
         }
     }
-    fn send_response(self: &Self, response: common::WebserverResponse) {
+    fn send_webserver_response(self: &Self, response: common::WebserverResponse) {
         self.webserver_sender.send(response).unwrap();
+    }
+    fn send_matrix_response(self: &Self, response: common::MatrixCommand) {
+        self.matrix_sender.send(response).unwrap();
     }
 
     fn set_hotspot(self: &Self, enable: bool) -> io::Result<ExitStatus> {
@@ -89,7 +92,9 @@ network={{
                 common::ShellCommand::Reboot { settings } => {
                     let mut reboot_command = Command::new("reboot");
                     info!("Running command {:?}", reboot_command);
-                    self.send_response(common::WebserverResponse::RebootResponse(Some(settings)));
+                    self.send_webserver_response(common::WebserverResponse::RebootResponse(Some(
+                        settings,
+                    )));
                     // Sleep for a second to let the response happen
                     thread::sleep(Duration::from_secs(3));
                     let result = reboot_command.status();
@@ -119,10 +124,12 @@ network={{
                     }
 
                     if let Some(settings) = from_webserver {
-                        self.send_response(common::WebserverResponse::ResetResponse(Some(
-                            settings,
-                        )));
+                        self.send_webserver_response(common::WebserverResponse::ResetResponse(
+                            Some(settings),
+                        ));
                     }
+
+                    self.send_matrix_response(common::MatrixCommand::FinishedReset(Ok(())));
                 }
                 common::ShellCommand::SetupWifi {
                     ssid,
@@ -169,9 +176,21 @@ network={{
                         }
                     }
 
-                    self.send_response(common::WebserverResponse::GotWifiDetailsResponse(
-                        if success { Some(settings) } else { None },
-                    ));
+                    self.send_webserver_response(
+                        common::WebserverResponse::GotWifiDetailsResponse(if success {
+                            Some(settings)
+                        } else {
+                            None
+                        }),
+                    );
+
+                    self.send_matrix_response(common::MatrixCommand::FinishedWifiConnection(
+                        if success {
+                            Ok(())
+                        } else {
+                            Err(io::Error::new(io::ErrorKind::Other, "BLAH"))
+                        },
+                    ))
                 }
             }
         }

@@ -3,6 +3,7 @@ use rpi_led_matrix;
 use serde::{Deserialize, Serialize};
 use serde_repr::*;
 use std::error::Error;
+use std::io;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]
 #[repr(u16)]
@@ -15,6 +16,7 @@ pub enum ScreenId {
     Setup = 101,
     Error = 104,
     Animation = 1000,
+    Message = 1001,
 }
 
 pub enum MatrixCommand {
@@ -37,8 +39,8 @@ pub enum MatrixCommand {
         ssid: String,
         password: String,
     }, // User sent wifi details
-    SuccessfulWifiConnection(),
-    FailedWifiConnection(),
+    FinishedWifiConnection(io::Result<()>), // True if successful, false otherwise
+    FinishedReset(io::Result<()>),
     SyncCommand {
         from_webserver: bool,
         show_sync: Option<bool>,

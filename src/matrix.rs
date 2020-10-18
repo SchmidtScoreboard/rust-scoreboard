@@ -1,5 +1,7 @@
+use crate::animation;
 use crate::common;
 use crate::common::ScoreboardSettingsData;
+use crate::message;
 use crate::scoreboard_settings::ScoreboardSettings;
 use png;
 use rpi_led_matrix;
@@ -7,35 +9,44 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::error::Error;
 use std::fs;
+use std::path::PathBuf;
 use std::str;
 use std::sync::mpsc;
 use std::time::Duration;
 
 pub struct Matrix<'a> {
-    led_matrix: rpi_led_matrix::LedMatrix,
-    receiver: mpsc::Receiver<common::MatrixCommand>,
-    screens_map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
-    settings: ScoreboardSettings,
-    webserver_responder: mpsc::Sender<common::WebserverResponse>,
-    shell_sender: mpsc::Sender<common::ShellCommand>,
+    led_matrix: rpi_led_matrix::LedMatrix, // The actual matrix
+    sender: mpsc::Sender<common::MatrixCommand>, // An additional sender
+    receiver: mpsc::Receiver<common::MatrixCommand>, // Receive commands from the button, the webserver, and responses to shell commands
+    screens_map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>, // The map of all the active screens
+    settings: ScoreboardSettings, // The main scoreboard settings
+    webserver_responder: mpsc::Sender<common::WebserverResponse>, // Send responses to the webserver
+    shell_sender: mpsc::Sender<common::ShellCommand>, // Send commands to shell
+    message: Option<message::MessageScreen>, // If this is set, display this message until it is unset
+    root_path: PathBuf,                      // Path to root
 }
 
 impl<'a> Matrix<'a> {
     pub fn new(
         led_matrix: rpi_led_matrix::LedMatrix,
+        sender: mpsc::Sender<common::MatrixCommand>,
         receiver: mpsc::Receiver<common::MatrixCommand>,
         map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
         settings: ScoreboardSettings,
         webserver_responder: mpsc::Sender<common::WebserverResponse>,
         shell_sender: mpsc::Sender<common::ShellCommand>,
+        root_path: PathBuf,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
+            sender,
             receiver,
             screens_map: map,
             settings,
             webserver_responder,
             shell_sender,
+            message: None,
+            root_path,
         }
     }
 
@@ -72,6 +83,21 @@ impl<'a> Matrix<'a> {
 
     fn send_response(self: &Self, response: common::WebserverResponse) {
         self.webserver_responder.send(response).unwrap();
+    }
+
+    fn show_message(self: &mut Self, message: String) {
+        let message_screen = message::MessageScreen::new(
+            message,
+            self.sender.clone(),
+            FontBook::new(&self.root_path),
+        );
+        message_screen.send_draw_command(None);
+        self.message = Some(message_screen);
+    }
+
+    fn hide_message(self: &mut Self) {
+        self.message = None;
+        self.get_mut_active_screen().send_draw_command(None);
     }
 
     // This is the main loop of the entire code
@@ -115,12 +141,16 @@ impl<'a> Matrix<'a> {
                     }
                 }
                 common::MatrixCommand::Display(id) => {
-                    if id == *self.settings.get_active_screen() && *self.settings.get_power() {
-                        // If the id received matches the active id, display the image
-                        self.get_mut_screen(&id).draw(&mut canvas);
-                        canvas = self.led_matrix.swap(canvas);
-                        canvas.clear();
+                    if let Some(message_screen) = &mut self.message {
+                        message_screen.draw(&mut canvas);
+                    } else {
+                        if id == *self.settings.get_active_screen() && *self.settings.get_power() {
+                            // If the id received matches the active id, display the image
+                            self.get_mut_screen(&id).draw(&mut canvas);
+                        }
                     }
+                    canvas = self.led_matrix.swap(canvas);
+                    canvas.clear();
                 }
                 common::MatrixCommand::GetSettings() => {
                     self.send_response(common::WebserverResponse::GetSettingsResponse(
@@ -135,15 +165,20 @@ impl<'a> Matrix<'a> {
                     ));
                 }
                 common::MatrixCommand::Reboot() => {
-                    // TODO update the screen to show the message
+                    self.show_message("Rebooting...".to_string());
                     self.send_command(common::ShellCommand::Reboot {
                         settings: self.settings.get_settings_clone(),
                     });
                 }
                 common::MatrixCommand::Reset { from_webserver } => {
                     // Reset scoreboard settings,  updating the screen to show the message
-                    // TODO update to show "RESETTING" message
+                    self.deactivate_screen();
                     self.settings.set_setup_state(&common::SetupState::Hotspot);
+                    self.settings.set_active_screen(&common::ScreenId::Setup);
+                    self.activate_screen();
+                    // TODO update to show "RESETTING" message
+                    self.show_message("Resetting...".to_string());
+
                     self.send_command(common::ShellCommand::Reset {
                         from_webserver: if from_webserver {
                             Some(self.settings.get_settings_clone())
@@ -182,12 +217,28 @@ impl<'a> Matrix<'a> {
                         self.send_response(common::WebserverResponse::GotWifiDetailsResponse(None));
                     }
                 }
-                common::MatrixCommand::SuccessfulWifiConnection() => {
-                    self.settings.set_setup_state(&common::SetupState::Sync);
-                    self.update_settings_on_active_screen();
-                }
-                common::MatrixCommand::FailedWifiConnection() => {
-                    // TODO display an error
+                common::MatrixCommand::FinishedWifiConnection(result) => match result {
+                    Ok(_) => {
+                        self.settings.set_setup_state(&common::SetupState::Sync);
+                        self.update_settings_on_active_screen();
+                    }
+                    Err(e) => {
+                        error!("Error setting up wifi {:?} ", e);
+                        // TODO display an error on the wifi details screen
+                    }
+                },
+                common::MatrixCommand::FinishedReset(result) => {
+                    self.hide_message();
+                    match result {
+                        Ok(_) => {
+                            self.settings.set_setup_state(&common::SetupState::Sync);
+                            self.update_settings_on_active_screen();
+                        }
+                        Err(e) => {
+                            error!("Error setting up wifi {:?} ", e);
+                            // TODO display an error on the wifi details screen
+                        }
+                    }
                 }
                 common::MatrixCommand::SyncCommand {
                     from_webserver,
@@ -454,6 +505,27 @@ pub fn draw_pixels(canvas: &mut rpi_led_matrix::LedCanvas, pixels: &Pixels, top_
         });
         y += 1;
     });
+}
+
+pub fn draw_message(
+    canvas: &mut rpi_led_matrix::LedCanvas,
+    font: &Font,
+    message: &str,
+    waves_anim: &mut animation::WavesAnimation,
+) {
+    let text_dimensions = font.get_text_dimensions(message);
+    let white = common::new_color(255, 255, 255);
+    canvas.draw_text(
+        &font.led_font,
+        &message,
+        1,
+        1 + text_dimensions.height,
+        &white,
+        0,
+        false,
+    );
+
+    waves_anim.draw(canvas);
 }
 
 pub trait ScreenProvider {
