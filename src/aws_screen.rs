@@ -276,8 +276,7 @@ impl<
                                 self.draw_no_games(canvas);
                             }
                         }
-                        Err(message) => {
-                            error!("Failed to fetch games with error {}", message);
+                        Err(_message) => {
                             self.draw_error(canvas);
                         }
                     }

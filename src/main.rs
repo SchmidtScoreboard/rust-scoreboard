@@ -48,6 +48,7 @@ fn main() {
         .directory(log_dir)
         .duplicate_to_stdout(flexi_logger::Duplicate::All)
         .format_for_stdout(flexi_logger::opt_format)
+        .format_for_files(flexi_logger::detailed_format)
         .rotate(
             flexi_logger::Criterion::Age(flexi_logger::Age::Day),
             flexi_logger::Naming::Timestamps,
@@ -73,13 +74,44 @@ fn main() {
         )))
         .expect("Could not parse scoreboard settings from json");
 
+    let (tx, rx) = mpsc::channel();
+    let (web_response_sender, web_response_receiver) = mpsc::channel();
+    let (shell_sender, shell_receiver) = mpsc::channel();
+
     let mut settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
 
-    if settings.get_settings_clone().setup_state == common::SetupState::Factory {
+    if settings.get_settings().setup_state == common::SetupState::Factory {
         settings.set_setup_state(&common::SetupState::Hotspot);
     }
 
-    let (tx, rx) = mpsc::channel();
+    let shell = shell_executor::CommandExecutor::new(
+        web_response_sender.clone(),
+        tx.clone(),
+        shell_receiver,
+    );
+    std::thread::spawn(move || {
+        shell.run();
+    });
+
+    let enable_hotspot = match settings.get_settings().setup_state {
+        common::SetupState::Hotspot | common::SetupState::WifiConnect => true,
+        _ => false,
+    };
+    if enable_hotspot || !common::is_connected() {
+        info!("Could not reach internet or in setup state, showing hotspot screen and enabling the hotspot");
+        settings.set_setup_state(&common::SetupState::Hotspot);
+        settings.set_active_screen(&common::ScreenId::Setup);
+        shell_sender
+            .send(common::ShellCommand::Reset {
+                from_matrix: false,
+                from_webserver: None,
+            })
+            .unwrap();
+    } else {
+        shell_sender
+            .send(common::ShellCommand::SetHotspot(false))
+            .unwrap();
+    }
 
     // let button_handler = button::ButtonHandler::new(tx.clone());
     // std::thread::spawn(move || {
@@ -141,18 +173,6 @@ fn main() {
     let led_matrix: rpi_led_matrix::LedMatrix =
         rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
             .expect("Could not setup matrix");
-
-    let (web_response_sender, web_response_receiver) = mpsc::channel();
-    let (shell_sender, shell_receiver) = mpsc::channel();
-
-    let shell = shell_executor::CommandExecutor::new(
-        web_response_sender.clone(),
-        tx.clone(),
-        shell_receiver,
-    );
-    std::thread::spawn(move || {
-        shell.run();
-    });
 
     let mut matrix = Matrix::new(
         led_matrix,

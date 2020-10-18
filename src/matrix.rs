@@ -180,6 +180,7 @@ impl<'a> Matrix<'a> {
                     self.show_message("Resetting...".to_string());
 
                     self.send_command(common::ShellCommand::Reset {
+                        from_matrix: true,
                         from_webserver: if from_webserver {
                             Some(self.settings.get_settings_clone())
                         } else {

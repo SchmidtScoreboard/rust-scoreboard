@@ -5,6 +5,7 @@ use std::process::{Command, ExitStatus};
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
+use users::{get_current_uid, get_user_by_uid};
 
 pub struct CommandExecutor {
     webserver_sender: mpsc::Sender<common::WebserverResponse>,
@@ -31,13 +32,19 @@ impl CommandExecutor {
         self.matrix_sender.send(response).unwrap();
     }
 
-    fn set_hotspot(self: &Self, enable: bool) -> io::Result<ExitStatus> {
-        Command::new("ip")
+    fn set_interface(self: &Self, interface: &str, enable: bool) -> ExitStatus {
+        let result = Command::new("sudo")
+            .arg("ip")
             .arg("link")
             .arg("set")
-            .arg("wlan1")
+            .arg(interface)
             .arg(if enable { "up" } else { "down" })
-            .status()
+            .output()
+            .expect("Failed to run set interfaces");
+        info!("{:?}", &String::from_utf8(result.stdout).unwrap());
+        error!("{:?}", &String::from_utf8(result.stderr).unwrap());
+
+        result.status
     }
 
     fn setup_wifi(self: &Self, ssid: &str, password: &str) -> io::Result<ExitStatus> {
@@ -58,69 +65,68 @@ network={{
         info!("Attempting to connect with supplicant:\n{}\n", supplicant);
         fs::write("/etc/wpa_supplicant/wpa_supplicant.conf", supplicant)?;
 
-        let daemon_reload = Command::new("systemctl").arg("daemon-reload").status()?;
-        if !daemon_reload.success() {
+        let daemon_reload = Command::new("systemctl").arg("daemon-reload").output()?;
+        if !daemon_reload.status.success() {
             error!("Failed to systemctl daemon reload");
-            return Ok(daemon_reload);
+            return Ok(daemon_reload.status);
         }
+        info!("{:?}", daemon_reload.stdout);
+        error!("{:?}", daemon_reload.stderr);
 
-        let dhclient1 = Command::new("dhclient").args(&["-r", "wlan0"]).status()?;
-        if !dhclient1.success() {
-            error!("Failed to stop dhclient");
-            return Ok(dhclient1);
-        }
+        let output = Command::new("sudo")
+            .args(&["dhclient", "-r", "wlan0"])
+            .output()?;
+        info!("{:?}", String::from_utf8(output.stdout).unwrap());
+        error!("{:?}", String::from_utf8(output.stderr).unwrap());
 
-        let ifdown = Command::new("ifdown").arg("wlan0").status()?;
-        if !ifdown.success() {
-            error!("Failed to bring interface down");
-            return Ok(ifdown);
-        }
+        let output = Command::new("sudo").args(&["ifdown", "wlan0"]).output()?;
+        info!("{:?}", String::from_utf8(output.stdout).unwrap());
+        error!("{:?}", String::from_utf8(output.stderr).unwrap());
 
-        let ifup = Command::new("ifup").arg("wlan0").status()?;
-        if !ifup.success() {
-            error!("Failed to bring interface up");
-            return Ok(ifup);
-        }
+        let output = Command::new("sudo").args(&["ifup", "wlan0"]).output()?;
+        info!("{:?}", String::from_utf8(output.stdout).unwrap());
+        error!("{:?}", String::from_utf8(output.stderr).unwrap());
 
-        Command::new("dhclient").args(&["-v", "wlan0"]).status()
+        let output = Command::new("sudo")
+            .args(&["dhclient", "-v", "wlan0"])
+            .output()?;
+        info!("{:?}", String::from_utf8(output.stdout).unwrap());
+        error!("{:?}", String::from_utf8(output.stderr).unwrap());
+        Ok(output.status)
     }
 
     pub fn run(self: &Self) {
+        let user = get_user_by_uid(get_current_uid()).unwrap();
+        info!("Hello, {}!", user.name().to_string_lossy());
+
+        let output = Command::new("whoami").output().unwrap();
+        info!("{:?}", String::from_utf8(output.stdout).unwrap());
         loop {
             let command = self.receiver.recv().unwrap();
             match command {
                 common::ShellCommand::Reboot { settings } => {
                     let mut reboot_command = Command::new("reboot");
-                    info!("Running command {:?}", reboot_command);
                     self.send_webserver_response(common::WebserverResponse::RebootResponse(Some(
                         settings,
                     )));
                     // Sleep for a second to let the response happen
                     thread::sleep(Duration::from_secs(3));
-                    let result = reboot_command.status();
-                    match result {
-                        Ok(_) => {
-                            warn!("Printing after we're rebooting... this shouldn't happen");
-                        }
-                        Err(e) => {
-                            error!("Errror rebooting {:?}", e);
-                        }
-                    }
+                    let result = reboot_command
+                        .output()
+                        .expect("Failed to start reboot command");
+                    info!("{:?}", String::from_utf8(result.stdout).unwrap());
+                    error!("{:?}", String::from_utf8(result.stderr).unwrap());
                 }
-                common::ShellCommand::Reset { from_webserver } => {
+                common::ShellCommand::Reset {
+                    from_matrix,
+                    from_webserver,
+                } => {
                     // Enable wifi hotspot
-                    let hotspot_result = self.set_hotspot(true);
-                    match hotspot_result {
-                        Ok(status) => {
-                            if status.success() {
-                                info!("Successfully reenabled hotspot");
-                            } else {
-                                error!("Failed to reenable hotspot, error code {:?}", status.code())
-                            }
-                        }
-                        Err(e) => {
-                            error!("Error when enabling hotspot {:?}", e);
-                        }
+                    let status = self.set_interface("wlan1", true);
+                    if status.success() {
+                        info!("Successfully enabled hotspot");
+                    } else {
+                        error!("Failed to enable hotspoß, error code {:?}", status.code())
                     }
 
                     if let Some(settings) = from_webserver {
@@ -128,8 +134,31 @@ network={{
                             Some(settings),
                         ));
                     }
-
-                    self.send_matrix_response(common::MatrixCommand::FinishedReset(Ok(())));
+                    thread::sleep(Duration::from_secs(1));
+                    info!("Resetting wifi");
+                    // Just disable wlan0
+                    let status = self.set_interface("wlan0", false);
+                    if status.success() {
+                        info!("Successfully disabled primary nic");
+                    } else {
+                        error!(
+                            "Failed to disable primary nic, error code {:?}",
+                            status.code()
+                        )
+                    }
+                    if from_matrix {
+                        self.matrix_sender
+                            .send(common::MatrixCommand::FinishedReset(Ok(())))
+                            .unwrap();
+                    }
+                }
+                common::ShellCommand::SetHotspot(on) => {
+                    let status = self.set_interface("wlan1", on);
+                    if status.success() {
+                        info!("Successfully set hotspot {}", on);
+                    } else {
+                        error!("Failed to set hotspot, error code {:?}", status.code())
+                    }
                 }
                 common::ShellCommand::SetupWifi {
                     ssid,
@@ -141,7 +170,7 @@ network={{
 
                     match self.setup_wifi(&ssid, &password) {
                         Ok(status) => {
-                            if status.success() {
+                            if status.success() || status.code().unwrap_or(2) == 1 {
                                 info!("Successfully setup wifi!");
                             } else {
                                 success = false;
@@ -156,23 +185,15 @@ network={{
 
                     if success {
                         // If we've successfully connected, disable the hotspot
-                        let hotspot_result = self.set_hotspot(false);
-                        match hotspot_result {
-                            Ok(status) => {
-                                if status.success() {
-                                    info!("Successfully reenabled hotspot");
-                                } else {
-                                    error!(
-                                        "Failed to reenable hotspot, error code {:?}",
-                                        status.code()
-                                    );
-                                    success = false
-                                }
-                            }
-                            Err(e) => {
-                                error!("Error when enabling hotspot {:?}", e);
-                                success = false;
-                            }
+                        let hotspot_result = self.set_interface("wlan1", false);
+                        if hotspot_result.success() {
+                            info!("Successfully disabled hotspot");
+                        } else {
+                            error!(
+                                "Failed to disable hotspot, error code {:?}",
+                                hotspot_result.code()
+                            );
+                            success = false
                         }
                     }
 

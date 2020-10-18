@@ -20,7 +20,7 @@ fi
 trap ctrl_c INT
 function ctrl_c() {
         echo "Exiting"
-        ssh pi@$PI_IP 'sudo pkill scoreboard-rust'
+        ssh pi@$PI_IP 'sudo pkill scoreboard'
 }
 
 ssh pi@$PI_IP 'sudo pkill scoreboard-rust'

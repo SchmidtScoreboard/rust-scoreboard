@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::*;
 use std::error::Error;
 use std::io;
+use ureq;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]
 #[repr(u16)]
@@ -64,6 +65,7 @@ pub enum ShellCommand {
         settings: ScoreboardSettingsData, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
     },
     Reset {
+        from_matrix: bool,
         from_webserver: Option<ScoreboardSettingsData>, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
     },
     SetupWifi {
@@ -71,6 +73,7 @@ pub enum ShellCommand {
         password: String,
         settings: ScoreboardSettingsData,
     },
+    SetHotspot(bool),
 }
 
 pub fn new_color(red: u8, green: u8, blue: u8) -> rpi_led_matrix::LedColor {
@@ -92,6 +95,11 @@ pub fn color_from_string(s: &str) -> Result<rpi_led_matrix::LedColor, Box<dyn Er
     Ok(new_color(red, green, blue))
 }
 
+pub fn is_connected() -> bool {
+    let response = ureq::get("http://clients3.google.com/generate_204").call();
+    info!("Checking connection, status is {:?}", response.status());
+    response.status() == 204
+}
 #[derive(Deserialize_repr, Serialize_repr, PartialEq, Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum SetupState {
