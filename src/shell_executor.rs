@@ -195,6 +195,9 @@ network={{
                             );
                             success = false
                         }
+                        if !common::is_connected() {
+                            success = false;
+                        }
                     }
 
                     self.send_webserver_response(
