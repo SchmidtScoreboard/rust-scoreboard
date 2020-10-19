@@ -5,6 +5,7 @@ use crate::matrix;
 use chrono::Utc;
 use chrono_tz::Tz;
 use rpi_led_matrix;
+use std::any::Any;
 use std::sync::mpsc;
 use std::time::Duration;
 
@@ -60,5 +61,9 @@ impl matrix::ScreenProvider for Clock {
 
     fn get_screen_id(self: &Self) -> common::ScreenId {
         common::ScreenId::Clock
+    }
+
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }

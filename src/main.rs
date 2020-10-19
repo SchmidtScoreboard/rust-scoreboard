@@ -113,10 +113,10 @@ fn main() {
             .unwrap();
     }
 
-    // let button_handler = button::ButtonHandler::new(tx.clone());
-    // std::thread::spawn(move || {
-    //     button_handler.run();
-    // });
+    let button_handler = button::ButtonHandler::new(tx.clone());
+    std::thread::spawn(move || {
+        button_handler.run();
+    });
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();

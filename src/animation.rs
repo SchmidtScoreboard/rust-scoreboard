@@ -5,6 +5,7 @@ use rand::distributions::{Distribution, Uniform};
 use rand_distr::Normal;
 
 use rpi_led_matrix;
+use std::any::Any;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
@@ -168,5 +169,8 @@ impl matrix::ScreenProvider for AnimationTestScreen {
     }
     fn get_screen_id(self: &Self) -> common::ScreenId {
         common::ScreenId::Animation
+    }
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }

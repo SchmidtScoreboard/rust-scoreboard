@@ -7,6 +7,7 @@ use crate::matrix;
 use rand::seq::SliceRandom;
 use rpi_led_matrix;
 use serde_json;
+use std::any::Any;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
@@ -297,5 +298,9 @@ impl<
 
     fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
         self.sender.clone()
+    }
+
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }

@@ -1,6 +1,7 @@
 use crate::animation;
 use crate::common;
 use crate::matrix;
+use std::any::Any;
 use std::sync::mpsc;
 use std::time::Duration;
 
@@ -52,5 +53,9 @@ impl matrix::ScreenProvider for MessageScreen {
 
     fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
         self.sender.clone()
+    }
+
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }

@@ -3,8 +3,16 @@ use crate::common;
 use crate::matrix;
 
 use rpi_led_matrix;
+use std::any::Any;
 use std::sync::mpsc;
 use std::time::Duration;
+
+enum WifiScreenSubState {
+    WaitingForConnection(),
+    AttemptingConnection(),
+    ConnectionFailed(),
+}
+
 pub struct SetupScreen {
     sender: mpsc::Sender<common::MatrixCommand>,
     loading_anim: animation::LoadingAnimation,
@@ -12,6 +20,7 @@ pub struct SetupScreen {
     state: common::SetupState,
     fonts: matrix::FontBook,
     pixels: matrix::PixelBook,
+    wifi_state: WifiScreenSubState,
 }
 
 impl SetupScreen {
@@ -28,7 +37,15 @@ impl SetupScreen {
             state,
             fonts,
             pixels,
+            wifi_state: WifiScreenSubState::WaitingForConnection(),
         }
+    }
+
+    pub fn attempting_connection(self: &mut Self) {
+        self.wifi_state = WifiScreenSubState::AttemptingConnection();
+    }
+    pub fn failed_connection(self: &mut Self) {
+        self.wifi_state = WifiScreenSubState::ConnectionFailed();
     }
 }
 
@@ -67,32 +84,41 @@ impl matrix::ScreenProvider for SetupScreen {
                     .draw(canvas, (canvas_width - 5, canvas_height - 5));
             }
             common::SetupState::WifiConnect => {
-                let (canvas_width, canvas_height) = canvas.canvas_size();
+                let (_canvas_width, canvas_height) = canvas.canvas_size();
                 let phone_frame_size = &self.pixels.phone_frame.size();
-                let wifi_size = &self.pixels.wifi.size();
                 matrix::draw_pixels(
                     canvas,
                     &self.pixels.phone_frame,
                     (2, (canvas_height / 2) - (phone_frame_size.height / 2)),
                 );
-                matrix::draw_pixels(
-                    canvas,
-                    &self.pixels.green_check,
-                    (5, (canvas_height / 2) - (wifi_size.height / 2)),
-                );
                 let white = common::new_color(255, 255, 255);
                 let font = &self.fonts.font4x6;
-
-                matrix::draw_lines(
-                    canvas,
-                    &vec!["Connected!", "Send your", "wifi info"],
-                    phone_frame_size.width + 4,
-                    font,
-                    &white,
-                );
-
-                self.loading_anim
-                    .draw(canvas, (canvas_width - 5, canvas_height - 5));
+                let lines: Vec<&'static str>;
+                match self.wifi_state {
+                    WifiScreenSubState::WaitingForConnection() => {
+                        let check_size = &self.pixels.green_check.size();
+                        matrix::draw_pixels(
+                            canvas,
+                            &self.pixels.green_check,
+                            (5, (canvas_height / 2) - (check_size.height / 2)),
+                        );
+                        lines = vec!["Connected!", "Send your", "wifi info"];
+                    }
+                    WifiScreenSubState::AttemptingConnection() => {
+                        self.loading_anim.draw(canvas, (5, (canvas_height / 2) - 2));
+                        lines = vec!["Connecting", "to wifi"];
+                    }
+                    WifiScreenSubState::ConnectionFailed() => {
+                        let x_size = &self.pixels.red_x.size();
+                        matrix::draw_pixels(
+                            canvas,
+                            &self.pixels.red_x,
+                            (5, (canvas_height / 2) - (x_size.height / 2)),
+                        );
+                        lines = vec!["Failed to", "connect,", "try again"]
+                    }
+                }
+                matrix::draw_lines(canvas, &lines, phone_frame_size.width + 4, font, &white);
             }
             common::SetupState::Sync => {
                 let offset: i32 = 9;
@@ -129,5 +155,9 @@ impl matrix::ScreenProvider for SetupScreen {
     }
     fn get_screen_id(self: &Self) -> common::ScreenId {
         common::ScreenId::Setup
+    }
+
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }

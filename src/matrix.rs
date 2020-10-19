@@ -3,8 +3,10 @@ use crate::common;
 use crate::common::ScoreboardSettingsData;
 use crate::message;
 use crate::scoreboard_settings::ScoreboardSettings;
+use crate::setup_screen;
 use png;
 use rpi_led_matrix;
+use std::any::Any;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::error::Error;
@@ -98,6 +100,17 @@ impl<'a> Matrix<'a> {
     fn hide_message(self: &mut Self) {
         self.message = None;
         self.get_mut_active_screen().send_draw_command(None);
+    }
+
+    fn get_setup_screen(self: &mut Self) -> &mut setup_screen::SetupScreen {
+        match self
+            .get_mut_screen(&common::ScreenId::Setup)
+            .as_any()
+            .downcast_mut::<setup_screen::SetupScreen>()
+        {
+            Some(setup_screen) => setup_screen,
+            None => panic!("Found screen is NOT the setup screen"),
+        }
     }
 
     // This is the main loop of the entire code
@@ -209,6 +222,8 @@ impl<'a> Matrix<'a> {
                 common::MatrixCommand::GotWifiDetails { ssid, password } => {
                     // Got wifi details, set the wpa supplicant file and restart
                     if self.settings.get_setup_state() == &common::SetupState::WifiConnect {
+                        let setup = self.get_setup_screen();
+                        setup.attempting_connection();
                         self.send_command(common::ShellCommand::SetupWifi {
                             ssid,
                             password,
@@ -225,6 +240,8 @@ impl<'a> Matrix<'a> {
                     }
                     Err(e) => {
                         error!("Error setting up wifi {:?} ", e);
+                        let setup = self.get_setup_screen();
+                        setup.failed_connection();
                         // TODO display an error on the wifi details screen
                     }
                 },
@@ -364,6 +381,7 @@ pub struct PixelBook {
     pub wifi: Pixels,
     pub phone_frame: Pixels,
     pub green_check: Pixels,
+    pub red_x: Pixels,
 }
 
 impl PixelBook {
@@ -380,6 +398,7 @@ impl PixelBook {
                 .expect("Could not load phone frame"),
             green_check: Pixels::from_file(root_path, "check.png")
                 .expect("Could not load green check"),
+            red_x: Pixels::from_file(root_path, "red-x.png").expect("Could not load red X"),
         }
     }
 }
@@ -565,6 +584,8 @@ pub trait ScreenProvider {
             draw_command(sender, id);
         }
     }
+
+    fn as_any(&mut self) -> &mut dyn Any;
 }
 
 fn draw_command(sender: mpsc::Sender<common::MatrixCommand>, id: common::ScreenId) {
