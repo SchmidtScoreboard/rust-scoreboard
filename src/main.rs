@@ -113,10 +113,7 @@ fn main() {
             .unwrap();
     }
 
-    let button_handler = button::ButtonHandler::new(tx.clone());
-    std::thread::spawn(move || {
-        button_handler.run();
-    });
+    let mut button_handler = button::ButtonHandler::new(tx.clone());
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
@@ -187,6 +184,9 @@ fn main() {
     let webserver_sender = tx.clone();
     std::thread::spawn(move || {
         webserver::run_webserver(webserver_sender, web_response_receiver, root_path);
+    });
+    std::thread::spawn(move || {
+        button_handler.run();
     });
     info!("Starting matrix runner");
     matrix.run();

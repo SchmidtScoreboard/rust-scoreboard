@@ -147,6 +147,7 @@ impl<'a> Matrix<'a> {
                     }
                     canvas.clear();
                     canvas = self.led_matrix.swap(canvas);
+                    canvas.clear();
                     if from_webserver {
                         self.send_response(common::WebserverResponse::SetPowerResponse(
                             self.settings.get_settings_clone(),
@@ -270,12 +271,14 @@ impl<'a> Matrix<'a> {
                         self.deactivate_screen();
                         let show_sync = match show_sync {
                             Some(show_sync) => show_sync,
-                            None => self.settings.get_setup_state() == &common::SetupState::Sync,
+                            None => self.settings.get_setup_state() != &common::SetupState::Sync,
                         };
                         if show_sync {
+                            debug!("Showing sync screen");
                             self.settings.set_setup_state(&common::SetupState::Sync);
                             self.settings.set_active_screen(&common::ScreenId::Setup);
                         } else {
+                            debug!("Showing hockey screen");
                             self.settings.set_setup_state(&common::SetupState::Ready);
                             self.settings.set_active_screen(&common::ScreenId::Hockey);
                         }
