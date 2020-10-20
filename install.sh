@@ -4,9 +4,8 @@
 PI_IP=$1
 TARGET=armv7-unknown-linux-gnueabihf
 
-
 # build binary
-cargo build --target $TARGET 
+cargo build --target $TARGET
 
 if [ $? -ne 0 ]; then
     exit 1

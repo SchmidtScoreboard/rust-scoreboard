@@ -2,8 +2,6 @@ use crate::common;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
-// use rust_gpiozero;
-use std::thread::sleep;
 use sysfs_gpio;
 
 use std::io;

@@ -1,11 +1,12 @@
 use rpi_led_matrix;
 
 use machine_ip;
+use self_update;
 use serde::{Deserialize, Serialize};
 use serde_repr::*;
 use std::error::Error;
 use std::io;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr};
 use ureq;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]
@@ -121,6 +122,20 @@ fn get_pair_for_octet(octet: u8) -> String {
 
 pub fn get_sync_code() -> Option<String> {
     get_ip_address().map(|ip| ip.octets().map(|octet| get_pair_for_octet(octet)).join(""))
+}
+
+pub fn update() -> Result<(), Box<dyn ::std::error::Error>> {
+    info!("Starting update");
+    let status = self_update::backends::github::Update::configure()
+        .repo_owner("SchmidtScoreboard")
+        .repo_name("rust-scoreboard")
+        .bin_name("scoreboard-rust")
+        .show_download_progress(true)
+        .current_version(self_update::cargo_crate_version!())
+        .build()?
+        .update()?;
+    info!("Update status: `{}`!", status.version());
+    Ok(())
 }
 
 #[derive(Deserialize_repr, Serialize_repr, PartialEq, Debug, Clone, Copy)]

@@ -33,7 +33,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::mpsc;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    common::update()?;
     let mut arguments = env::args();
     arguments.next(); // skip program name
     let root_path = match arguments.next() {
@@ -190,4 +191,5 @@ fn main() {
     });
     info!("Starting matrix runner");
     matrix.run();
+    Ok(())
 }
