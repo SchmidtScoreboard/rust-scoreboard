@@ -111,7 +111,7 @@ fn set_sport(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SetPowerResponse(settings) => Ok(Json(settings)),
+        WebserverResponse::SetActiveScreenResponse(settings) => Ok(Json(settings)),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }

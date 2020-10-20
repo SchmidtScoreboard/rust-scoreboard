@@ -23,10 +23,12 @@ extern crate log;
 use animation::AnimationTestScreen;
 use aws_screen::AWSScreen;
 use baseball::BaseballGame;
+use clap;
 use common::ScreenId;
 use hockey::HockeyGame;
 use matrix::{Matrix, ScreenProvider};
 use rpi_led_matrix;
+use self_update;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -34,13 +36,29 @@ use std::path::PathBuf;
 use std::sync::mpsc;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    common::update()?;
-    let mut arguments = env::args();
-    arguments.next(); // skip program name
-    let root_path = match arguments.next() {
-        Some(arg) => PathBuf::from(arg),
-        None => PathBuf::from("/var/lib/scoreboard/"),
-    };
+    let matches = clap::App::new("Schmidt Scoreboard")
+        .version(self_update::cargo_crate_version!())
+        .author("Mark Schmidt <mark.schmidt@hey.com>")
+        .about("Runs a Scoreboard to display hockey and baseball scores")
+        .arg(clap::Arg::with_name("root_path")
+            .short("d")
+            .long("root_path")
+            .value_name("root_path")
+            .help("Specify a directory with a scoreboard_settings.json file and secrets.txt file with a valid API key")
+            .takes_value(true))
+        .arg(clap::Arg::with_name("skip_update")
+            .short("u")
+            .long("skip_update")
+            .value_name("skip_update")
+            .help("Specify this flag to skip the update process")
+            .takes_value(false))
+        .get_matches();
+
+    let root_path = PathBuf::from(
+        matches
+            .value_of("root_path")
+            .unwrap_or("/var/lib/scoreboard/"),
+    );
     let log_dir = root_path.join("logs");
     let _create_dir_result = fs::create_dir(&log_dir);
 
@@ -57,6 +75,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .start()
         .unwrap();
+
+    let skip_update = matches.is_present("skip_update");
+    if !skip_update {
+        match common::update() {
+            Ok(_) => {}
+            Err(e) => error!("Error while updating: {:?}", e), // Ignore the failure
+        }
+    } else {
+        info!("Skipping update");
+    }
 
     let secrets_path = root_path.join("secrets.txt");
     let settings_path = root_path.join("scoreboard_settings.json");

@@ -34,7 +34,9 @@ impl matrix::ScreenProvider for Clock {
         self.send_draw_command(None);
     }
 
-    fn update_settings(self: &mut Self, _settings: ScoreboardSettingsData) {}
+    fn update_settings(self: &mut Self, settings: ScoreboardSettingsData) {
+        self.timezone = settings.timezone.parse().expect("Failed to parse timezone");
+    }
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         let now = Utc::now();

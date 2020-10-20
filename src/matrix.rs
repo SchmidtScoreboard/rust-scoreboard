@@ -124,6 +124,7 @@ impl<'a> Matrix<'a> {
             // let command = command.unwrap(); // Get the actual command
             match command {
                 common::MatrixCommand::SetActiveScreen(id) => {
+                    self.deactivate_screen();
                     self.settings.set_active_screen(&id);
                     self.settings.set_power(&true);
                     self.activate_screen();
@@ -157,14 +158,16 @@ impl<'a> Matrix<'a> {
                 common::MatrixCommand::Display(id) => {
                     if let Some(message_screen) = &mut self.message {
                         message_screen.draw(&mut canvas);
+                        canvas = self.led_matrix.swap(canvas);
+                        canvas.clear();
                     } else {
                         if id == *self.settings.get_active_screen() && *self.settings.get_power() {
                             // If the id received matches the active id, display the image
                             self.get_mut_screen(&id).draw(&mut canvas);
+                            canvas = self.led_matrix.swap(canvas);
+                            canvas.clear();
                         }
                     }
-                    canvas = self.led_matrix.swap(canvas);
-                    canvas.clear();
                 }
                 common::MatrixCommand::GetSettings() => {
                     self.send_response(common::WebserverResponse::GetSettingsResponse(
