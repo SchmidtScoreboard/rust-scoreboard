@@ -195,7 +195,7 @@ network={{
                             );
                             success = false
                         }
-                        if !common::is_connected() {
+                        if !common::is_connected() || common::get_ip_address().is_none() {
                             success = false;
                         }
                     }

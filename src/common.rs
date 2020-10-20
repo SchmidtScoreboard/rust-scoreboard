@@ -1,9 +1,11 @@
 use rpi_led_matrix;
 
+use machine_ip;
 use serde::{Deserialize, Serialize};
 use serde_repr::*;
 use std::error::Error;
 use std::io;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use ureq;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]
@@ -100,6 +102,27 @@ pub fn is_connected() -> bool {
     info!("Checking connection, status is {:?}", response.status());
     response.status() == 204
 }
+
+pub fn get_ip_address() -> Option<Ipv4Addr> {
+    machine_ip::get().map(|ip| match ip {
+        IpAddr::V4(ipv4) => ipv4,
+        _ => panic!("Can't use v6 addrs yet"),
+    })
+}
+
+fn get_pair_for_octet(octet: u8) -> String {
+    let offset: u8 = 'A' as u8;
+    let first = octet / 26;
+    let second = octet % 26;
+    std::str::from_utf8(&[first + offset, second + offset])
+        .unwrap()
+        .to_owned()
+}
+
+pub fn get_sync_code() -> Option<String> {
+    get_ip_address().map(|ip| ip.octets().map(|octet| get_pair_for_octet(octet)).join(""))
+}
+
 #[derive(Deserialize_repr, Serialize_repr, PartialEq, Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum SetupState {

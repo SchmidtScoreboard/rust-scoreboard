@@ -619,6 +619,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "machine-ip"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "143fdbb707fc8d9bcc03a68f03ca123206e3f38da3490d7bc7e36164c8d5da5a"
+
+[[package]]
 name = "matches"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1065,16 +1071,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rppal"
-version = "0.11.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "137dbba1fb867daa27cda4c3cd6a11bca5bb5a1551f034cf9319b994846ddbe1"
-dependencies = [
- "lazy_static",
- "libc",
-]
-
-[[package]]
 name = "rust-embed"
 version = "5.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1104,15 +1100,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97655158074ccb2d2cfb1ccb4c956ef0f4054e43a2c1e71146d4991e6961e105"
 dependencies = [
  "walkdir",
-]
-
-[[package]]
-name = "rust_gpiozero"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2de0e2fde7b1908026fcb13cff771d9cdb21d7e103220c3a6a9b62b4b8346fa8"
-dependencies = [
- "rppal",
 ]
 
 [[package]]
@@ -1166,6 +1153,7 @@ dependencies = [
  "chrono-tz",
  "flexi_logger",
  "log 0.4.11",
+ "machine-ip",
  "png",
  "rand",
  "rand_distr",
@@ -1173,7 +1161,6 @@ dependencies = [
  "rocket_contrib",
  "rpi-led-matrix",
  "rust-embed",
- "rust_gpiozero",
  "serde",
  "serde_json",
  "serde_repr",

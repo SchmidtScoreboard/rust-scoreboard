@@ -123,7 +123,7 @@ impl matrix::ScreenProvider for SetupScreen {
             common::SetupState::Sync => {
                 let offset: i32 = 9;
                 let spacing: i32 = 10;
-                let sync_code = "HKGMAEBY"; // TODO get IP address into sync code
+                let sync_code = common::get_sync_code().expect("Could not generate sync code");
                 let help_text = "Sync Code:";
                 let help_font = &self.fonts.font4x6;
                 let sync_code_font = &self.fonts.font7x13;
@@ -133,7 +133,7 @@ impl matrix::ScreenProvider for SetupScreen {
                 );
                 matrix::draw_text_centered_horizontally(
                     canvas,
-                    sync_code,
+                    &sync_code,
                     offset + spacing,
                     sync_code_font,
                     &white,
