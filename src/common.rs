@@ -137,7 +137,7 @@ pub fn update() -> Result<(), Box<dyn ::std::error::Error>> {
         .repo_owner("SchmidtScoreboard")
         .repo_name("rust-scoreboard")
         .bin_name("scoreboard")
-        .show_download_progress(true)
+        .no_confirm(true)
         .current_version(self_update::cargo_crate_version!())
         .build()?
         .update()?;

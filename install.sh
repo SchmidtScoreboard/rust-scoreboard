@@ -23,7 +23,7 @@ function ctrl_c() {
 }
 
 ssh pi@$PI_IP 'sudo pkill scoreboard-rust'
-rsync -avzhe ssh target/$TARGET/debug/scoreboard pi@$PI_IP:/var/lib/scoreboard/
+rsync -avzhe ssh target/$TARGET/release/scoreboard pi@$PI_IP:/var/lib/scoreboard/
 
 if [[ $# -eq 1 ]] ; then
     ssh pi@$PI_IP 'sudo RUST_LOG="debug, rocket= error" /var/lib/scoreboard/scoreboard --skip_update'
