@@ -1,13 +1,12 @@
 use rpi_led_matrix;
 
-use machine_ip;
 use self_update;
 use serde::{Deserialize, Serialize};
 use serde_repr::*;
 use std::error::Error;
 use std::io;
-use std::net::{IpAddr, Ipv4Addr};
-use std::process::{Command, ExitStatus};
+use std::net::Ipv4Addr;
+use std::process::Command;
 use ureq;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]

@@ -902,12 +902,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "machine-ip"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "143fdbb707fc8d9bcc03a68f03ca123206e3f38da3490d7bc7e36164c8d5da5a"
-
-[[package]]
 name = "matches"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1622,7 +1616,6 @@ dependencies = [
  "clap",
  "flexi_logger",
  "log 0.4.11",
- "machine-ip",
  "openssl",
  "png",
  "rand",

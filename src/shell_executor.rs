@@ -163,7 +163,7 @@ network={{
                 common::ShellCommand::SetupWifi {
                     ssid,
                     password,
-                    settings,
+                    settings: _,
                 } => {
                     // Setup the wifi
                     let mut success = true;

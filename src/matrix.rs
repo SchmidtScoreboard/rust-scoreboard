@@ -11,7 +11,6 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::error::Error;
 use std::fs;
-use std::path::PathBuf;
 use std::str;
 use std::sync::mpsc;
 use std::time::Duration;
