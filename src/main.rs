@@ -187,6 +187,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let animation = AnimationTestScreen::new(tx.clone());
     map.insert(ScreenId::Animation, Box::new(animation));
 
+    // Message Screen
+    let message_screen = message::MessageScreen::new(tx.clone(), matrix::FontBook::new(&root_path));
     // Setup the actual matrix and run it
     // Setup matrix options
     let mut options = rpi_led_matrix::LedMatrixOptions::new();
@@ -202,13 +204,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut matrix = Matrix::new(
         led_matrix,
-        tx.clone(),
+        message_screen,
         rx,
         map,
         settings,
         web_response_sender,
         shell_sender.clone(),
-        root_path.clone(),
     );
     let webserver_sender = tx.clone();
     std::thread::spawn(move || {

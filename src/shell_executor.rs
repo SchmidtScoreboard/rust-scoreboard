@@ -200,13 +200,9 @@ network={{
                         }
                     }
 
-                    self.send_webserver_response(
-                        common::WebserverResponse::GotWifiDetailsResponse(if success {
-                            Some(settings)
-                        } else {
-                            None
-                        }),
-                    );
+                    if !success {
+                        self.set_interface("wlan1", true);
+                    }
 
                     self.send_matrix_response(common::MatrixCommand::FinishedWifiConnection(
                         if success {

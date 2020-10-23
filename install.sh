@@ -5,7 +5,7 @@ PI_IP=$1
 TARGET=armv7-unknown-linux-gnueabihf
 
 # build binary
-cargo build --target $TARGET
+cargo build --target $TARGET --release
 
 if [ $? -ne 0 ]; then
     exit 1
@@ -23,5 +23,8 @@ function ctrl_c() {
 }
 
 ssh pi@$PI_IP 'sudo pkill scoreboard-rust'
-rsync -avzhe ssh target/$TARGET/debug/scoreboard-rust pi@$PI_IP:/home/pi/rust-scoreboard/
-ssh pi@$PI_IP 'sudo RUST_LOG="debug, rocket= error" ./rust-scoreboard/scoreboard-rust --skip_update'
+rsync -avzhe ssh target/$TARGET/debug/scoreboard pi@$PI_IP:/var/lib/scoreboard/
+
+if [[ $# -eq 1 ]] ; then
+    ssh pi@$PI_IP 'sudo RUST_LOG="debug, rocket= error" /var/lib/scoreboard/scoreboard --skip_update'
+fi

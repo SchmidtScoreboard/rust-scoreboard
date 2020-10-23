@@ -12,48 +12,52 @@ use std::time::{Duration, Instant};
 pub struct LoadingAnimation {
     frame: i32,
     last_update: Option<Instant>,
+    size: i32,
 }
 
 impl LoadingAnimation {
-    pub fn new() -> LoadingAnimation {
+    pub fn new(size: i32) -> LoadingAnimation {
         LoadingAnimation {
             frame: 0,
             last_update: None,
+            size,
         }
     }
     pub fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas, top_left: (i32, i32)) {
         let (x_offset, y_offset) = top_left;
 
         let white = common::new_color(255, 255, 255);
+        let size = self.size;
+        let length = self.size - 1;
 
-        for t in 0..4 {
+        for t in 0..size {
             if t == self.frame {
                 continue;
             }
-            canvas.set(x_offset + t, y_offset + 0, &white);
+            canvas.set(x_offset + t, y_offset, &white);
         }
-        for r in 1..4 {
-            if r + 3 == self.frame {
+        for r in 1..size {
+            if r + length == self.frame {
                 continue;
             }
-            canvas.set(x_offset + 3, y_offset + r, &white);
+            canvas.set(x_offset + length, y_offset + r, &white);
         }
-        for b in 1..4 {
-            if b + 6 == self.frame {
+        for b in 1..size {
+            if b + length * 2 == self.frame {
                 continue;
             }
-            canvas.set(x_offset + 3 - b, y_offset + 3, &white);
+            canvas.set(x_offset + length - b, y_offset + length, &white);
         }
-        for l in 1..3 {
-            if l + 9 == self.frame {
+        for l in 1..length {
+            if l + length * 3 == self.frame {
                 continue;
             }
-            canvas.set(x_offset + 0, y_offset + 3 - l, &white);
+            canvas.set(x_offset, y_offset + length - l, &white);
         }
         let now = Instant::now();
         if let Some(last_update) = self.last_update {
             if now.duration_since(last_update) > Duration::from_millis(120) {
-                self.frame = (self.frame + 1) % 12;
+                self.frame = (self.frame + 1) % (length * 4);
                 self.last_update = Some(now);
             }
         } else {
@@ -144,7 +148,7 @@ impl AnimationTestScreen {
     pub fn new(sender: mpsc::Sender<common::MatrixCommand>) -> AnimationTestScreen {
         AnimationTestScreen {
             sender,
-            loading_anim: LoadingAnimation::new(),
+            loading_anim: LoadingAnimation::new(5),
             waves_anim: WavesAnimation::new(64),
         }
     }

@@ -1614,8 +1614,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "scoreboard-rust"
-version = "0.1.0"
+name = "scoreboard"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "chrono-tz",

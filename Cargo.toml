@@ -1,6 +1,6 @@
 [package]
-name = "scoreboard-rust"
-version = "0.1.0"
+name = "scoreboard"
+version = "1.0.0"
 authors = ["Mark Schmidt <mark.schmidt@hey.com>"]
 edition = "2018"
 

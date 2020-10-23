@@ -2,6 +2,7 @@ use crate::common;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
+use std::thread::sleep;
 use sysfs_gpio;
 
 use std::io;
@@ -21,6 +22,11 @@ enum ButtonState {
 impl ButtonHandler {
     pub fn new(command_sender: mpsc::Sender<common::MatrixCommand>) -> ButtonHandler {
         let pin = sysfs_gpio::Pin::new(25);
+        if !pin.is_exported() {
+            info!("Exporting pin");
+            pin.export().expect("Failed to export pin");
+            sleep(Duration::from_millis(500));
+        }
         ButtonHandler {
             command_sender,
             pin,

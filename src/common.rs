@@ -7,6 +7,7 @@ use serde_repr::*;
 use std::error::Error;
 use std::io;
 use std::net::{IpAddr, Ipv4Addr};
+use std::process::{Command, ExitStatus};
 use ureq;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]
@@ -105,10 +106,17 @@ pub fn is_connected() -> bool {
 }
 
 pub fn get_ip_address() -> Option<Ipv4Addr> {
-    machine_ip::get().map(|ip| match ip {
-        IpAddr::V4(ipv4) => ipv4,
-        _ => panic!("Can't use v6 addrs yet"),
-    })
+    match Command::new("hostname").arg("-I").output() {
+        Ok(output) if output.status.success() => {
+            let string = std::str::from_utf8(&output.stdout).expect("Failed to parse hostname");
+            let mut ips = string.split(" ");
+            match ips.next() {
+                Some(ip) => Some(ip.parse().unwrap()),
+                None => None,
+            }
+        }
+        _ => None,
+    }
 }
 
 fn get_pair_for_octet(octet: u8) -> String {
@@ -129,7 +137,7 @@ pub fn update() -> Result<(), Box<dyn ::std::error::Error>> {
     let status = self_update::backends::github::Update::configure()
         .repo_owner("SchmidtScoreboard")
         .repo_name("rust-scoreboard")
-        .bin_name("scoreboard-rust")
+        .bin_name("scoreboard")
         .show_download_progress(true)
         .current_version(self_update::cargo_crate_version!())
         .build()?
@@ -163,6 +171,7 @@ pub struct ScoreboardSettingsData {
     pub setup_state: SetupState,
     pub active_screen: ScreenId,
     pub mac_address: String,
+    pub name: String,
     pub screens: Vec<ScreenSettings>,
     pub screen_on: bool,
     pub version: u32,

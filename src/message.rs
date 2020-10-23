@@ -9,23 +9,33 @@ use std::time::Duration;
 // progress of certain actions
 pub struct MessageScreen {
     waves_anim: animation::WavesAnimation,
-    message: String,
+    message: Option<String>,
     sender: mpsc::Sender<common::MatrixCommand>,
     fonts: matrix::FontBook,
 }
 
 impl MessageScreen {
     pub fn new(
-        message: String,
         sender: mpsc::Sender<common::MatrixCommand>,
         fonts: matrix::FontBook,
     ) -> MessageScreen {
         MessageScreen {
             waves_anim: animation::WavesAnimation::new(64),
-            message,
+            message: None,
             sender,
             fonts,
         }
+    }
+
+    pub fn set_message(self: &mut Self, message: String) {
+        self.message = Some(message);
+    }
+    pub fn unset_message(self: &mut Self) {
+        self.message = None;
+    }
+
+    pub fn is_message_set(self: &Self) -> bool {
+        self.message.is_some()
     }
 }
 
@@ -35,19 +45,15 @@ impl matrix::ScreenProvider for MessageScreen {
     fn deactivate(self: &Self) {}
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
-        matrix::draw_message(
-            canvas,
-            &self.fonts.font4x6,
-            &self.message,
-            &mut self.waves_anim,
-        );
-        self.send_draw_command(Some(Duration::from_millis(20)));
+        if let Some(message) = &self.message {
+            matrix::draw_message(canvas, &self.fonts.font4x6, message, &mut self.waves_anim);
+            self.send_draw_command(Some(Duration::from_millis(20)));
+        }
     }
 
     fn update_settings(self: &mut Self, _settings: common::ScoreboardSettingsData) {}
 
     fn get_screen_id(self: &Self) -> common::ScreenId {
-        error!("Attempting to get the screen ID of the message screen. This should never happen");
         common::ScreenId::Message
     }
 

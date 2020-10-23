@@ -32,7 +32,7 @@ impl SetupScreen {
     ) -> SetupScreen {
         SetupScreen {
             sender,
-            loading_anim: animation::LoadingAnimation::new(),
+            loading_anim: animation::LoadingAnimation::new(5),
             wave_anim: animation::WavesAnimation::new(64),
             state,
             fonts,
@@ -105,7 +105,7 @@ impl matrix::ScreenProvider for SetupScreen {
                         lines = vec!["Connected!", "Send your", "wifi info"];
                     }
                     WifiScreenSubState::AttemptingConnection() => {
-                        self.loading_anim.draw(canvas, (5, (canvas_height / 2) - 2));
+                        self.loading_anim.draw(canvas, (7, (canvas_height / 2) - 2));
                         lines = vec!["Connecting", "to wifi"];
                     }
                     WifiScreenSubState::ConnectionFailed() => {
@@ -113,7 +113,7 @@ impl matrix::ScreenProvider for SetupScreen {
                         matrix::draw_pixels(
                             canvas,
                             &self.pixels.red_x,
-                            (5, (canvas_height / 2) - (x_size.height / 2)),
+                            (6, (canvas_height / 2) - (x_size.height / 2)),
                         );
                         lines = vec!["Failed to", "connect,", "try again"]
                     }

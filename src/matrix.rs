@@ -18,37 +18,32 @@ use std::time::Duration;
 
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix, // The actual matrix
-    sender: mpsc::Sender<common::MatrixCommand>, // An additional sender
     receiver: mpsc::Receiver<common::MatrixCommand>, // Receive commands from the button, the webserver, and responses to shell commands
     screens_map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>, // The map of all the active screens
     settings: ScoreboardSettings, // The main scoreboard settings
     webserver_responder: mpsc::Sender<common::WebserverResponse>, // Send responses to the webserver
     shell_sender: mpsc::Sender<common::ShellCommand>, // Send commands to shell
-    message: Option<message::MessageScreen>, // If this is set, display this message until it is unset
-    root_path: PathBuf,                      // Path to root
+    message_screen: message::MessageScreen, // If this is set, display this message until it is unset
 }
 
 impl<'a> Matrix<'a> {
     pub fn new(
         led_matrix: rpi_led_matrix::LedMatrix,
-        sender: mpsc::Sender<common::MatrixCommand>,
+        message_screen: message::MessageScreen,
         receiver: mpsc::Receiver<common::MatrixCommand>,
         map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
         settings: ScoreboardSettings,
         webserver_responder: mpsc::Sender<common::WebserverResponse>,
         shell_sender: mpsc::Sender<common::ShellCommand>,
-        root_path: PathBuf,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
-            sender,
             receiver,
             screens_map: map,
             settings,
             webserver_responder,
             shell_sender,
-            message: None,
-            root_path,
+            message_screen,
         }
     }
 
@@ -88,17 +83,12 @@ impl<'a> Matrix<'a> {
     }
 
     fn show_message(self: &mut Self, message: String) {
-        let message_screen = message::MessageScreen::new(
-            message,
-            self.sender.clone(),
-            FontBook::new(&self.root_path),
-        );
-        message_screen.send_draw_command(None);
-        self.message = Some(message_screen);
+        self.message_screen.set_message(message);
+        self.message_screen.send_draw_command(None);
     }
 
     fn hide_message(self: &mut Self) {
-        self.message = None;
+        self.message_screen.unset_message();
         self.get_mut_active_screen().send_draw_command(None);
     }
 
@@ -156,8 +146,8 @@ impl<'a> Matrix<'a> {
                     }
                 }
                 common::MatrixCommand::Display(id) => {
-                    if let Some(message_screen) = &mut self.message {
-                        message_screen.draw(&mut canvas);
+                    if self.message_screen.is_message_set() {
+                        self.message_screen.draw(&mut canvas);
                         canvas = self.led_matrix.swap(canvas);
                         canvas.clear();
                     } else {
@@ -193,7 +183,8 @@ impl<'a> Matrix<'a> {
                     self.settings.set_setup_state(&common::SetupState::Hotspot);
                     self.settings.set_active_screen(&common::ScreenId::Setup);
                     self.activate_screen();
-                    // TODO update to show "RESETTING" message
+                    self.update_settings_on_active_screen();
+
                     self.show_message("Resetting...".to_string());
 
                     self.send_command(common::ShellCommand::Reset {
@@ -207,35 +198,44 @@ impl<'a> Matrix<'a> {
                 }
                 common::MatrixCommand::GotHotspotConnection() => {
                     // Change setup state
-                    if self.settings.get_setup_state() == &common::SetupState::Hotspot {
-                        self.settings
-                            .set_setup_state(&common::SetupState::WifiConnect);
-                        self.update_settings_on_active_screen();
-                        self.send_response(
-                            common::WebserverResponse::GotHotspotConnectionResponse(Some(
-                                self.settings.get_settings_clone(),
-                            )),
-                        );
-                    } else {
-                        self.send_response(
-                            common::WebserverResponse::GotHotspotConnectionResponse(None),
-                        );
+
+                    match self.settings.get_setup_state() {
+                        common::SetupState::Hotspot | common::SetupState::WifiConnect => {
+                            self.settings
+                                .set_setup_state(&common::SetupState::WifiConnect);
+                            self.update_settings_on_active_screen();
+                            self.send_response(
+                                common::WebserverResponse::GotHotspotConnectionResponse(Some(
+                                    self.settings.get_settings_clone(),
+                                )),
+                            );
+                        }
+                        _ => {
+                            self.send_response(
+                                common::WebserverResponse::GotHotspotConnectionResponse(None),
+                            );
+                        }
                     }
-                    self.update_settings_on_active_screen();
                 }
                 common::MatrixCommand::GotWifiDetails { ssid, password } => {
                     // Got wifi details, set the wpa supplicant file and restart
-                    if self.settings.get_setup_state() == &common::SetupState::WifiConnect {
-                        let setup = self.get_setup_screen();
-                        setup.attempting_connection();
-                        self.send_command(common::ShellCommand::SetupWifi {
-                            ssid,
-                            password,
-                            settings: self.settings.get_settings_clone(),
-                        });
-                    } else {
-                        self.send_response(common::WebserverResponse::GotWifiDetailsResponse(None));
-                    }
+                    self.deactivate_screen();
+                    self.settings
+                        .set_setup_state(&common::SetupState::WifiConnect);
+                    self.settings.set_active_screen(&common::ScreenId::Setup);
+                    self.activate_screen();
+                    let setup = self.get_setup_screen();
+                    setup.attempting_connection();
+
+                    self.send_command(common::ShellCommand::SetupWifi {
+                        ssid,
+                        password,
+                        settings: self.settings.get_settings_clone(),
+                    });
+                    // Send the response immediately
+                    self.send_response(common::WebserverResponse::GotWifiDetailsResponse(Some(
+                        self.settings.get_settings_clone(),
+                    )));
                 }
                 common::MatrixCommand::FinishedWifiConnection(result) => match result {
                     Ok(_) => {
@@ -253,7 +253,7 @@ impl<'a> Matrix<'a> {
                     self.hide_message();
                     match result {
                         Ok(_) => {
-                            self.settings.set_setup_state(&common::SetupState::Sync);
+                            self.settings.set_setup_state(&common::SetupState::Hotspot);
                             self.update_settings_on_active_screen();
                         }
                         Err(e) => {
