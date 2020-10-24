@@ -175,6 +175,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     map.insert(ScreenId::Clock, Box::new(clock));
 
+    // Setup Screen
     let setup_screen = setup_screen::SetupScreen::new(
         tx.clone(),
         settings.get_settings().setup_state,

@@ -21,6 +21,7 @@ pub struct SetupScreen {
     fonts: matrix::FontBook,
     pixels: matrix::PixelBook,
     wifi_state: WifiScreenSubState,
+    sync_code: Option<String>
 }
 
 impl SetupScreen {
@@ -38,6 +39,7 @@ impl SetupScreen {
             fonts,
             pixels,
             wifi_state: WifiScreenSubState::WaitingForConnection(),
+            sync_code: common::get_sync_code()
         }
     }
 
@@ -46,6 +48,10 @@ impl SetupScreen {
     }
     pub fn failed_connection(self: &mut Self) {
         self.wifi_state = WifiScreenSubState::ConnectionFailed();
+    }
+
+    pub fn set_sync_code(self: &mut Self, code: Option<String>) {
+        self.sync_code = code;
     }
 }
 
@@ -123,21 +129,38 @@ impl matrix::ScreenProvider for SetupScreen {
             common::SetupState::Sync => {
                 let offset: i32 = 9;
                 let spacing: i32 = 10;
-                let sync_code = common::get_sync_code().expect("Could not generate sync code");
-                let help_text = "Sync Code:";
                 let help_font = &self.fonts.font4x6;
                 let sync_code_font = &self.fonts.font7x13;
                 let white = common::new_color(255, 255, 255);
-                matrix::draw_text_centered_horizontally(
-                    canvas, help_text, offset, help_font, &white,
-                );
-                matrix::draw_text_centered_horizontally(
-                    canvas,
-                    &sync_code,
-                    offset + spacing,
-                    sync_code_font,
-                    &white,
-                );
+
+                if let Some(code) = &self.sync_code {
+                    let help_text = "Sync Code:";
+                    matrix::draw_text_centered_horizontally(
+                        canvas, help_text, offset, help_font, &white,
+                    );
+                    matrix::draw_text_centered_horizontally(
+                        canvas,
+                        code,
+                        offset + spacing,
+                        sync_code_font,
+                        &white,
+                    );
+                } else {
+                    let help_text = "Error:";
+                    let message = "Failed to connect";
+                    matrix::draw_text_centered_horizontally(
+                        canvas, help_text, offset, help_font, &white,
+                    );
+                    matrix::draw_text_centered_horizontally(
+                        canvas,
+                        message,
+                        offset + spacing,
+                        sync_code_font,
+                        &white,
+                    );
+                }
+
+                
                 self.wave_anim.draw(canvas);
             }
             common::SetupState::Ready => {

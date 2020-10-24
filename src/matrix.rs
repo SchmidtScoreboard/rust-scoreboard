@@ -238,6 +238,7 @@ impl<'a> Matrix<'a> {
                 }
                 common::MatrixCommand::FinishedWifiConnection(result) => match result {
                     Ok(_) => {
+                        self.get_setup_screen().set_sync_code(common::get_sync_code());
                         self.settings.set_setup_state(&common::SetupState::Sync);
                         self.update_settings_on_active_screen();
                     }
