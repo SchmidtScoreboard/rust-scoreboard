@@ -3,6 +3,7 @@ use crate::common;
 use crate::common::ScoreboardSettingsData;
 use crate::game;
 use crate::matrix;
+use crate::scheduler;
 
 use rand::seq::SliceRandom;
 use rpi_led_matrix;
@@ -76,7 +77,7 @@ impl<T> AWSData<T> {
 }
 
 pub struct AWSScreen<T: AWSScreenType> {
-    sender: mpsc::Sender<common::MatrixCommand>,
+    sender: mpsc::Sender<scheduler::DelayedCommand>,
     api_key: String,
     timezone: String,
     data: Option<AWSData<T>>,
@@ -93,7 +94,7 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
     AWSScreen<T>
 {
     pub fn new(
-        sender: mpsc::Sender<common::MatrixCommand>,
+        sender: mpsc::Sender<scheduler::DelayedCommand>,
         api_key: String,
         timezone: String,
         fonts: matrix::FontBook,
@@ -283,6 +284,8 @@ impl<
                             self.draw_error(canvas);
                         }
                     }
+                } else {
+                    self.draw_refresh(canvas); // Data is out of date, draw refresh
                 }
             }
             None => {
@@ -298,7 +301,7 @@ impl<
         T::get_screen_id()
     }
 
-    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
+    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
         self.sender.clone()
     }
 

@@ -33,18 +33,28 @@ impl CommandExecutor {
     }
 
     fn set_interface(self: &Self, interface: &str, enable: bool) -> ExitStatus {
-        let result = Command::new("sudo")
-            .arg("ip")
-            .arg("link")
-            .arg("set")
-            .arg(interface)
-            .arg(if enable { "up" } else { "down" })
-            .output()
-            .expect("Failed to run set interfaces");
-        info!("{:?}", &String::from_utf8(result.stdout).unwrap());
-        error!("{:?}", &String::from_utf8(result.stderr).unwrap());
+        self.execute(
+            "sudo",
+            &[
+                "ip",
+                "link",
+                "set",
+                interface,
+                if enable { "up" } else { "down" },
+            ],
+        )
+        .expect("Failed to run set interfaces")
+    }
 
-        result.status
+    fn execute(self: &Self, command: &str, args: &[&str]) -> io::Result<ExitStatus> {
+        let result = Command::new(command).args(args).output()?;
+        if result.stdout.len() > 0 {
+            info!("{:?}", &String::from_utf8(result.stdout).unwrap());
+        }
+        if result.stderr.len() > 0 {
+            error!("{:?}", &String::from_utf8(result.stderr).unwrap());
+        }
+        Ok(result.status)
     }
 
     fn setup_wifi(self: &Self, ssid: &str, password: &str) -> io::Result<ExitStatus> {
@@ -65,39 +75,25 @@ network={{
         info!("Attempting to connect with supplicant:\n{}\n", supplicant);
         fs::write("/etc/wpa_supplicant/wpa_supplicant.conf", supplicant)?;
 
-        let daemon_reload = Command::new("systemctl").arg("daemon-reload").output()?;
-        if !daemon_reload.status.success() {
+        let daemon_reload = self.execute("systemctl", &["daemon-reload"])?;
+        if !daemon_reload.success() {
             error!("Failed to systemctl daemon reload");
-            return Ok(daemon_reload.status);
+            return Ok(daemon_reload);
         }
-        info!("{:?}", daemon_reload.stdout);
-        error!("{:?}", daemon_reload.stderr);
 
-        let output = Command::new("sudo")
-            .args(&["dhclient", "-r", "wlan0"])
-            .output()?;
-        info!("{:?}", String::from_utf8(output.stdout).unwrap());
-        error!("{:?}", String::from_utf8(output.stderr).unwrap());
+        self.execute("sudo", &["dhclient", "-r", "wlan0"])?;
 
-        let output = Command::new("sudo").args(&["ifdown", "wlan0"]).output()?;
-        info!("{:?}", String::from_utf8(output.stdout).unwrap());
-        error!("{:?}", String::from_utf8(output.stderr).unwrap());
+        self.execute("sudo", &["ifdown", "wlan0"])?;
 
-        let output = Command::new("sudo").args(&["ifup", "wlan0"]).output()?;
-        info!("{:?}", String::from_utf8(output.stdout).unwrap());
-        error!("{:?}", String::from_utf8(output.stderr).unwrap());
+        self.execute("sudo", &["ifup", "wlan0"])?;
 
-        let output = Command::new("sudo")
-            .args(&["dhclient", "-v", "wlan0"])
-            .output()?;
-        info!("{:?}", String::from_utf8(output.stdout).unwrap());
-        error!("{:?}", String::from_utf8(output.stderr).unwrap());
-        Ok(output.status)
+        let output = self.execute("sudo", &["dhclient", "-v", "wlan0"])?;
+        Ok(output)
     }
 
     pub fn run(self: &Self) {
         let user = get_user_by_uid(get_current_uid()).unwrap();
-        info!("Hello, {}!", user.name().to_string_lossy());
+        info!("Shell exec: Hello, {}!", user.name().to_string_lossy());
 
         let output = Command::new("whoami").output().unwrap();
         info!("{:?}", String::from_utf8(output.stdout).unwrap());
@@ -126,7 +122,7 @@ network={{
                     if status.success() {
                         info!("Successfully enabled hotspot");
                     } else {
-                        error!("Failed to enable hotspoß, error code {:?}", status.code())
+                        error!("Failed to enable hotspot, error code {:?}", status.code())
                     }
 
                     if let Some(settings) = from_webserver {

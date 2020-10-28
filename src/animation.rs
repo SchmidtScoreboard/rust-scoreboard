@@ -1,5 +1,6 @@
 use crate::common;
 use crate::matrix;
+use crate::scheduler;
 use rand;
 use rand::distributions::{Distribution, Uniform};
 use rand_distr::Normal;
@@ -139,13 +140,13 @@ impl WavesAnimation {
 }
 
 pub struct AnimationTestScreen {
-    sender: mpsc::Sender<common::MatrixCommand>,
+    sender: mpsc::Sender<scheduler::DelayedCommand>,
     loading_anim: LoadingAnimation,
     waves_anim: WavesAnimation,
 }
 
 impl AnimationTestScreen {
-    pub fn new(sender: mpsc::Sender<common::MatrixCommand>) -> AnimationTestScreen {
+    pub fn new(sender: mpsc::Sender<scheduler::DelayedCommand>) -> AnimationTestScreen {
         AnimationTestScreen {
             sender,
             loading_anim: LoadingAnimation::new(5),
@@ -156,9 +157,6 @@ impl AnimationTestScreen {
 
 impl matrix::ScreenProvider for AnimationTestScreen {
     fn activate(self: &mut Self) {
-        self.sender
-            .send(common::MatrixCommand::Display(common::ScreenId::Animation))
-            .unwrap();
         self.send_draw_command(None);
     }
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
@@ -168,7 +166,7 @@ impl matrix::ScreenProvider for AnimationTestScreen {
     }
     fn update_settings(self: &mut Self, _settings: common::ScoreboardSettingsData) {}
 
-    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
+    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
         self.sender.clone()
     }
     fn get_screen_id(self: &Self) -> common::ScreenId {

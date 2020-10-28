@@ -10,6 +10,7 @@ mod game;
 mod hockey;
 mod matrix;
 mod message;
+mod scheduler;
 mod scoreboard_settings;
 mod setup_screen;
 mod shell_executor;
@@ -103,7 +104,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )))
         .expect("Could not parse scoreboard settings from json");
 
-    let (tx, rx) = mpsc::channel();
+    let (matrix_sender, matrix_receiver) = mpsc::channel();
+    let (scheduler_sender, scheduler_receiver) = mpsc::channel();
     let (web_response_sender, web_response_receiver) = mpsc::channel();
     let (shell_sender, shell_receiver) = mpsc::channel();
 
@@ -115,11 +117,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let shell = shell_executor::CommandExecutor::new(
         web_response_sender.clone(),
-        tx.clone(),
+        matrix_sender.clone(),
         shell_receiver,
     );
     std::thread::spawn(move || {
         shell.run();
+    });
+    let mut button_handler = button::ButtonHandler::new(matrix_sender.clone());
+    std::thread::spawn(move || {
+        button_handler.run();
     });
 
     let enable_hotspot = match settings.get_settings().setup_state {
@@ -142,14 +148,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap();
     }
 
-    let mut button_handler = button::ButtonHandler::new(tx.clone());
-
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
 
     // Hockey
     let hockey: AWSScreen<HockeyGame> = AWSScreen::new(
-        tx.clone(),
+        scheduler_sender.clone(),
         api_key.clone(),
         settings.get_settings().timezone.clone(),
         matrix::FontBook::new(&root_path),
@@ -159,7 +163,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Baseball
     let baseball: AWSScreen<BaseballGame> = AWSScreen::new(
-        tx.clone(),
+        scheduler_sender.clone(),
         api_key.clone(),
         settings.get_settings().timezone.clone(),
         matrix::FontBook::new(&root_path),
@@ -169,7 +173,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Clock
     let clock = clock::Clock::new(
-        tx.clone(),
+        scheduler_sender.clone(),
         settings.get_settings().timezone.clone(),
         matrix::FontBook::new(&root_path),
     );
@@ -177,7 +181,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Setup Screen
     let setup_screen = setup_screen::SetupScreen::new(
-        tx.clone(),
+        scheduler_sender.clone(),
         settings.get_settings().setup_state,
         matrix::FontBook::new(&root_path),
         matrix::PixelBook::new(&root_path),
@@ -185,11 +189,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     map.insert(ScreenId::Setup, Box::new(setup_screen));
 
     // Animation Test
-    let animation = AnimationTestScreen::new(tx.clone());
+    let animation = AnimationTestScreen::new(scheduler_sender.clone());
     map.insert(ScreenId::Animation, Box::new(animation));
 
     // Message Screen
-    let message_screen = message::MessageScreen::new(tx.clone(), matrix::FontBook::new(&root_path));
+    let message_screen =
+        message::MessageScreen::new(scheduler_sender.clone(), matrix::FontBook::new(&root_path));
     // Setup the actual matrix and run it
     // Setup matrix options
     let mut options = rpi_led_matrix::LedMatrixOptions::new();
@@ -206,18 +211,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut matrix = Matrix::new(
         led_matrix,
         message_screen,
-        rx,
+        matrix_receiver,
         map,
         settings,
         web_response_sender,
         shell_sender.clone(),
     );
-    let webserver_sender = tx.clone();
+
+    let mut scheduler = scheduler::Scheduler::new(scheduler_receiver, matrix_sender.clone());
+    std::thread::spawn(move || {
+        scheduler.run();
+    });
+    let webserver_sender = matrix_sender.clone();
     std::thread::spawn(move || {
         webserver::run_webserver(webserver_sender, web_response_receiver, root_path);
-    });
-    std::thread::spawn(move || {
-        button_handler.run();
     });
     info!("Starting matrix runner");
     matrix.run();

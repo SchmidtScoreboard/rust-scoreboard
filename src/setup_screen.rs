@@ -1,6 +1,7 @@
 use crate::animation;
 use crate::common;
 use crate::matrix;
+use crate::scheduler;
 
 use rpi_led_matrix;
 use std::any::Any;
@@ -14,19 +15,19 @@ enum WifiScreenSubState {
 }
 
 pub struct SetupScreen {
-    sender: mpsc::Sender<common::MatrixCommand>,
+    sender: mpsc::Sender<scheduler::DelayedCommand>,
     loading_anim: animation::LoadingAnimation,
     wave_anim: animation::WavesAnimation,
     state: common::SetupState,
     fonts: matrix::FontBook,
     pixels: matrix::PixelBook,
     wifi_state: WifiScreenSubState,
-    sync_code: Option<String>
+    sync_code: Option<String>,
 }
 
 impl SetupScreen {
     pub fn new(
-        sender: mpsc::Sender<common::MatrixCommand>,
+        sender: mpsc::Sender<scheduler::DelayedCommand>,
         state: common::SetupState,
         fonts: matrix::FontBook,
         pixels: matrix::PixelBook,
@@ -39,7 +40,7 @@ impl SetupScreen {
             fonts,
             pixels,
             wifi_state: WifiScreenSubState::WaitingForConnection(),
-            sync_code: common::get_sync_code()
+            sync_code: common::get_sync_code(),
         }
     }
 
@@ -160,7 +161,6 @@ impl matrix::ScreenProvider for SetupScreen {
                     );
                 }
 
-                
                 self.wave_anim.draw(canvas);
             }
             common::SetupState::Ready => {
@@ -173,7 +173,7 @@ impl matrix::ScreenProvider for SetupScreen {
     fn update_settings(self: &mut Self, settings: common::ScoreboardSettingsData) {
         self.state = settings.setup_state;
     }
-    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
+    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
         self.sender.clone()
     }
     fn get_screen_id(self: &Self) -> common::ScreenId {

@@ -1,6 +1,7 @@
 use crate::common;
 use crate::common::ScoreboardSettingsData;
 use crate::matrix;
+use crate::scheduler;
 
 use chrono::Utc;
 use chrono_tz::Tz;
@@ -10,14 +11,14 @@ use std::sync::mpsc;
 use std::time::Duration;
 
 pub struct Clock {
-    sender: mpsc::Sender<common::MatrixCommand>,
+    sender: mpsc::Sender<scheduler::DelayedCommand>,
     timezone: Tz,
     fonts: matrix::FontBook,
 }
 
 impl Clock {
     pub fn new(
-        sender: mpsc::Sender<common::MatrixCommand>,
+        sender: mpsc::Sender<scheduler::DelayedCommand>,
         timezone: String,
         fonts: matrix::FontBook,
     ) -> Clock {
@@ -57,7 +58,7 @@ impl matrix::ScreenProvider for Clock {
         self.send_draw_command(Some(Duration::from_secs(30)));
     }
 
-    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
+    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
         self.sender.clone()
     }
 

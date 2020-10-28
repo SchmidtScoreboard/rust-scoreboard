@@ -1,6 +1,7 @@
 use crate::animation;
 use crate::common;
 use crate::matrix;
+use crate::scheduler;
 use std::any::Any;
 use std::sync::mpsc;
 use std::time::Duration;
@@ -10,13 +11,13 @@ use std::time::Duration;
 pub struct MessageScreen {
     waves_anim: animation::WavesAnimation,
     message: Option<String>,
-    sender: mpsc::Sender<common::MatrixCommand>,
+    sender: mpsc::Sender<scheduler::DelayedCommand>,
     fonts: matrix::FontBook,
 }
 
 impl MessageScreen {
     pub fn new(
-        sender: mpsc::Sender<common::MatrixCommand>,
+        sender: mpsc::Sender<scheduler::DelayedCommand>,
         fonts: matrix::FontBook,
     ) -> MessageScreen {
         MessageScreen {
@@ -57,7 +58,7 @@ impl matrix::ScreenProvider for MessageScreen {
         common::ScreenId::Message
     }
 
-    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand> {
+    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
         self.sender.clone()
     }
 

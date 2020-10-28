@@ -2,6 +2,7 @@ use crate::animation;
 use crate::common;
 use crate::common::ScoreboardSettingsData;
 use crate::message;
+use crate::scheduler;
 use crate::scoreboard_settings::ScoreboardSettings;
 use crate::setup_screen;
 use png;
@@ -238,7 +239,8 @@ impl<'a> Matrix<'a> {
                 }
                 common::MatrixCommand::FinishedWifiConnection(result) => match result {
                     Ok(_) => {
-                        self.get_setup_screen().set_sync_code(common::get_sync_code());
+                        self.get_setup_screen()
+                            .set_sync_code(common::get_sync_code());
                         self.settings.set_setup_state(&common::SetupState::Sync);
                         self.update_settings_on_active_screen();
                     }
@@ -576,24 +578,18 @@ pub trait ScreenProvider {
 
     fn get_screen_id(self: &Self) -> common::ScreenId;
 
-    fn get_sender(self: &Self) -> mpsc::Sender<common::MatrixCommand>;
+    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand>;
 
     fn send_draw_command(self: &Self, duration: Option<Duration>) {
         let id = self.get_screen_id();
         let sender = self.get_sender();
-        if let Some(duration) = duration {
-            let _next_draw_thread = std::thread::spawn(move || {
-                std::thread::sleep(duration);
-                draw_command(sender, id);
-            });
-        } else {
-            draw_command(sender, id);
-        }
+        sender
+            .send(scheduler::DelayedCommand::new(
+                scheduler::Command::MatrixCommand(common::MatrixCommand::Display(id)),
+                duration,
+            ))
+            .unwrap();
     }
 
     fn as_any(&mut self) -> &mut dyn Any;
-}
-
-fn draw_command(sender: mpsc::Sender<common::MatrixCommand>, id: common::ScreenId) {
-    sender.send(common::MatrixCommand::Display(id)).unwrap();
 }
