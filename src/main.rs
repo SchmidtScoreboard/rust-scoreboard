@@ -198,12 +198,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Setup the actual matrix and run it
     // Setup matrix options
     let mut options = rpi_led_matrix::LedMatrixOptions::new();
-    let rt_options = rpi_led_matrix::LedRuntimeOptions::new();
+    let mut rt_options = rpi_led_matrix::LedRuntimeOptions::new();
     options.set_rows(32);
     options.set_cols(64);
     options.set_hardware_mapping("adafruit-hat-pwm");
     options.set_pwm_lsb_nanoseconds(50);
     options.set_refresh_rate(false);
+    info!("setting drop privileges to false");
+    rt_options.set_drop_privileges(false);
     let led_matrix: rpi_led_matrix::LedMatrix =
         rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
             .expect("Could not setup matrix");

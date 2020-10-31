@@ -268,7 +268,7 @@ pub fn run_webserver(
     receiver: mpsc::Receiver<WebserverResponse>,
     file_path: PathBuf,
 ) {
-    let config = Config::build(Environment::Production)
+    let config = Config::build(Environment::Development)
         .address("0.0.0.0")
         .port(5005)
         .workers(1)

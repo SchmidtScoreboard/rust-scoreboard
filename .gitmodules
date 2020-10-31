@@ -1,3 +1,6 @@
 [submodule "rust-rpi-rgb-led-matrix"]
 	path = rust-rpi-rgb-led-matrix
 	url = git@github.com:rust-rpi-led-matrix/rust-rpi-rgb-led-matrix.git
+[submodule "rpi-rgb-led-matrix"]
+	path = rpi-rgb-led-matrix
+	url = git@github.com:SchmidtScoreboard/rpi-rgb-led-matrix.git

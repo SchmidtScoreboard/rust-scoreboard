@@ -5,17 +5,20 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 # Initialize our own variables:
 release=1
 should_run=0
-
+build_args=""
 
 while getopts "h?i:rn" opt; do
     case "$opt" in
     h|\?)
-        echo "help"
+        echo "-i : Raspberry PI IP address"
+        echo "-r : Should build release"
+        echo "-n : Should run after install"
         exit 0
         ;;
     i)  pi_ip=$OPTARG
         ;;
     r)  release=0
+        build_args="--release"
         ;;
     n)  should_run=1
         ;;

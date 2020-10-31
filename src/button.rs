@@ -61,12 +61,6 @@ impl ButtonHandler {
     pub fn run(self: &mut Self) {
         // Main run thread
         info!("Entering button run");
-        let user = get_user_by_uid(get_current_uid()).unwrap();
-        info!(
-            "Hello, {} {}!",
-            user.name().to_string_lossy(),
-            get_current_uid()
-        );
 
         let mut button_value = self.get_pin_value().unwrap();
         let mut last_release_time: Option<Instant> = None;
@@ -107,6 +101,7 @@ impl ButtonHandler {
                         }
                     }
                     button_value = new_value;
+                    sleep(Duration::from_millis(10));
                 }
                 Err(_) => {
                     sleep(Duration::from_secs(5));
