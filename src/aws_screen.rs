@@ -220,19 +220,23 @@ impl<
         self.refresh_control_sender = Some(refresh_control_sender);
 
         let data_sender = self.data_pipe_sender.clone();
-        // TODO call refresh thread run on a thread
+
         let _refresh_thread = std::thread::spawn(move || {
             AWSScreen::run_refresh_thread(refresh_control_receiver, api_key, data_sender)
         });
         self.send_draw_command(None);
     }
-    fn deactivate(self: &Self) {
+    fn deactivate(self: &mut Self) {
         // Sends a deactivate command to the refresh thread
-        self.refresh_control_sender
-            .as_ref()
-            .unwrap()
-            .send(())
-            .unwrap();
+        info!("Deactivating AWS Screen {:?}", T::get_endpoint());
+        match &self.refresh_control_sender {
+            Some(refresh_control_sender) => {
+                refresh_control_sender.send(()).unwrap();
+            }
+            None => {
+                self.refresh_control_sender = None;
+            }
+        }
     }
 
     fn update_settings(self: &mut Self, settings: ScoreboardSettingsData) {

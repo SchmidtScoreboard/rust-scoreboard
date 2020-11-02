@@ -269,6 +269,7 @@ impl<'a> Matrix<'a> {
                     show_sync,
                 } => {
                     // Got a sync command with optional showSync.
+                    self.settings.set_power(&true);
                     let current_setup_state = self.settings.get_setup_state();
                     if current_setup_state == &common::SetupState::Ready
                         || current_setup_state == &common::SetupState::Sync
@@ -564,7 +565,7 @@ pub trait ScreenProvider {
     // Cleanup any unused resources
     // Most screens won't have to do anything here
     // If there are owned threads, cancel them
-    fn deactivate(self: &Self) {}
+    fn deactivate(self: &mut Self) {}
 
     // Draw is not blocking--fills in the canvas and returns it immediately
     // Draw can check for new data on an internal try_recv, and update internal variables, but

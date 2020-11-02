@@ -43,7 +43,7 @@ impl MessageScreen {
 impl matrix::ScreenProvider for MessageScreen {
     fn activate(self: &mut Self) {}
 
-    fn deactivate(self: &Self) {}
+    fn deactivate(self: &mut Self) {}
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         if let Some(message) = &self.message {

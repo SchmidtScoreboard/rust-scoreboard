@@ -35,6 +35,8 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::mpsc;
+use std::thread::sleep;
+use std::time::Duration;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = clap::App::new("Schmidt Scoreboard")
@@ -52,6 +54,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .long("skip_update")
             .value_name("skip_update")
             .help("Specify this flag to skip the update process")
+            .takes_value(false))
+        .arg(clap::Arg::with_name("wait")
+            .short("w")
+            .long("wait")
+            .value_name("wait")
+            .help("Wait for 90 seconds before doing anything important, useful to give DHCP time to unfuck itself")
             .takes_value(false))
         .get_matches();
 
@@ -76,6 +84,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .start()
         .unwrap();
+
+    if matches.is_present("wait") {
+        info!("Waiting 90 seconds");
+        sleep(Duration::from_secs(90));
+    } else {
+        info!("Starting up now");
+    }
 
     let skip_update = matches.is_present("skip_update");
     if !skip_update {
