@@ -172,12 +172,14 @@ impl<'a> Matrix<'a> {
                     ));
                 }
                 common::MatrixCommand::Reboot() => {
+                    self.settings.set_power(&true);
                     self.show_message("Rebooting...".to_string());
                     self.send_command(common::ShellCommand::Reboot {
                         settings: self.settings.get_settings_clone(),
                     });
                 }
                 common::MatrixCommand::Reset { from_webserver } => {
+                    self.settings.set_power(&true);
                     // Reset scoreboard settings,  updating the screen to show the message
                     self.deactivate_screen();
                     self.settings.set_setup_state(&common::SetupState::Hotspot);
@@ -198,6 +200,7 @@ impl<'a> Matrix<'a> {
                 }
                 common::MatrixCommand::GotHotspotConnection() => {
                     // Change setup state
+                    self.settings.set_power(&true);
 
                     match self.settings.get_setup_state() {
                         common::SetupState::Hotspot | common::SetupState::WifiConnect => {
@@ -218,6 +221,7 @@ impl<'a> Matrix<'a> {
                     }
                 }
                 common::MatrixCommand::GotWifiDetails { ssid, password } => {
+                    self.settings.set_power(&true);
                     // Got wifi details, set the wpa supplicant file and restart
                     self.deactivate_screen();
                     self.settings
@@ -252,6 +256,7 @@ impl<'a> Matrix<'a> {
                     }
                 },
                 common::MatrixCommand::FinishedReset(result) => {
+                    self.settings.set_power(&true);
                     self.hide_message();
                     match result {
                         Ok(_) => {

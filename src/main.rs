@@ -207,6 +207,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let animation = AnimationTestScreen::new(scheduler_sender.clone());
     map.insert(ScreenId::Animation, Box::new(animation));
 
+    let default = 3;
+    let slowdown: u32 = env::var("SCOREBOARD_SLOWDOWN")
+        .ok()
+        .map(|s| s.parse().unwrap_or(default))
+        .unwrap_or(default);
+
     // Message Screen
     let message_screen =
         message::MessageScreen::new(scheduler_sender.clone(), matrix::FontBook::new(&root_path));
@@ -221,6 +227,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     options.set_refresh_rate(false);
     info!("setting drop privileges to false");
     rt_options.set_drop_privileges(false);
+    rt_options.set_gpio_slowdown(slowdown);
     let led_matrix: rpi_led_matrix::LedMatrix =
         rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
             .expect("Could not setup matrix");

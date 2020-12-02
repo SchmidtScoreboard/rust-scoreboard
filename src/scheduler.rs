@@ -75,6 +75,7 @@ impl Scheduler {
 
     pub fn run(self: &mut Self) {
         loop {
+            //TODO use two threads here--one to read and instantly process/queue, the other to periodically pull off the queue
             if let Ok(delayed_command) = self.receiver.try_recv() {
                 // queue the command
                 match delayed_command.delay {
