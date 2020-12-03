@@ -1,7 +1,7 @@
 use crate::common::{MatrixCommand, ScoreboardSettingsData, ScreenId, WebserverResponse};
 use rocket::config::{Config, Environment};
-use rocket::response::status;
-use rocket::{get, post, routes, State};
+use rocket::response::{status, Content};
+use rocket::{get, http::ContentType, post, routes, State};
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -52,15 +52,22 @@ impl ServerState {
 #[get("/")]
 fn index(
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
+
     let state = state.lock().unwrap();
 
     (*state).sender.send(MatrixCommand::GetSettings()).unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::GetSettingsResponse(settings) => Ok(Json(settings)),
+        WebserverResponse::GetSettingsResponse(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
+}
+#[get("/version")]
+fn version() -> Result<String, status::NotFound<String>> {
+    let version = self_update::cargo_crate_version!();
+    Ok(version.to_string())
 }
 #[post("/configure", format = "json", data = "<new_settings>")]
 fn configure(
@@ -281,7 +288,7 @@ pub fn run_webserver(
             "/",
             routes![
                 index, configure, set_power, set_sport, wifi, logs, show_sync, reboot, reset, sync,
-                connect
+                connect, version
             ],
         )
         .launch();
