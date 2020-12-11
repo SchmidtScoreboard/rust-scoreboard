@@ -15,6 +15,7 @@ impl Patch {
 
 pub fn get_patches() -> Vec<Patch> {
     vec![
+        Patch::create("1.1.3", "Test patch, please ignore"),
         Patch::create("1.1.2", "Adds patch notes"),
         Patch::create(
             "1.1.1",
