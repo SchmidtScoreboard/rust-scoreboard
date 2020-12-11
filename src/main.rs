@@ -10,6 +10,7 @@ mod game;
 mod hockey;
 mod matrix;
 mod message;
+mod patch_notes;
 mod scheduler;
 mod scoreboard_settings;
 mod setup_screen;

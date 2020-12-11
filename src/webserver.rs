@@ -73,7 +73,8 @@ fn version() -> Result<String, status::NotFound<String>> {
 fn configure(
     new_settings: Json<ScoreboardSettingsData>,
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
         .sender
@@ -81,7 +82,7 @@ fn configure(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::UpdateSettingsResponse(settings) => Ok(Json(settings)),
+        WebserverResponse::UpdateSettingsResponse(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -90,7 +91,8 @@ fn configure(
 fn set_power(
     power_request: Json<PowerRequest>,
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
         .sender
@@ -101,7 +103,7 @@ fn set_power(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SetPowerResponse(settings) => Ok(Json(settings)),
+        WebserverResponse::SetPowerResponse(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -110,7 +112,8 @@ fn set_power(
 fn set_sport(
     sport_request: Json<SportRequest>,
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
         .sender
@@ -118,7 +121,9 @@ fn set_sport(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SetActiveScreenResponse(settings) => Ok(Json(settings)),
+        WebserverResponse::SetActiveScreenResponse(settings) => {
+            Ok(Content(content, Json(settings)))
+        }
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -127,7 +132,8 @@ fn set_sport(
 fn wifi(
     wifi_request: Json<WifiRequest>,
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
         .sender
@@ -139,7 +145,7 @@ fn wifi(
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::GotWifiDetailsResponse(settings) => match settings {
-            Some(settings) => Ok(Json(settings)),
+            Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to setup wifi".to_string())),
         },
         _ => Err(status::NotFound("Internal error".to_string())),
@@ -172,7 +178,8 @@ fn logs(state: State<Mutex<ServerState>>) -> Result<String, std::io::Error> {
 #[post("/showSync")]
 fn show_sync(
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
         .sender
@@ -184,7 +191,7 @@ fn show_sync(
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::SyncCommandResponse(settings) => match settings {
-            Some(settings) => Ok(Json(settings)),
+            Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to show sync".to_string())),
         },
         _ => Err(status::NotFound("Internal error".to_string())),
@@ -194,14 +201,15 @@ fn show_sync(
 fn reboot(
     state: State<Mutex<ServerState>>,
     _reboot_request: Json<RebootRequest>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     // TODO use reboot request
     (*state).sender.send(MatrixCommand::Reboot()).unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::RebootResponse(settings) => match settings {
-            Some(settings) => Ok(Json(settings)),
+            Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to init reboot".to_string())),
         },
         _ => Err(status::NotFound("Internal error".to_string())),
@@ -210,7 +218,8 @@ fn reboot(
 #[post("/reset")]
 fn reset(
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
         .sender
@@ -221,7 +230,7 @@ fn reset(
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::ResetResponse(settings) => match settings {
-            Some(settings) => Ok(Json(settings)),
+            Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to init reboot".to_string())),
         },
         _ => Err(status::NotFound("Internal error".to_string())),
@@ -231,7 +240,8 @@ fn reset(
 #[post("/sync")]
 fn sync(
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
         .sender
@@ -243,7 +253,7 @@ fn sync(
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::SyncCommandResponse(settings) => match settings {
-            Some(settings) => Ok(Json(settings)),
+            Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to move to ready".to_string())),
         },
         _ => Err(status::NotFound("Internal error".to_string())),
@@ -252,7 +262,8 @@ fn sync(
 #[post("/connect")]
 fn connect(
     state: State<Mutex<ServerState>>,
-) -> Result<Json<ScoreboardSettingsData>, status::NotFound<String>> {
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
         .sender
@@ -261,7 +272,7 @@ fn connect(
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::GotHotspotConnectionResponse(settings) => match settings {
-            Some(settings) => Ok(Json(settings)),
+            Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound(
                 "Failed to handle hotspot connection".to_string(),
             )),

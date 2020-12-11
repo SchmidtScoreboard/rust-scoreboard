@@ -229,14 +229,10 @@ impl<
     fn deactivate(self: &mut Self) {
         // Sends a deactivate command to the refresh thread
         info!("Deactivating AWS Screen {:?}", T::get_endpoint());
-        match &self.refresh_control_sender {
-            Some(refresh_control_sender) => {
-                refresh_control_sender.send(()).unwrap();
-            }
-            None => {
-                self.refresh_control_sender = None;
-            }
+        if let Some(sender) = &self.refresh_control_sender {
+            sender.send(()).unwrap();
         }
+        self.refresh_control_sender = None;
     }
 
     fn update_settings(self: &mut Self, settings: ScoreboardSettingsData) {

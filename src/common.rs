@@ -1,4 +1,6 @@
+use crate::patch_notes;
 use rpi_led_matrix;
+use std::process::Command;
 
 use self_update;
 use serde::{Deserialize, Serialize};
@@ -6,7 +8,7 @@ use serde_repr::*;
 use std::error::Error;
 use std::io;
 use std::net::Ipv4Addr;
-use std::process::Command;
+use std::os::unix::process::CommandExt;
 use ureq;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]
@@ -133,6 +135,7 @@ pub fn get_sync_code() -> Option<String> {
 
 pub fn update() -> Result<(), Box<dyn ::std::error::Error>> {
     info!("Starting update");
+    let start_version = self_update::cargo_crate_version!();
     let status = self_update::backends::github::Update::configure()
         .repo_owner("SchmidtScoreboard")
         .repo_name("rust-scoreboard")
@@ -142,6 +145,13 @@ pub fn update() -> Result<(), Box<dyn ::std::error::Error>> {
         .build()?
         .update()?;
     info!("Update status: `{}`!", status.version());
+    if start_version != status.version() {
+        // Restart the program with the new update
+        let mut command = Command::new("/usr/bin/scoreboard/");
+        command.exec();
+    }
+
+    patch_notes::log_patch_notes();
     Ok(())
 }
 
