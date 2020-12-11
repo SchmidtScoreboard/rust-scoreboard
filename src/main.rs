@@ -15,6 +15,7 @@ mod scheduler;
 mod scoreboard_settings;
 mod setup_screen;
 mod shell_executor;
+mod updater;
 mod webserver;
 #[macro_use]
 extern crate rust_embed;
@@ -38,6 +39,7 @@ use std::path::PathBuf;
 use std::sync::mpsc;
 use std::thread::sleep;
 use std::time::Duration;
+use updater::Updater;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = clap::App::new("Schmidt Scoreboard")
@@ -94,13 +96,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let skip_update = matches.is_present("skip_update");
+    patch_notes::log_patch_notes();
+
+    let mut updater: Updater;
     if !skip_update {
-        match common::update() {
-            Ok(_) => {}
-            Err(e) => error!("Error while updating: {:?}", e), // Ignore the failure
-        }
+        // Start the update service
+        updater = Updater::new();
+        std::thread::spawn(move || {
+            updater.run();
+        });
     } else {
-        info!("Skipping update");
+        info!("Skipping updater service");
     }
 
     let secrets_path = root_path.join("secrets.txt");
