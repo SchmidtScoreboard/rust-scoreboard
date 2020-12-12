@@ -101,17 +101,12 @@ network={{
             let command = self.receiver.recv().unwrap();
             match command {
                 common::ShellCommand::Reboot { settings } => {
-                    let mut reboot_command = Command::new("reboot");
                     self.send_webserver_response(common::WebserverResponse::RebootResponse(Some(
                         settings,
                     )));
                     // Sleep for a second to let the response happen
                     thread::sleep(Duration::from_secs(3));
-                    let result = reboot_command
-                        .output()
-                        .expect("Failed to start reboot command");
-                    info!("{:?}", String::from_utf8(result.stdout).unwrap());
-                    error!("{:?}", String::from_utf8(result.stderr).unwrap());
+                    let _result = self.execute("sudo", &["reboot"]);
                 }
                 common::ShellCommand::Reset {
                     from_matrix,

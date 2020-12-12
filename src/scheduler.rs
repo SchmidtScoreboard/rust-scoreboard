@@ -37,7 +37,7 @@ impl ScheduledCommand {
 }
 impl Ord for ScheduledCommand {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.scheduled_time.cmp(&other.scheduled_time)
+        other.scheduled_time.cmp(&self.scheduled_time)
     }
 }
 
