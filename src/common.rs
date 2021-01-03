@@ -20,6 +20,7 @@ pub enum ScreenId {
     Error = 104,
     Animation = 1000,
     Message = 1001,
+    Smart = 10000,
 }
 
 pub enum MatrixCommand {
@@ -33,6 +34,7 @@ pub enum MatrixCommand {
 
     // Setup Commands
     GetSettings(), // Fetch the settings
+    CheckSmartScreen(),
     Reboot(),
     Reset {
         from_webserver: bool,
@@ -150,6 +152,12 @@ pub struct ScreenSettings {
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
+pub struct FavoriteTeam {
+    pub screen_id: ScreenId,
+    pub team_id: u32,
+}
+
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 pub struct ScoreboardSettingsData {
     pub timezone: String,
     pub setup_state: SetupState,
@@ -159,4 +167,9 @@ pub struct ScoreboardSettingsData {
     pub screens: Vec<ScreenSettings>,
     pub screen_on: bool,
     pub version: u32,
+
+    #[serde(default)]
+    pub favorite_teams: Vec<FavoriteTeam>,
+    #[serde(default)]
+    pub rotation_time: u32,
 }

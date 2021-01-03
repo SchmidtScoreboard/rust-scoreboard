@@ -58,6 +58,11 @@ impl ScoreboardSettings {
         self.data.setup_state = *setup_state;
         self.write_settings();
     }
+
+    pub fn set_version(self: &mut Self, version: u32) {
+        self.data.version = version;
+        self.write_settings();
+    }
 }
 
 #[cfg(test)]

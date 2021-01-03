@@ -40,6 +40,7 @@ use std::sync::mpsc;
 use std::thread::sleep;
 use std::time::Duration;
 use updater::Updater;
+const AWS_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = clap::App::new("Schmidt Scoreboard")
@@ -132,6 +133,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (shell_sender, shell_receiver) = mpsc::channel();
 
     let mut settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
+    settings.set_version(2);
 
     if settings.get_settings().setup_state == common::SetupState::Factory {
         settings.set_setup_state(&common::SetupState::Hotspot);
@@ -165,10 +167,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
             .unwrap();
     } else {
+        settings.set_active_screen(&common::ScreenId::Clock); // On successful startup after an update/restart, always go to clock mode
         shell_sender
             .send(common::ShellCommand::SetHotspot(false))
             .unwrap();
     }
+
+    let base_url = env::var("AWS_URL").unwrap_or(AWS_URL.to_string());
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
@@ -176,6 +181,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Hockey
     let hockey: AWSScreen<HockeyGame> = AWSScreen::new(
         scheduler_sender.clone(),
+        base_url.clone(),
+        settings.get_settings().rotation_time,
+        settings.get_settings().favorite_teams.clone(),
         api_key.clone(),
         settings.get_settings().timezone.clone(),
         matrix::FontBook::new(&root_path),
@@ -186,6 +194,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Baseball
     let baseball: AWSScreen<BaseballGame> = AWSScreen::new(
         scheduler_sender.clone(),
+        base_url.clone(),
+        settings.get_settings().rotation_time,
+        settings.get_settings().favorite_teams.clone(),
         api_key.clone(),
         settings.get_settings().timezone.clone(),
         matrix::FontBook::new(&root_path),

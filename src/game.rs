@@ -5,9 +5,8 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use chrono_tz::Tz;
 use rpi_led_matrix;
 use serde::{de::Error, Deserialize, Deserializer};
+use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use ureq;
-
-const AWS_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
 
 #[derive(Deserialize)]
 pub struct Response<T> {
@@ -19,7 +18,7 @@ pub struct ResponseData<T> {
     pub games: Vec<T>,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug, Clone, Copy)]
 pub enum GameStatus {
     PREGAME,
     ACTIVE,
@@ -27,7 +26,7 @@ pub enum GameStatus {
     END,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Team {
     #[serde(deserialize_with = "u32_from_string")]
     pub id: u32,
@@ -55,7 +54,7 @@ where
     common::color_from_string(s).map_err(D::Error::custom)
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct CommonGameData {
     pub home_team: Team,
     pub away_team: Team,
@@ -66,6 +65,25 @@ pub struct CommonGameData {
     #[serde(deserialize_with = "datetime_from_string")]
     pub start_time: DateTime<Utc>,
 }
+impl Ord for CommonGameData {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.start_time.cmp(&other.start_time)
+    }
+}
+
+impl PartialOrd for CommonGameData {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for CommonGameData {
+    fn eq(&self, other: &Self) -> bool {
+        self.start_time == other.start_time
+    }
+}
+
+impl Eq for CommonGameData {}
 
 impl CommonGameData {
     pub fn get_ordinal_text(self: &Self, timezone: &str) -> String {
@@ -88,8 +106,8 @@ where
     Ok(DateTime::<Utc>::from_utc(naive_time, Utc))
 }
 
-pub fn fetch_games(endpoint: &str, query: &str, api_key: &str) -> ureq::Response {
-    let url = format!("{}{}", AWS_URL, endpoint);
+pub fn fetch_games(base_url: &str, endpoint: &str, query: &str, api_key: &str) -> ureq::Response {
+    let url = format!("{}{}", base_url, endpoint);
     let resp = ureq::get(&url)
         .set("X-API-KEY", api_key)
         .send_json(ureq::json!({ "query": query }));

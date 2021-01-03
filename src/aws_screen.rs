@@ -5,6 +5,7 @@ use crate::game;
 use crate::matrix;
 use crate::scheduler;
 
+use itertools::Itertools;
 use rand::seq::SliceRandom;
 use rpi_led_matrix;
 use serde_json;
@@ -28,16 +29,20 @@ pub trait AWSScreenType {
     );
 
     fn get_refresh_texts() -> Vec<&'static str>;
+
+    fn involves_team(self: &Self, team_id: u32) -> bool;
+
+    fn status(self: &Self) -> game::GameStatus;
 }
 
-struct AWSData<T> {
+struct AWSData<T: Clone + Ord + AWSScreenType> {
     games: Result<Vec<T>, String>,
     active_index: usize,
     data_received_timestamp: Instant,
     last_cycle_timestamp: Instant,
 }
 
-impl<T> AWSData<T> {
+impl<T: Clone + Ord + AWSScreenType> AWSData<T> {
     pub fn new(games: Vec<T>) -> AWSData<T> {
         AWSData {
             games: Ok(games),
@@ -52,15 +57,34 @@ impl<T> AWSData<T> {
         self.data_received_timestamp = new_data.data_received_timestamp;
     }
 
-    pub fn try_rotate(self: &mut Self) {
+    pub fn try_rotate(
+        self: &mut Self,
+        favorite_teams: &Vec<common::FavoriteTeam>,
+        rotation_time: Duration,
+    ) {
         let now = Instant::now();
         if let Ok(games) = &self.games {
-            if now.duration_since(self.last_cycle_timestamp) > Duration::from_secs(10) {
-                // Rotate the active index
-                // TODO don't rotate if there is a favorite team set
-                if games.len() > 0 {
+            if now.duration_since(self.last_cycle_timestamp) > rotation_time {
+                let mut priority_games = favorite_teams
+                    .iter()
+                    .filter(|team| team.screen_id == T::get_screen_id())
+                    .map(|team| {
+                        games
+                            .iter()
+                            .enumerate()
+                            .filter(move |&(_, g)| {
+                                g.involves_team(team.team_id)
+                                    && g.status() == game::GameStatus::ACTIVE
+                            })
+                            .map(|(i, _)| i)
+                    })
+                    .flatten();
+                if let Some(priority_index) = priority_games.next() {
+                    self.active_index = priority_index;
+                } else if games.len() > 0 {
                     self.active_index = (self.active_index + 1) % games.len();
                 }
+
                 self.last_cycle_timestamp = now;
             }
         }
@@ -76,39 +100,65 @@ impl<T> AWSData<T> {
     }
 }
 
-pub struct AWSScreen<T: AWSScreenType> {
+pub struct AWSScreen<T: AWSScreenType + Clone + Ord> {
     sender: mpsc::Sender<scheduler::DelayedCommand>,
-    api_key: String,
+    favorite_teams: Vec<common::FavoriteTeam>,
+    rotation_time: Duration,
     timezone: String,
     data: Option<AWSData<T>>,
-    data_pipe_sender: mpsc::Sender<AWSData<T>>,
     data_pipe_receiver: mpsc::Receiver<AWSData<T>>,
-    refresh_control_sender: Option<mpsc::Sender<()>>,
+    refresh_control_sender: mpsc::Sender<RefreshThreadState>,
     loading_animation: animation::WavesAnimation,
     fonts: matrix::FontBook,
     pixels: matrix::PixelBook,
     flavor_text: Option<String>,
 }
 
-impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::marker::Send>
-    AWSScreen<T>
+enum RefreshThreadState {
+    ACTIVE,
+    HIBERNATING,
+}
+
+impl<
+        T: 'static
+            + AWSScreenType
+            + std::fmt::Debug
+            + serde::de::DeserializeOwned
+            + std::marker::Send
+            + Ord
+            + Clone,
+    > AWSScreen<T>
 {
     pub fn new(
         sender: mpsc::Sender<scheduler::DelayedCommand>,
+        base_url: String,
+        rotation_time_secs: u32,
+        favorite_teams: Vec<common::FavoriteTeam>,
         api_key: String,
         timezone: String,
         fonts: matrix::FontBook,
         pixels: matrix::PixelBook,
     ) -> AWSScreen<T> {
         let (data_pipe_sender, data_pipe_receiver) = mpsc::channel();
+
+        let (refresh_control_sender, refresh_control_receiver) = mpsc::channel();
+
+        let _refresh_thread = std::thread::spawn(move || {
+            AWSScreen::run_refresh_thread(
+                base_url,
+                refresh_control_receiver,
+                api_key,
+                data_pipe_sender,
+            )
+        });
         AWSScreen {
             sender,
-            api_key,
+            favorite_teams,
+            rotation_time: Duration::from_secs(rotation_time_secs.into()),
             timezone,
             data: None,
-            data_pipe_sender,
             data_pipe_receiver,
-            refresh_control_sender: None,
+            refresh_control_sender: refresh_control_sender,
             loading_animation: animation::WavesAnimation::new(64),
             fonts: fonts,
             pixels: pixels,
@@ -129,7 +179,6 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
                 self.flavor_text.as_ref().unwrap()
             }
         };
-        // let flavor_text = T::get_refresh_texts()[0]; // TODO pick a random refresh text
         matrix::draw_message(
             canvas,
             &self.fonts.font4x6,
@@ -137,7 +186,6 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
             &mut self.loading_animation,
         );
 
-        // let (canvas_width, canvas_height) = canvas.canvas_size();
         self.loading_animation.draw(canvas);
     }
     fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
@@ -168,75 +216,92 @@ impl<T: AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::mar
     }
 
     fn run_refresh_thread(
-        refresh_control_receiver: mpsc::Receiver<()>,
+        base_url: String,
+        refresh_control_receiver: mpsc::Receiver<RefreshThreadState>,
         api_key: String,
         data_sender: mpsc::Sender<AWSData<T>>,
     ) {
+        let mut wait_time = Duration::from_secs(60 * 60); // Default to an hour
         loop {
-            if let Ok(_) = refresh_control_receiver.try_recv() {
-                break;
-            } else {
-                let resp = game::fetch_games(T::get_endpoint(), T::get_query(), &api_key);
-                if resp.error() {
-                    error!(
-                        "There was an error fetching games for endpoint {}",
-                        T::get_endpoint()
-                    );
-                    data_sender.send(AWSData::error("Network Error")).unwrap();
-                }
-                if let Ok(resp_string) = resp.into_string() {
-                    let result: Result<game::Response<T>, _> = serde_json::from_str(&resp_string);
-                    if let Ok(response) = result {
-                        info!("Successfully parsed response: {:?}", &response.data.games);
-                        data_sender.send(AWSData::new(response.data.games)).unwrap();
-                    } else {
-                        error!(
-                            "Failed to parse response {}, reason: {}",
-                            resp_string,
-                            result.err().unwrap()
-                        );
-                        data_sender.send(AWSData::error("Invalid Data")).unwrap();
-                    }
-                } else {
-                    data_sender
-                        .send(AWSData::error("Invalid Response"))
-                        .unwrap();
-                }
+            let resp = game::fetch_games(&base_url, T::get_endpoint(), T::get_query(), &api_key);
+            if resp.error() {
+                error!(
+                    "There was an error fetching games for endpoint {}",
+                    T::get_endpoint()
+                );
+                data_sender.send(AWSData::error("Network Error")).unwrap();
+            }
+            if let Ok(resp_string) = resp.into_string() {
+                let result: Result<game::Response<T>, _> = serde_json::from_str(&resp_string);
+                if let Ok(response) = result {
+                    info!("Successfully parsed response: {:?}", &response.data.games);
 
-                std::thread::sleep(Duration::from_secs(60));
+                    data_sender
+                        .send(AWSData::new(
+                            response.data.games.into_iter().sorted().collect(),
+                        ))
+                        .unwrap();
+                } else {
+                    error!(
+                        "Failed to parse response {}, reason: {}",
+                        resp_string,
+                        result.err().unwrap()
+                    );
+                    data_sender.send(AWSData::error("Invalid Data")).unwrap();
+                }
+            } else {
+                data_sender
+                    .send(AWSData::error("Invalid Response"))
+                    .unwrap();
+            }
+
+            if let Ok(state) = refresh_control_receiver.recv_timeout(wait_time) {
+                match state {
+                    RefreshThreadState::ACTIVE => {
+                        wait_time = Duration::from_secs(60);
+                    }
+                    RefreshThreadState::HIBERNATING => {
+                        wait_time = Duration::from_secs(60 * 60);
+                        continue; // go wait again, now for about an hour
+                    }
+                }
             }
         }
     }
+
+    pub fn get_games(self: &Self) -> Option<&Vec<T>> {
+        self.data.as_ref().and_then(|d| d.games.as_ref().ok())
+    }
 }
 impl<
-        T: 'static + AWSScreenType + std::fmt::Debug + serde::de::DeserializeOwned + std::marker::Send,
+        T: 'static
+            + AWSScreenType
+            + std::fmt::Debug
+            + serde::de::DeserializeOwned
+            + std::marker::Send
+            + Ord
+            + Clone,
     > matrix::ScreenProvider for AWSScreen<T>
 {
     fn activate(self: &mut Self) {
-        let api_key = self.api_key.clone();
         info!("Activating screen {}", T::get_endpoint());
-
-        let (refresh_control_sender, refresh_control_receiver) = mpsc::channel();
-        self.refresh_control_sender = Some(refresh_control_sender);
-
-        let data_sender = self.data_pipe_sender.clone();
-
-        let _refresh_thread = std::thread::spawn(move || {
-            AWSScreen::run_refresh_thread(refresh_control_receiver, api_key, data_sender)
-        });
+        self.refresh_control_sender
+            .send(RefreshThreadState::ACTIVE)
+            .unwrap();
         self.send_draw_command(None);
     }
     fn deactivate(self: &mut Self) {
-        // Sends a deactivate command to the refresh thread
+        // Puts the refresh thread on hibernate
         info!("Deactivating AWS Screen {:?}", T::get_endpoint());
-        if let Some(sender) = &self.refresh_control_sender {
-            sender.send(()).unwrap();
-        }
-        self.refresh_control_sender = None;
+        self.refresh_control_sender
+            .send(RefreshThreadState::HIBERNATING)
+            .unwrap();
     }
 
     fn update_settings(self: &mut Self, settings: ScoreboardSettingsData) {
         self.timezone = settings.timezone.parse().expect("Failed to parse timezone");
+        self.favorite_teams = settings.favorite_teams.clone();
+        self.rotation_time = Duration::from_secs(settings.rotation_time.into());
     }
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
@@ -256,7 +321,7 @@ impl<
         // if we need to change the displayed image, do that now
         match &mut self.data {
             Some(current_data) => {
-                current_data.try_rotate();
+                current_data.try_rotate(&self.favorite_teams, self.rotation_time);
             }
             None => (),
         }
@@ -307,5 +372,17 @@ impl<
 
     fn as_any(&mut self) -> &mut dyn Any {
         self
+    }
+
+    fn has_priority(self: &Self, team_id: u32) -> bool {
+        self.get_games()
+            .filter(|games| {
+                games
+                    .iter()
+                    .filter(|g| g.status() == game::GameStatus::ACTIVE && g.involves_team(team_id))
+                    .next()
+                    .is_some()
+            })
+            .is_some()
     }
 }

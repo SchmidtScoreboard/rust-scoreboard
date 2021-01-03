@@ -5,6 +5,7 @@ use crate::matrix;
 
 use rpi_led_matrix;
 use serde::Deserialize;
+use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
 static HOCKEY_QUERY: &str = r#"
 {
@@ -43,7 +44,7 @@ static HOCKEY_QUERY: &str = r#"
 }
 "#;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct HockeyGame {
     common: game::CommonGameData,
     away_powerplay: bool,
@@ -51,6 +52,26 @@ pub struct HockeyGame {
     away_players: u8,
     home_players: u8,
 }
+
+impl Ord for HockeyGame {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.common.cmp(&other.common)
+    }
+}
+
+impl PartialOrd for HockeyGame {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for HockeyGame {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.common,) == (&other.common,)
+    }
+}
+
+impl Eq for HockeyGame {}
 
 impl aws_screen::AWSScreenType for HockeyGame {
     fn get_endpoint() -> &'static str {
@@ -66,6 +87,13 @@ impl aws_screen::AWSScreenType for HockeyGame {
     }
     fn get_refresh_texts() -> Vec<&'static str> {
         return vec!["Warming up", "Icing", "Calling Toronto"];
+    }
+    fn involves_team(self: &Self, team_id: u32) -> bool {
+        return self.common.home_team.id == team_id || self.common.away_team.id == team_id;
+    }
+
+    fn status(self: &Self) -> game::GameStatus {
+        return self.common.status;
     }
 
     fn draw_screen(

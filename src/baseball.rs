@@ -5,6 +5,7 @@ use crate::matrix;
 
 use rpi_led_matrix;
 use serde::Deserialize;
+use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
 static BASEBALL_QUERY: &str = r#"
 {
@@ -44,7 +45,7 @@ static BASEBALL_QUERY: &str = r#"
 }
 "#;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct BaseballGame {
     common: game::CommonGameData,
     inning: u8,
@@ -53,6 +54,24 @@ pub struct BaseballGame {
     outs: u8,
     strikes: u8,
 }
+impl Ord for BaseballGame {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.common.cmp(&other.common)
+    }
+}
+
+impl PartialOrd for BaseballGame {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for BaseballGame {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.common,) == (&other.common,)
+    }
+}
+impl Eq for BaseballGame {}
 
 impl aws_screen::AWSScreenType for BaseballGame {
     fn get_endpoint() -> &'static str {
@@ -74,6 +93,14 @@ impl aws_screen::AWSScreenType for BaseballGame {
             "Loading bases",
             "Batter up!",
         ];
+    }
+
+    fn involves_team(self: &Self, team_id: u32) -> bool {
+        return self.common.home_team.id == team_id || self.common.away_team.id == team_id;
+    }
+
+    fn status(self: &Self) -> game::GameStatus {
+        return self.common.status;
     }
 
     fn draw_screen(
