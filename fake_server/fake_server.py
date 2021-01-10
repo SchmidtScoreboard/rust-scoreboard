@@ -11,44 +11,47 @@ class GameStatus(int, enum.Enum):
     INTERMISSION = 3
     END = 4
 
-class Team:
-    def __init__(self, id, display_name, abbreviation, primary_color, secondary_color):
-        self.id = id
-        self.display_name = display_name
-        self.abbreviation = abbreviation
-        self.primary_color = primary_color
-        self.secondary_color = secondary_color
+def getTeam(id, display_name, abbreviation, primary_color, secondary_color):
+    return {
+        "id": id,
+        "display_name": display_name,
+        "abbreviation": abbreviation,
+        "primary_color": primary_color,
+        "secondary_color": secondary_color,
+    }
 
-blues = Team(19, "Blues", "STL", "0x002f87", "0xffb81c")
-vegas = Team(54, "Vegas", "VGK", "0x002f87", "0xffb81c")
+blues = getTeam("19", "Blues", "STL", "002f87", "ffb81c")
+vegas = getTeam("54", "Vegas", "VGK", "002f87", "ffb81c")
 
     
-class CommonGameData:
-    def __init__(self, home_team, away_team, status, ordinal, start_time, id=0, home_score=0, away_score=0):
-        self.home_team = home_team
-        self.away_team = away_team
-        self.home_score = home_score
-        self.away_score = away_score
-        self.status = status
-        self.ordinal = ordinal
-        self.start_time = start_time
-        self.id = id
+def getCommonGameData(home_team, away_team, status, ordinal, start_time, id=0, home_score=0, away_score=0):
+    return {"home_team": home_team, 
+        "away_team": away_team,
+        "home_score": home_score,
+        "away_score": away_score,
+        "status": status,
+        "ordinal": ordinal,
+        "start_time": start_time,
+        "id": id}
 
-class Hockey:
-    def __init__(self, common, away_powerplay=False, home_powerplay=False, away_players=5, home_players=5):
-        self.common = common
-        self.away_powerplay = away_powerplay
-        self.home_powerplay = home_powerplay
-        self.away_players = away_players
-        self.home_players = home_players
+def getHockey(common, away_powerplay=False, home_powerplay=False, away_players=5, home_players=5):
+    return {
+        "common":  common,
+        "away_powerplay": away_powerplay,
+        "home_powerplay": home_powerplay,
+        "away_players": away_players,
+        "home_players": home_players,
+    }
 
-class Baseball:
-    def __init__(self, common, is_inning_top, balls, outs, strikes):
-        self.common = common
-        self.is_inning_top = is_inning_top
-        self.balls = balls
-        self.outs = outs
-        self.strikes = strikes
+def getBaseball(common, is_inning_top=False, balls=0, outs=0, strikes=0, inning=1):
+    return{
+        "common":common, 
+        "is_inning_top": is_inning_top,
+        "balls": balls,
+        "outs": outs,
+        "strikes": strikes,
+        "inning": inning
+    } 
     
 
 
@@ -56,17 +59,17 @@ class Baseball:
 
 @app.route('/nhl')
 def nhl():
-    return json.dumps(Hockey(CommonGameData(blues, vegas, GameStatus.ACTIVE, "1st", "")))
+    return get_hockey_games() 
 
 @app.route('/mlb')
 def mlb():
     return get_baseball_games() 
 
 def get_hockey_games():
-    return "Hello World"
+    return {"data": {"games": [getHockey(getCommonGameData(blues, vegas, "PREGAME", "1st", "2020-08-09T19:00:00Z"))]}}
 
 def get_baseball_games():
-    return "Hello World"
+    return {"data": {"games": [getBaseball(getCommonGameData(blues, vegas, "ACTIVE", "1st", "2020-08-09T19:00:00Z"))]}}
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

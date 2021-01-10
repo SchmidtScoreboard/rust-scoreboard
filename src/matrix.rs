@@ -180,7 +180,7 @@ impl<'a> Matrix<'a> {
                         }
                     }
                 }
-                common::MatrixCommand::CheckSmartScreen() => {}
+                common::MatrixCommand::_CheckSmartScreen() => {}
                 common::MatrixCommand::GetSettings() => {
                     self.send_response(common::WebserverResponse::GetSettingsResponse(
                         self.settings.get_settings_clone(),

@@ -1,4 +1,5 @@
 {
+  "name": "Mark's Scoreboard",
   "timezone": "US/Central",
   "setup_state": 10,
   "active_screen": 0,
@@ -30,5 +31,7 @@
     }
   ],
   "screen_on": false,
-  "version": 1
+  "version": 1,
+  "focus_team": [],
+  "rotation_time": 10
 }

@@ -223,6 +223,7 @@ impl<
     ) {
         let mut wait_time = Duration::from_secs(60 * 60); // Default to an hour
         loop {
+            info!("Fetching games from {}", &base_url);
             let resp = game::fetch_games(&base_url, T::get_endpoint(), T::get_query(), &api_key);
             if resp.error() {
                 error!(
