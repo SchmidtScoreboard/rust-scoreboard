@@ -157,6 +157,10 @@ pub struct FavoriteTeam {
     pub team_id: u32,
 }
 
+fn default_rotation_time() -> u32 {
+    10
+}
+
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 pub struct ScoreboardSettingsData {
     pub timezone: String,
@@ -170,6 +174,6 @@ pub struct ScoreboardSettingsData {
 
     #[serde(default)]
     pub favorite_teams: Vec<FavoriteTeam>,
-    #[serde(default)]
+    #[serde(default = "default_rotation_time")]
     pub rotation_time: u32,
 }
