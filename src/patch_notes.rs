@@ -15,6 +15,7 @@ impl Patch {
 
 pub fn get_patches() -> Vec<Patch> {
     vec![
+        Patch::create("1.2.3", "Fix powerplay display"),
         Patch::create("1.2.2", "Update version number"),
         Patch::create("1.2.1", "Fixes rotation time bug"),
         Patch::create("1.2", "Adds global favorite teams"),

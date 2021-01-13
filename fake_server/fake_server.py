@@ -66,7 +66,7 @@ def mlb():
     return get_baseball_games() 
 
 def get_hockey_games():
-    return {"data": {"games": [getHockey(getCommonGameData(blues, vegas, "PREGAME", "1st", "2020-08-09T19:00:00Z"))]}}
+    return {"data": {"games": [getHockey(getCommonGameData(blues, vegas, "PREGAME", "1st", "2020-08-09T19:00:00Z"), True)]}}
 
 def get_baseball_games():
     return {"data": {"games": [getBaseball(getCommonGameData(blues, vegas, "ACTIVE", "1st", "2020-08-09T19:00:00Z"))]}}

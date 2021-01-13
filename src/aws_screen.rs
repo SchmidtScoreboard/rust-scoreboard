@@ -80,8 +80,10 @@ impl<T: Clone + Ord + AWSScreenType> AWSData<T> {
                     })
                     .flatten();
                 if let Some(priority_index) = priority_games.next() {
+                    info!("Priority game playing, setting index {}", priority_index);
                     self.active_index = priority_index;
                 } else if games.len() > 0 {
+                    info!("No priority team playing");
                     self.active_index = (self.active_index + 1) % games.len();
                 }
 

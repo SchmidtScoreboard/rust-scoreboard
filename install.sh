@@ -6,13 +6,15 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 release=1
 should_run=0
 build_args=""
+environment=""
 
-while getopts "h?i:rn" opt; do
+while getopts "h?i:e:rn" opt; do
     case "$opt" in
     h|\?)
         echo "-i : Raspberry PI IP address"
         echo "-r : Should build release"
         echo "-n : Should run after install"
+        echo "-e : specify additional enviroment variables"
         exit 0
         ;;
     i)  pi_ip=$OPTARG
@@ -21,6 +23,8 @@ while getopts "h?i:rn" opt; do
         build_args="--release"
         ;;
     n)  should_run=1
+        ;;
+    e)  environment=$OPTARG 
         ;;
     esac
 done
@@ -60,7 +64,7 @@ else
     rsync -avzhe ssh target/$TARGET/debug/scoreboard pi@$pi_ip:/var/lib/scoreboard/
 fi
 
-
 if [[ $should_run -eq 0 ]] ; then
-    ssh pi@$pi_ip 'sudo RUST_LOG="debug, rocket= error" /var/lib/scoreboard/scoreboard --skip_update'
+    echo "Running with environment ${environment}"
+    ssh pi@$pi_ip "sudo RUST_LOG=\"debug, rocket= error\" ${environment} /var/lib/scoreboard/scoreboard --skip_update"
 fi
