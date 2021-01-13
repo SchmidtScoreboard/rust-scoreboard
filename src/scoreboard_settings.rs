@@ -44,6 +44,15 @@ impl ScoreboardSettings {
         &self.data.setup_state
     }
 
+    pub fn get_rotation_time(self: &Self) -> u32 {
+        self.data.rotation_time
+    }
+
+    pub fn set_rotation_time(self: &mut Self, rotation_time: u32) {
+        self.data.rotation_time = rotation_time;
+        self.write_settings();
+    }
+
     pub fn set_active_screen(self: &mut Self, id: &ScreenId) {
         self.data.active_screen = *id;
         self.write_settings();

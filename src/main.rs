@@ -168,6 +168,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap();
     } else {
         settings.set_active_screen(&common::ScreenId::Clock); // On successful startup after an update/restart, always go to clock mode
+        if settings.get_rotation_time() == 0 {
+            settings.set_rotation_time(10);
+        }
         shell_sender
             .send(common::ShellCommand::SetHotspot(false))
             .unwrap();

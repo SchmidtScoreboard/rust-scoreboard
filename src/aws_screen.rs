@@ -235,7 +235,11 @@ impl<
             if let Ok(resp_string) = resp.into_string() {
                 let result: Result<game::Response<T>, _> = serde_json::from_str(&resp_string);
                 if let Ok(response) = result {
-                    info!("Successfully parsed response: {:?}", &response.data.games);
+                    info!(
+                        "Successfully parsed response for endpoint {}: {:?}",
+                        T::get_endpoint(),
+                        &response.data.games
+                    );
 
                     data_sender
                         .send(AWSData::new(
@@ -255,7 +259,6 @@ impl<
                     .send(AWSData::error("Invalid Response"))
                     .unwrap();
             }
-
             if let Ok(state) = refresh_control_receiver.recv_timeout(wait_time) {
                 match state {
                     RefreshThreadState::ACTIVE => {
