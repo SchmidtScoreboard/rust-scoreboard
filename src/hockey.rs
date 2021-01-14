@@ -126,8 +126,8 @@ impl aws_screen::AWSScreenType for HockeyGame {
             canvas.draw_text(
                 &font.led_font,
                 "FINAL",
-                37,
-                23 + font.dimensions.width,
+                34 + font.dimensions.width,
+                29,
                 &yellow,
                 0,
                 false,

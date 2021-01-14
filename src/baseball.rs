@@ -110,16 +110,18 @@ impl aws_screen::AWSScreenType for BaseballGame {
         pixels_book: &matrix::PixelBook,
         timezone: &str,
     ) {
-        let font = &font_book.font5x8;
+        let font = &font_book.font4x6;
         game::draw_scoreboard(canvas, &font, &self.common, 1);
         let ordinal_x_offset = 5;
         let white = common::new_color(255, 255, 255);
         let ordinal_dimensions = font.get_text_dimensions(&self.common.ordinal);
+        let (canvas_width, _) = canvas.canvas_size();
+        let font = &font_book.font5x8;
         canvas.draw_text(
             &font.led_font,
             &self.common.get_ordinal_text(timezone),
             ordinal_x_offset,
-            21 + font.dimensions.height,
+            20 + font.dimensions.height,
             &white,
             0,
             false,
@@ -131,14 +133,14 @@ impl aws_screen::AWSScreenType for BaseballGame {
                 matrix::draw_pixels(
                     canvas,
                     &up_arrow,
-                    (ordinal_dimensions.width + ordinal_x_offset, 21),
+                    (ordinal_dimensions.width + ordinal_x_offset + 4, 20),
                 );
             } else {
                 let down_arrow = &pixels_book.small_arrow;
                 matrix::draw_pixels(
                     canvas,
                     &down_arrow,
-                    (ordinal_dimensions.width + ordinal_x_offset, 24),
+                    (ordinal_dimensions.width + ordinal_x_offset + 4, 23),
                 );
             }
 
@@ -164,6 +166,18 @@ impl aws_screen::AWSScreenType for BaseballGame {
                     matrix::draw_pixels(canvas, &pixels_book.empty_square, (x, y));
                 }
             }
+        } else if self.common.status == game::GameStatus::END {
+            let yellow = common::new_color(255, 255, 0);
+            let message = "FINAL";
+            canvas.draw_text(
+                &font.led_font,
+                message,
+                canvas_width - font.get_text_dimensions(message).width - 3,
+                20 + font.dimensions.height,
+                &yellow,
+                0,
+                false,
+            );
         }
     }
 }
