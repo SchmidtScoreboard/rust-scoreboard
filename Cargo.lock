@@ -1624,7 +1624,7 @@ dependencies = [
 
 [[package]]
 name = "scoreboard"
-version = "1.2.3"
+version = "1.2.4"
 dependencies = [
  "chrono",
  "chrono-tz",
@@ -1645,6 +1645,7 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "sysfs_gpio",
+ "system_shutdown",
  "ureq",
  "users",
 ]
@@ -1927,6 +1928,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "24961a55846623d8e4f6cec38718945116fed8d6970336a7110710a07aa9b5d1"
 dependencies = [
  "nix",
+]
+
+[[package]]
+name = "system_shutdown"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "035e081d603551d8d78db27d2232913269c749ea67648c369100049820406a14"
+dependencies = [
+ "winapi 0.3.9",
 ]
 
 [[package]]

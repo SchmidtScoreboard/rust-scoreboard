@@ -5,6 +5,9 @@ use std::process::{Command, ExitStatus};
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
+extern crate system_shutdown;
+
+use system_shutdown::reboot;
 use users::{get_current_uid, get_user_by_uid};
 
 pub struct CommandExecutor {
@@ -106,7 +109,10 @@ network={{
                     )));
                     // Sleep for a second to let the response happen
                     thread::sleep(Duration::from_secs(3));
-                    let _result = self.execute("sudo", &["reboot"]);
+                    match reboot() {
+                        Ok(_) => info!("Shutting down, bye!"),
+                        Err(error) => error!("Failed to shut down: {}", error),
+                    }
                 }
                 common::ShellCommand::Reset {
                     from_matrix,

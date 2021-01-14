@@ -197,14 +197,12 @@ fn show_sync(
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
-#[post("/reboot", format = "json", data = "<_reboot_request>")]
+#[post("/reboot")]
 fn reboot(
     state: State<Mutex<ServerState>>,
-    _reboot_request: Json<RebootRequest>,
 ) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
-    // TODO use reboot request
     (*state).sender.send(MatrixCommand::Reboot()).unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
