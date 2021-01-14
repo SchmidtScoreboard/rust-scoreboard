@@ -15,6 +15,7 @@ impl Patch {
 
 pub fn get_patches() -> Vec<Patch> {
     vec![
+        Patch::create("1.2.5", "Fix layout issues"),
         Patch::create("1.2.4", "Fix reboot button"),
         Patch::create("1.2.3", "Fix powerplay display"),
         Patch::create("1.2.2", "Update version number"),
