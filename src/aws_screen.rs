@@ -86,7 +86,9 @@ impl<T: Clone + Ord + AWSScreenType> AWSData<T> {
                 }
                 self.last_cycle_timestamp = now;
             }
-            self.active_index = self.active_index % games.len(); // Always get the last one in case there's new games
+            if games.len() > 0 {
+                self.active_index = self.active_index % games.len(); // Always get the last one in case there's new games
+            }
         }
     }
 

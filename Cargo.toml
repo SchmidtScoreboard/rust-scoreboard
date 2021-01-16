@@ -1,6 +1,6 @@
 [package]
 name = "scoreboard"
-version = "1.2.6"
+version = "1.2.7"
 authors = ["Mark Schmidt <mark.schmidt@hey.com>"]
 edition = "2018"
 
