@@ -82,11 +82,11 @@ impl<T: Clone + Ord + AWSScreenType> AWSData<T> {
                 if let Some(priority_index) = priority_games.next() {
                     self.active_index = priority_index;
                 } else if games.len() > 0 {
-                    self.active_index = (self.active_index + 1) % games.len();
+                    self.active_index = self.active_index + 1;
                 }
-
                 self.last_cycle_timestamp = now;
             }
+            self.active_index = self.active_index % games.len(); // Always get the last one in case there's new games
         }
     }
 
