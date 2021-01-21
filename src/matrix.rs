@@ -187,17 +187,25 @@ impl<'a> Matrix<'a> {
                     ));
                 }
                 common::MatrixCommand::UpdateSettings(settings) => {
+                    let original_brightness = self.settings.get_brightness();
                     self.settings.update_settings(settings);
+                    let new_brightness = self.settings.get_brightness();
                     self.update_settings_on_active_screen();
                     self.send_response(common::WebserverResponse::UpdateSettingsResponse(
                         self.settings.get_settings_clone(),
                     ));
+                    if original_brightness != new_brightness {
+                        // Restart the scoreboard
+                        self.settings.set_power(&true);
+                        self.show_message("Rebooting...".to_string());
+                        self.send_command(common::ShellCommand::Reboot { settings: None });
+                    }
                 }
                 common::MatrixCommand::Reboot() => {
                     self.settings.set_power(&true);
                     self.show_message("Rebooting...".to_string());
                     self.send_command(common::ShellCommand::Reboot {
-                        settings: self.settings.get_settings_clone(),
+                        settings: Some(self.settings.get_settings_clone()),
                     });
                 }
                 common::MatrixCommand::Reset { from_webserver } => {

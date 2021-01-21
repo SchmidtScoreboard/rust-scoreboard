@@ -245,6 +245,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     options.set_hardware_mapping("adafruit-hat-pwm");
     options.set_pwm_lsb_nanoseconds(50);
     options.set_refresh_rate(false);
+    let _ignored_brightness_result = options.set_brightness(settings.get_brightness());
     info!("setting drop privileges to false");
     rt_options.set_drop_privileges(false);
     rt_options.set_gpio_slowdown(slowdown);

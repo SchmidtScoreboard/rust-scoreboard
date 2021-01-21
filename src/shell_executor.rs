@@ -104,9 +104,11 @@ network={{
             let command = self.receiver.recv().unwrap();
             match command {
                 common::ShellCommand::Reboot { settings } => {
-                    self.send_webserver_response(common::WebserverResponse::RebootResponse(Some(
-                        settings,
-                    )));
+                    if let Some(settings) = settings {
+                        self.send_webserver_response(common::WebserverResponse::RebootResponse(
+                            Some(settings),
+                        ));
+                    }
                     // Sleep for a second to let the response happen
                     thread::sleep(Duration::from_secs(3));
                     match reboot() {

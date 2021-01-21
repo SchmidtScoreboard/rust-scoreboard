@@ -66,7 +66,7 @@ pub enum WebserverResponse {
 
 pub enum ShellCommand {
     Reboot {
-        settings: ScoreboardSettingsData, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
+        settings: Option<ScoreboardSettingsData>, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
     },
     Reset {
         from_matrix: bool,
@@ -161,6 +161,9 @@ fn default_rotation_time() -> u32 {
     10
 }
 
+fn default_brightness() -> u8 {
+    100
+}
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 pub struct ScoreboardSettingsData {
     pub timezone: String,
@@ -176,4 +179,7 @@ pub struct ScoreboardSettingsData {
     pub favorite_teams: Vec<FavoriteTeam>,
     #[serde(default = "default_rotation_time")]
     pub rotation_time: u32,
+
+    #[serde(default = "default_brightness")]
+    pub brightness: u8,
 }

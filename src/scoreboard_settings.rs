@@ -53,6 +53,10 @@ impl ScoreboardSettings {
         self.write_settings();
     }
 
+    pub fn get_brightness(self: &Self) -> u8 {
+        self.data.brightness
+    }
+
     pub fn set_active_screen(self: &mut Self, id: &ScreenId) {
         self.data.active_screen = *id;
         self.write_settings();
