@@ -90,8 +90,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     if matches.is_present("wait") {
-        info!("Waiting 90 seconds");
-        sleep(Duration::from_secs(90));
+        info!("Waiting 5 seconds");
+        sleep(Duration::from_secs(5));
     } else {
         info!("Starting up now");
     }

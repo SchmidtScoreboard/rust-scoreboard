@@ -6,6 +6,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 extern crate system_shutdown;
+use std::thread::sleep;
 
 use system_shutdown::reboot;
 use users::{get_current_uid, get_user_by_uid};
@@ -39,11 +40,12 @@ impl CommandExecutor {
         self.execute(
             "sudo",
             &[
-                "ip",
-                "link",
-                "set",
-                interface,
-                if enable { "up" } else { "down" },
+                "echo"
+                //"ip",
+                //"link",
+                //"set",
+                //interface,
+                //if enable { "up" } else { "down" },
             ],
         )
         .expect("Failed to run set interfaces")
@@ -78,19 +80,23 @@ network={{
         info!("Attempting to connect with supplicant:\n{}\n", supplicant);
         fs::write("/etc/wpa_supplicant/wpa_supplicant.conf", supplicant)?;
 
-        let daemon_reload = self.execute("systemctl", &["daemon-reload"])?;
-        if !daemon_reload.success() {
-            error!("Failed to systemctl daemon reload");
-            return Ok(daemon_reload);
-        }
+        //let daemon_reload = self.execute("systemctl", &["daemon-reload"])?;
+        //if !daemon_reload.success() {
+        //    error!("Failed to systemctl daemon reload");
+        //    return Ok(daemon_reload);
+        //}
 
-        self.execute("sudo", &["dhclient", "-r", "wlan0"])?;
+        //self.execute("sudo", &["dhclient", "-r", "wlan0"])?;
 
-        self.execute("sudo", &["ifdown", "wlan0"])?;
+        self.set_interface("wlan0", true);
 
-        self.execute("sudo", &["ifup", "wlan0"])?;
+        let output = self.execute("sudo", &["systemctl", "restart", "wpa_supplicant.service"])?;
 
-        let output = self.execute("sudo", &["dhclient", "-v", "wlan0"])?;
+        info!("Sleeping for a little bit to allow wpa to catch up after being restarted.");
+        sleep(Duration::from_secs(15));
+        info!("Done sleeping");
+
+        //let output = self.execute("sudo", &["dhclient", "-v", "wlan0"])?;
         Ok(output)
     }
 
