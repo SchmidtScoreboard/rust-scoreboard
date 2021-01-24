@@ -36,19 +36,29 @@ impl CommandExecutor {
         self.matrix_sender.send(response).unwrap();
     }
 
-    fn set_interface(self: &Self, interface: &str, enable: bool) -> ExitStatus {
+    // DHCPCD configures the `wlan0` or `wlan1` interfaces
+    //      See /etc/dhcpcd.conf
+    // However, DHCPCD requires a "carrier" to actually use the interface for anything
+    // WPA_SUPPLICANT is for the usual wifi where you are a client connecting to another access point to get internet access
+    // HOSTAPD is for when you are hosting the wifi access point
+    fn carrier_control(self: &Self, enable: bool, service: &str) -> ExitStatus {
         self.execute(
             "sudo",
             &[
-                "echo"
-                //"ip",
-                //"link",
-                //"set",
-                //interface,
-                //if enable { "up" } else { "down" },
+                "systemctl",
+                if enable { "restart" } else { "stop" },
+                service,
             ],
         )
-        .expect("Failed to run set interfaces")
+        .expect("Failed to run systemctl on service")
+    }
+
+    fn set_wifi(self: &Self, enable: bool) -> ExitStatus {
+        self.carrier_control(enable, "wpa_supplicant.service")
+    }
+
+    fn set_access_point(self: &Self, enable: bool) -> ExitStatus {
+        self.carrier_control(enable, "hostapd.service")
     }
 
     fn execute(self: &Self, command: &str, args: &[&str]) -> io::Result<ExitStatus> {
@@ -80,23 +90,11 @@ network={{
         info!("Attempting to connect with supplicant:\n{}\n", supplicant);
         fs::write("/etc/wpa_supplicant/wpa_supplicant.conf", supplicant)?;
 
-        //let daemon_reload = self.execute("systemctl", &["daemon-reload"])?;
-        //if !daemon_reload.success() {
-        //    error!("Failed to systemctl daemon reload");
-        //    return Ok(daemon_reload);
-        //}
+        let output = self.set_wifi(true);
 
-        //self.execute("sudo", &["dhclient", "-r", "wlan0"])?;
-
-        self.set_interface("wlan0", true);
-
-        let output = self.execute("sudo", &["systemctl", "restart", "wpa_supplicant.service"])?;
-
-        info!("Sleeping for a little bit to allow wpa to catch up after being restarted.");
-        sleep(Duration::from_secs(15));
-        info!("Done sleeping");
-
-        //let output = self.execute("sudo", &["dhclient", "-v", "wlan0"])?;
+        info!("Sleeping to allow wpa_supplicant to catch up after being restarted");
+        sleep(Duration::from_secs(10));
+        info!("Done waiting for wpa_supplicant to catch up");
         Ok(output)
     }
 
@@ -127,7 +125,7 @@ network={{
                     from_webserver,
                 } => {
                     // Enable wifi hotspot
-                    let status = self.set_interface("wlan1", true);
+                    let status = self.set_access_point(true);
                     if status.success() {
                         info!("Successfully enabled hotspot");
                     } else {
@@ -142,7 +140,7 @@ network={{
                     thread::sleep(Duration::from_secs(1));
                     info!("Resetting wifi");
                     // Just disable wlan0
-                    let status = self.set_interface("wlan0", false);
+                    let status = self.set_wifi(false);
                     if status.success() {
                         info!("Successfully disabled primary nic");
                     } else {
@@ -158,7 +156,7 @@ network={{
                     }
                 }
                 common::ShellCommand::SetHotspot(on) => {
-                    let status = self.set_interface("wlan1", on);
+                    let status = self.set_access_point(on);
                     if status.success() {
                         info!("Successfully set hotspot {}", on);
                     } else {
@@ -190,7 +188,7 @@ network={{
 
                     if success {
                         // If we've successfully connected, disable the hotspot
-                        let hotspot_result = self.set_interface("wlan1", false);
+                        let hotspot_result = self.set_access_point(false);
                         if hotspot_result.success() {
                             info!("Successfully disabled hotspot");
                         } else {
@@ -206,7 +204,7 @@ network={{
                     }
 
                     if !success {
-                        self.set_interface("wlan1", true);
+                        self.set_access_point(true);
                     }
 
                     self.send_matrix_response(common::MatrixCommand::FinishedWifiConnection(
