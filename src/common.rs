@@ -100,9 +100,10 @@ pub fn color_from_string(s: &str) -> Result<rpi_led_matrix::LedColor, Box<dyn Er
 }
 
 pub fn is_connected() -> bool {
-    let response = ureq::get("http://clients3.google.com/generate_204").call();
-    info!("Checking connection, status is {:?}", response.status());
-    response.status() == 204
+    true
+    //let response = ureq::get("http://clients3.google.com/generate_204").call();
+    //info!("Checking connection, status is {:?}", response.status());
+    //response.status() == 204
 }
 
 pub fn get_ip_address() -> Option<Ipv4Addr> {
@@ -110,6 +111,7 @@ pub fn get_ip_address() -> Option<Ipv4Addr> {
         Ok(output) if output.status.success() => {
             let string = std::str::from_utf8(&output.stdout).expect("Failed to parse hostname");
             let mut ips = string.split(" ");
+            info!("hostname we got: {}", string);
             match ips.next() {
                 Some(ip) => Some(ip.parse().unwrap()),
                 None => None,
