@@ -1,14 +1,13 @@
-from hockey import get_hockey_games
-from baseball import get_baseball_games
 from flask import Flask
+from college_basketball import CollegeBasketball
 
 
 app = Flask(__name__)
 
 
-@app.route("/nhl")
-def nhl():
-    return get_hockey_games(True)
+@app.route("/college_basketball")
+def college_basketball():
+    return CollegeBasketball.(True)
 
 
 @app.route("/mlb")

@@ -8,3 +8,8 @@ def get_url(sport: str):
 
 def get_games_for_sport():
     url = get_url("ice-hockey")
+    
+with open("ice-hockey.html") as f:
+    html = f.read()
+    soup = BeautifulSoup(html, 'html.parser')
+    print(soup.prettify())
