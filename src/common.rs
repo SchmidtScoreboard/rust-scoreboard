@@ -13,6 +13,7 @@ use ureq;
 pub enum ScreenId {
     Hockey = 0,
     Baseball = 1,
+    CollegeBasketball = 2,
     Clock = 50,
     Reboot = 99,
     Refresh = 100,

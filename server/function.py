@@ -3,7 +3,7 @@ import time
 
 cache = {}
 
-REFRESH_WINDOW = 60 # seconds
+REFRESH_WINDOW = 60  # seconds
 
 
 def lambda_handler(event, context):
@@ -13,10 +13,10 @@ def lambda_handler(event, context):
         if time.time() - timestamp < REFRESH_WINDOW:
             return item
 
-    if event == "college-basketball"
+    if event == "college-basketball":
         result = CollegeBasketball.getGames(False)
         cache[event] = (result, time.time())
         return result
-    
+
     print(f"ERROR: unknown event {event}")
     return None

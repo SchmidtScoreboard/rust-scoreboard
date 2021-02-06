@@ -5,6 +5,7 @@ mod aws_screen;
 mod baseball;
 mod button;
 mod clock;
+mod college_basketball;
 mod common;
 mod game;
 mod hockey;
@@ -27,6 +28,7 @@ use animation::AnimationTestScreen;
 use aws_screen::AWSScreen;
 use baseball::BaseballGame;
 use clap;
+use college_basketball::CollegeBasketballGame;
 use common::ScreenId;
 use hockey::HockeyGame;
 use matrix::{Matrix, ScreenProvider};
@@ -41,6 +43,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use updater::Updater;
 const AWS_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
+const V2_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = clap::App::new("Schmidt Scoreboard")
@@ -176,6 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let base_url = env::var("AWS_URL").unwrap_or(AWS_URL.to_string());
+    let v2_url = env::var("V2_URL").unwrap_or(V2_URL.to_string()); // TODO use the actual new AWS URL
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
@@ -206,6 +210,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     map.insert(ScreenId::Baseball, Box::new(baseball));
 
+    // College Basketball
+    let baseball: AWSScreen<CollegeBasketballGame> = AWSScreen::new(
+        scheduler_sender.clone(),
+        v2_url.clone(),
+        settings.get_settings().rotation_time,
+        settings.get_settings().favorite_teams.clone(),
+        api_key.clone(),
+        settings.get_settings().timezone.clone(),
+        matrix::FontBook::new(&root_path),
+        matrix::PixelBook::new(&root_path),
+    );
+
+    map.insert(ScreenId::CollegeBasketball, Box::new(baseball));
     // Clock
     let clock = clock::Clock::new(
         scheduler_sender.clone(),

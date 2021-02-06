@@ -1,18 +1,12 @@
 from flask import Flask
-from college_basketball import CollegeBasketball
-
+from function import lambda_handler
 
 app = Flask(__name__)
 
 
-@app.route("/college_basketball")
+@app.route("/college-basketball")
 def college_basketball():
-    return CollegeBasketball.(True)
-
-
-@app.route("/mlb")
-def mlb():
-    return get_baseball_games(True)
+    return lambda_handler("college-basketball")
 
 
 if __name__ == "__main__":
