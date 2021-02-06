@@ -9,7 +9,8 @@ REFRESH_WINDOW = 60  # seconds
 def lambda_handler(event, context):
     # First, hit the cache
     print(event)
-    if event in cache:
+    sport = event["path"][1:]
+    if sport in cache:
         item, timestamp = cache[event]
         if time.time() - timestamp < REFRESH_WINDOW:
             return item
