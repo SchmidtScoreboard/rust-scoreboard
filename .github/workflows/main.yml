@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@master
       - name: Zip files
         run: |
-          cd server && zip -r deployment.zip *.py requirements.txt
+          cd server && zip -r deployment.zip .
       - name: Deploy zip file
         uses: appleboy/lambda-action@master
         with:
