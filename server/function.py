@@ -1,5 +1,6 @@
 from college_basketball import CollegeBasketball
 import time
+import json
 
 cache = {}
 
@@ -7,7 +8,7 @@ REFRESH_WINDOW = 60  # seconds
 
 
 def success_response(resp):
-    return {"statusCode": 200, "body": resp}
+    return {"statusCode": 200, "body": json.dumps(resp)}
 
 
 def lambda_handler(event, context):
