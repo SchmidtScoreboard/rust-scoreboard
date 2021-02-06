@@ -1,4 +1,5 @@
 import inflect
+p = inflect.engine()
 
 class Team:
     def createTeam(id, display_name, abbreviation, primary_color, secondary_color):
@@ -23,33 +24,35 @@ class Common:
             "id": id}
 
     def convertStatus(status: str):
-        status_map = {"STATUS_IN_PROGRESS": "ACTIVE", "STATUS_FINAL": "END"}
+        status_map = {"STATUS_IN_PROGRESS": "ACTIVE", "STATUS_FINAL": "END",
+                "STATUS_SCHEDULED": "PREGAME"}
+        if status == "STATUS_POSTPONED":
+            return None
         if status not in status_map:
-            print f"Status {status} not in map"
-            return status
+            raise Exception(f"Status {status} not in map")
         else:
             return status_map[status]
 
     def toOrdinal(period: int):
-        p = inflect.engine
         return p.ordinal(period)
 
 
     def from_json(json, team_func):
-        competition = json["competitions"][0]
-        away_team, home_team = competition["competitors"]
-        print(competition)
-         
-        
-        return Common.createCommon(
-                team_func(home_team["id"], home_team), 
-                team_func(away_team["id"], away_team),
-                convertStatus(competition["status"]["type"]["name"]),
-                toOrdinal(competition["status"]["period"]),
-                competition["date"], 
-                competition["id"], 
-                home_team["score"], 
-                away_team["score"])
+        try:
+            competition = json["competitions"][0]
+            away_team, home_team = competition["competitors"]
+            return Common.createCommon(
+                    team_func(home_team["id"], home_team), 
+                    team_func(away_team["id"], away_team),
+                    Common.convertStatus(competition["status"]["type"]["name"]),
+                    Common.toOrdinal(competition["status"]["period"]),
+                    competition["date"], 
+                    competition["id"], 
+                    home_team["score"], 
+                    away_team["score"])
+        except Exception as e:
+            print(e)
+            return None
     
 
 
