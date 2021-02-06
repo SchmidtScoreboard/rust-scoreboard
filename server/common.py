@@ -55,7 +55,7 @@ class Common:
     def from_json(json, team_func):
         try:
             competition = json["competitions"][0]
-            away_team, home_team = competition["competitors"]
+            home_team, away_team = competition["competitors"]
             return Common.createCommon(
                 team_func(home_team["id"], home_team),
                 team_func(away_team["id"], away_team),
