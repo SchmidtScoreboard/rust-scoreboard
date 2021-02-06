@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@master
       - name: Zip files
         run: |
-          zip -r deployment.zip server/*.py
+          cd server && zip -r deployment.zip *.py
       - name: Deploy zip file
         uses: appleboy/lambda-action@master
         with:
@@ -18,4 +18,4 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ${{ secrets.AWS_REGION }}
           function_name: ScoreboardDataV2
-          zip_file: deployment.zip
+          zip_file: server/deployment.zip
