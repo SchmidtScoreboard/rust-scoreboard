@@ -8,6 +8,7 @@ REFRESH_WINDOW = 60  # seconds
 
 def lambda_handler(event, context):
     # First, hit the cache
+    print(event)
     if event in cache:
         item, timestamp = cache[event]
         if time.time() - timestamp < REFRESH_WINDOW:
