@@ -43,7 +43,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use updater::Updater;
 const AWS_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
-const V2_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
+const V2_URL: &str = "https://uhoijpn7d1.execute-api.us-east-2.amazonaws.com/Prod/";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = clap::App::new("Schmidt Scoreboard")
