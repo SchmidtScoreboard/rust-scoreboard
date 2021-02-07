@@ -42,8 +42,6 @@ class Common:
             "STATUS_FINAL": "END",
             "STATUS_SCHEDULED": "PREGAME",
         }
-        if status == "STATUS_POSTPONED":
-            return None
         if status not in status_map:
             raise Exception(f"Status {status} not in map")
         else:
