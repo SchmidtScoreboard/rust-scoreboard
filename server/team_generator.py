@@ -3,16 +3,17 @@ import json
 from common import Team
 
 
+def get_app_color_shit(color: str):
+    red = int(color[0:2], 16)
+    green = int(color[2:4], 16)
+    blue = int(color[4:6], 16)
+    return f"Color.fromRGBO({red}, {green}, {blue}, 1.0)"
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("ERROR: must specify input json")
         sys.exit(1)
-
-    def get_app_color_shit(color: str):
-        red = int(color[0:2], 16)
-        green = int(color[2:4], 16)
-        blue = int(color[4:6], 16)
-        return f"Color.fromRGBO({red}, {green}, {blue}, 1.0)"
 
     def get_teams(filename):
         print(f"Opening file {filename}")

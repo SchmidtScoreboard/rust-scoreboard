@@ -1,5 +1,6 @@
 from common import Common, Team
 from fetcher import Fetcher
+from team_generator import get_app_color_shit
 
 team_map = {
     "2000": Team.createTeam(
@@ -837,6 +838,9 @@ team_map = {
         "275", "Wisconsin", "Badgers", "Wisconsin", "WISC", "A00002", "f7f7f7"
     ),
     "43": Team.createTeam("43", "Yale", "Bulldogs", "Yale", "YALE", "004a81", "286dc0"),
+    "2674": Team.createTeam(
+        "2674", "Valparaiso", "Crusaders", "Valparaiso", "VAL", "794500", "000000"
+    ),
 }
 
 
@@ -848,6 +852,18 @@ class CollegeBasketball:
         if team_id in team_map:
             return team_map[team_id]
         else:
+            team = competitor["team"]
+
+            team_id = team["id"]  # string
+            location = team["location"]
+            name = team["name"]
+            display_name = team["shortDisplayName"]
+            abbreviation = team["abbreviation"]
+            color = team["color"]
+            secondary_color = team.get("alternateColor", "000000")
+            server_out = f'"{team_id}": Team.createTeam("{team_id}", "{location}", "{name}", "{display_name}", "{abbreviation}", "{color}", "{secondary_color}"),'
+            app_out = f'{team_id}: Team({team_id}, "{location}", "{name}", "{abbreviation}", {get_app_color_shit(color)}, {get_app_color_shit(secondary_color)}),'
+            print(f"Unknown team!\n {server_out}\n{app_out}")
             team = Team.createTeam(
                 int(team_id),
                 competitor["team"]["location"],
@@ -857,7 +873,6 @@ class CollegeBasketball:
                 competitor["team"].get("color", "00000"),
                 competitor["team"].get("alternateColor", "ffffff"),
             )
-            print(f'Unknown team! "{str(team_id)}": {team},')
             return team
 
     def getGames(testing: bool):
@@ -875,4 +890,5 @@ class CollegeBasketball:
 
 
 if __name__ == "__main__":
+    print("Fetching games")
     print(CollegeBasketball.getGames(False))

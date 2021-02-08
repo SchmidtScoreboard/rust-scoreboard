@@ -15,6 +15,7 @@ impl Patch {
 
 pub fn get_patches() -> Vec<Patch> {
     vec![
+        Patch::create("1.5.0", "College basketball!"),
         Patch::create("1.3.0", "Allow brightness control"),
         Patch::create("1.2.6", "Fix baseball screen"),
         Patch::create("1.2.6", "Fix games overflow"),
