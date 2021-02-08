@@ -61,8 +61,8 @@ class Common:
                 Common.toOrdinal(competition["status"]["period"]),
                 competition["date"],
                 competition["id"],
-                home_team["score"],
-                away_team["score"],
+                int(home_team["score"]),
+                int(away_team["score"]),
             )
         except Exception as e:
             print(e)
