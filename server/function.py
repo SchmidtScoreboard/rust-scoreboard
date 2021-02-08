@@ -8,7 +8,7 @@ REFRESH_WINDOW = 60  # seconds
 
 
 def success_response(resp):
-    return {"statusCode": 200, "body": json.dumps(resp)}
+    return {"statusCode": 200, "body": {"data": json.dumps(resp)}}
 
 
 def lambda_handler(event, context):
