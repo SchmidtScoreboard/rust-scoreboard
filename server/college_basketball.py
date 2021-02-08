@@ -2,1735 +2,841 @@ from common import Common, Team
 from fetcher import Fetcher
 
 team_map = {
-    "2000": {
-        "id": "2000",
-        "display_name": "Abil Christian",
-        "abbreviation": "ACU",
-        "primary_color": "4e2683",
-        "secondary_color": "ebebeb",
-    },
-    "2005": {
-        "id": "2005",
-        "display_name": "Air Force",
-        "abbreviation": "AFA",
-        "primary_color": "004a7b",
-        "secondary_color": "ffffff",
-    },
-    "2006": {
-        "id": "2006",
-        "display_name": "Akron",
-        "abbreviation": "AKR",
-        "primary_color": "00285e",
-        "secondary_color": "84754e",
-    },
-    "2010": {
-        "id": "2010",
-        "display_name": "Alabama A&M",
-        "abbreviation": "AAMU",
-        "primary_color": "790000",
-        "secondary_color": "ffffff",
-    },
-    "333": {
-        "id": "333",
-        "display_name": "Alabama",
-        "abbreviation": "ALA",
-        "primary_color": "690014",
-        "secondary_color": "f1f2f3",
-    },
-    "2011": {
-        "id": "2011",
-        "display_name": "Alabama State",
-        "abbreviation": "ALST",
-        "primary_color": "e9a900",
-        "secondary_color": "0a0a0a",
-    },
-    "399": {
-        "id": "399",
-        "display_name": "Albany",
-        "abbreviation": "ALB",
-        "primary_color": "3D2777",
-        "secondary_color": "ffffff",
-    },
-    "2016": {
-        "id": "2016",
-        "display_name": "Alcorn State",
-        "abbreviation": "ALCN",
-        "primary_color": "4b0058",
-        "secondary_color": "46166a",
-    },
-    "44": {
-        "id": "44",
-        "display_name": "American",
-        "abbreviation": "AMER",
-        "primary_color": "c41130",
-        "secondary_color": "c8102e",
-    },
-    "2026": {
-        "id": "2026",
-        "display_name": "Appalachian St",
-        "abbreviation": "APP",
-        "primary_color": "000000",
-        "secondary_color": "ffcd00",
-    },
-    "9": {
-        "id": "9",
-        "display_name": "Arizona State",
-        "abbreviation": "ASU",
-        "primary_color": "942139",
-        "secondary_color": "f1f2f3",
-    },
-    "12": {
-        "id": "12",
-        "display_name": "Arizona",
-        "abbreviation": "ARIZ",
-        "primary_color": "002449",
-        "secondary_color": "00205b",
-    },
-    "8": {
-        "id": "8",
-        "display_name": "Arkansas",
-        "abbreviation": "ARK",
-        "primary_color": "9c1831",
-        "secondary_color": "000000",
-    },
-    "2032": {
-        "id": "2032",
-        "display_name": "Arkansas State",
-        "abbreviation": "ARST",
-        "primary_color": "e81018",
-        "secondary_color": "000000",
-    },
-    "2029": {
-        "id": "2029",
-        "display_name": "Ark-Pine Bluff",
-        "abbreviation": "UAPB",
-        "primary_color": "e0aa0f",
-        "secondary_color": "eaaa00",
-    },
-    "349": {
-        "id": "349",
-        "display_name": "Army",
-        "abbreviation": "ARMY",
-        "primary_color": "ce9c00",
-        "secondary_color": "231f20",
-    },
-    "2": {
-        "id": "2",
-        "display_name": "Auburn",
-        "abbreviation": "AUB",
-        "primary_color": "03244d",
-        "secondary_color": "f1f2f3",
-    },
-    "2046": {
-        "id": "2046",
-        "display_name": "Austin Peay",
-        "abbreviation": "APSU",
-        "primary_color": "8e0b0b",
-        "secondary_color": "000000",
-    },
-    "252": {
-        "id": "252",
-        "display_name": "BYU",
-        "abbreviation": "BYU",
-        "primary_color": "001E4C",
-        "secondary_color": "ffffff",
-    },
-    "2050": {
-        "id": "2050",
-        "display_name": "Ball State",
-        "abbreviation": "BALL",
-        "primary_color": "DA0000",
-        "secondary_color": "ffffff",
-    },
-    "239": {
-        "id": "239",
-        "display_name": "Baylor",
-        "abbreviation": "BAY",
-        "primary_color": "004834",
-        "secondary_color": "ffb81c",
-    },
-    "91": {
-        "id": "91",
-        "display_name": "Bellarmine",
-        "abbreviation": "BELL",
-        "primary_color": "000000",
-        "secondary_color": "000000",
-    },
-    "2057": {
-        "id": "2057",
-        "display_name": "Belmont",
-        "abbreviation": "BEL",
-        "primary_color": "182142",
-        "secondary_color": "c9262d",
-    },
-    "2066": {
-        "id": "2066",
-        "display_name": "Binghamton",
-        "abbreviation": "BING",
-        "primary_color": "00614A",
-        "secondary_color": "f0f0f0",
-    },
-    "68": {
-        "id": "68",
-        "display_name": "Boise State",
-        "abbreviation": "BSU",
-        "primary_color": "09347A",
-        "secondary_color": "d8d9da",
-    },
-    "103": {
-        "id": "103",
-        "display_name": "Boston College",
-        "abbreviation": "BC",
-        "primary_color": "88001a",
-        "secondary_color": "a39161",
-    },
-    "104": {
-        "id": "104",
-        "display_name": "Boston Univ.",
-        "abbreviation": "BU",
-        "primary_color": "cc0000",
-        "secondary_color": "ffffff",
-    },
-    "189": {
-        "id": "189",
-        "display_name": "Bowling Green",
-        "abbreviation": "BGSU",
-        "primary_color": "2b1000",
-        "secondary_color": "492000",
-    },
-    "71": {
-        "id": "71",
-        "display_name": "Bradley",
-        "abbreviation": "BRAD",
-        "primary_color": "b70002",
-        "secondary_color": "c0c0c0",
-    },
-    "225": {
-        "id": "225",
-        "display_name": "Brown",
-        "abbreviation": "BRWN",
-        "primary_color": "411e09",
-        "secondary_color": "949300",
-    },
-    "2083": {
-        "id": "2083",
-        "display_name": "Bucknell",
-        "abbreviation": "BUCK",
-        "primary_color": "000060",
-        "secondary_color": "00316e",
-    },
-    "2084": {
-        "id": "2084",
-        "display_name": "Buffalo",
-        "abbreviation": "BUFF",
-        "primary_color": "041A9B",
-        "secondary_color": "ebebeb",
-    },
-    "2086": {
-        "id": "2086",
-        "display_name": "Butler",
-        "abbreviation": "BUT",
-        "primary_color": "0d1361",
-        "secondary_color": "00a3e0",
-    },
-    "2239": {
-        "id": "2239",
-        "display_name": "CSU Fullerton",
-        "abbreviation": "CSUF",
-        "primary_color": "10219c",
-        "secondary_color": "003057",
-    },
-    "13": {
-        "id": "13",
-        "display_name": "Cal Poly",
-        "abbreviation": "CP",
-        "primary_color": "1E4D2B",
-        "secondary_color": "eed897",
-    },
-    "25": {
-        "id": "25",
-        "display_name": "California",
-        "abbreviation": "CAL",
-        "primary_color": "031522",
-        "secondary_color": "ffc423",
-    },
-    "2097": {
-        "id": "2097",
-        "display_name": "Campbell",
-        "abbreviation": "CAM",
-        "primary_color": "000000",
-        "secondary_color": "000000",
-    },
-    "2099": {
-        "id": "2099",
-        "display_name": "Canisius",
-        "abbreviation": "CAN",
-        "primary_color": "004a81",
-        "secondary_color": "dda50f",
-    },
-    "2110": {
-        "id": "2110",
-        "display_name": "Cent Arkansas",
-        "abbreviation": "UCA",
-        "primary_color": "a7a9ac",
-        "secondary_color": "8e959a",
-    },
-    "2115": {
-        "id": "2115",
-        "display_name": "Cent Conn St",
-        "abbreviation": "CCSU",
-        "primary_color": "1B49A2",
-        "secondary_color": "d1d5d8",
-    },
-    "2117": {
-        "id": "2117",
-        "display_name": "Cent Michigan",
-        "abbreviation": "CMU",
-        "primary_color": "6a0032",
-        "secondary_color": "ffffff",
-    },
-    "232": {
-        "id": "232",
-        "display_name": "Charleston",
-        "abbreviation": "COFC",
-        "primary_color": "9c8456",
-        "secondary_color": "e4e2dd",
-    },
-    "2127": {
-        "id": "2127",
-        "display_name": "Charleston So",
-        "abbreviation": "CHSO",
-        "primary_color": "2e3192",
-        "secondary_color": "ded090",
-    },
-    "236": {
-        "id": "236",
-        "display_name": "Chattanooga",
-        "abbreviation": "UTC",
-        "primary_color": "00386b",
-        "secondary_color": "dca71d",
-    },
-    "2130": {
-        "id": "2130",
-        "display_name": "Chicago State",
-        "abbreviation": "CHIC",
-        "primary_color": "006700",
-        "secondary_color": "000000",
-    },
-    "2132": {
-        "id": "2132",
-        "display_name": "Cincinnati",
-        "abbreviation": "CIN",
-        "primary_color": "000000",
-        "secondary_color": "717073",
-    },
-    "228": {
-        "id": "228",
-        "display_name": "Clemson",
-        "abbreviation": "CLEM",
-        "primary_color": "F66733",
-        "secondary_color": "522d80",
-    },
-    "325": {
-        "id": "325",
-        "display_name": "Cleveland State",
-        "abbreviation": "CLEV",
-        "primary_color": "006633",
-        "secondary_color": "231f20",
-    },
-    "324": {
-        "id": "324",
-        "display_name": "C. Carolina",
-        "abbreviation": "CCAR",
-        "primary_color": "007073",
-        "secondary_color": "876447",
-    },
-    "2142": {
-        "id": "2142",
-        "display_name": "Colgate",
-        "abbreviation": "COLG",
-        "primary_color": "8B011D",
-        "secondary_color": "231f20",
-    },
-    "38": {
-        "id": "38",
-        "display_name": "Colorado",
-        "abbreviation": "COLO",
-        "primary_color": "d1c57e",
-        "secondary_color": "ffd200",
-    },
-    "36": {
-        "id": "36",
-        "display_name": "Colorado State",
-        "abbreviation": "CSU",
-        "primary_color": "004537",
-        "secondary_color": "ffc425",
-    },
-    "171": {
-        "id": "171",
-        "display_name": "Columbia",
-        "abbreviation": "CLMB",
-        "primary_color": "174785",
-        "secondary_color": "004b85",
-    },
-    "2154": {
-        "id": "2154",
-        "display_name": "Coppin State",
-        "abbreviation": "COPP",
-        "primary_color": "2e3192",
-        "secondary_color": "ffd204",
-    },
-    "172": {
-        "id": "172",
-        "display_name": "Cornell",
-        "abbreviation": "COR",
-        "primary_color": "d60027",
-        "secondary_color": "101010",
-    },
-    "156": {
-        "id": "156",
-        "display_name": "Creighton",
-        "abbreviation": "CREI",
-        "primary_color": "13299e",
-        "secondary_color": "00235d",
-    },
-    "159": {
-        "id": "159",
-        "display_name": "Dartmouth",
-        "abbreviation": "DART",
-        "primary_color": "005730",
-        "secondary_color": "000000",
-    },
-    "2166": {
-        "id": "2166",
-        "display_name": "Davidson",
-        "abbreviation": "DAV",
-        "primary_color": "000000",
-        "secondary_color": "e51837",
-    },
-    "2168": {
-        "id": "2168",
-        "display_name": "Dayton",
-        "abbreviation": "DAY",
-        "primary_color": "004B8D",
-        "secondary_color": "ffffff",
-    },
-    "305": {
-        "id": "305",
-        "display_name": "DePaul",
-        "abbreviation": "DEP",
-        "primary_color": "2d649c",
-        "secondary_color": "ce1125",
-    },
-    "48": {
-        "id": "48",
-        "display_name": "Delaware",
-        "abbreviation": "DEL",
-        "primary_color": "033594",
-        "secondary_color": "e8ce31",
-    },
-    "2169": {
-        "id": "2169",
-        "display_name": "Delaware State",
-        "abbreviation": "DSU",
-        "primary_color": "FF3630",
-        "secondary_color": "009cdd",
-    },
-    "2172": {
-        "id": "2172",
-        "display_name": "Denver",
-        "abbreviation": "DEN",
-        "primary_color": "9c143d",
-        "secondary_color": "d6ba74",
-    },
-    "2174": {
-        "id": "2174",
-        "display_name": "Detroit Mercy",
-        "abbreviation": "DET",
-        "primary_color": "165b9e",
-        "secondary_color": "d31733",
-    },
-    "2181": {
-        "id": "2181",
-        "display_name": "Drake",
-        "abbreviation": "DRKE",
-        "primary_color": "004477",
-        "secondary_color": "c0c0c0",
-    },
-    "2182": {
-        "id": "2182",
-        "display_name": "Drexel",
-        "abbreviation": "DREX",
-        "primary_color": "020260",
-        "secondary_color": "ffd65a",
-    },
-    "150": {
-        "id": "150",
-        "display_name": "Duke",
-        "abbreviation": "DUKE",
-        "primary_color": "001A57",
-        "secondary_color": "f1f2f3",
-    },
-    "2184": {
-        "id": "2184",
-        "display_name": "Duquesne",
-        "abbreviation": "DUQ",
-        "primary_color": "002D62",
-        "secondary_color": "b90b2e",
-    },
-    "151": {
-        "id": "151",
-        "display_name": "East Carolina",
-        "abbreviation": "ECU",
-        "primary_color": "4b1869",
-        "secondary_color": "f0907b",
-    },
-    "2193": {
-        "id": "2193",
-        "display_name": "ETSU",
-        "abbreviation": "ETSU",
-        "primary_color": "002d61",
-        "secondary_color": "ffc423",
-    },
-    "2197": {
-        "id": "2197",
-        "display_name": "E Illinois",
-        "abbreviation": "EIU",
-        "primary_color": "000000",
-        "secondary_color": "bebab9",
-    },
-    "2198": {
-        "id": "2198",
-        "display_name": "E Kentucky",
-        "abbreviation": "EKU",
-        "primary_color": "660819",
-        "secondary_color": "f0f0f0",
-    },
-    "2199": {
-        "id": "2199",
-        "display_name": "E Michigan",
-        "abbreviation": "EMU",
-        "primary_color": "00331b",
-        "secondary_color": "f0f0f0",
-    },
-    "331": {
-        "id": "331",
-        "display_name": "E Washington",
-        "abbreviation": "EWU",
-        "primary_color": "a10022",
-        "secondary_color": "abb4bc",
-    },
-    "2210": {
-        "id": "2210",
-        "display_name": "Elon",
-        "abbreviation": "ELON",
-        "primary_color": "020303",
-        "secondary_color": "b59a57",
-    },
-    "339": {
-        "id": "339",
-        "display_name": "Evansville",
-        "abbreviation": "EVAN",
-        "primary_color": "663399",
-        "secondary_color": "ef6f00",
-    },
-    "2217": {
-        "id": "2217",
-        "display_name": "Fairfield",
-        "abbreviation": "FAIR",
-        "primary_color": "000000",
-        "secondary_color": "ebebeb",
-    },
-    "161": {
-        "id": "161",
-        "display_name": "Fair. Dickinson",
-        "abbreviation": "FDU",
-        "primary_color": "00449C",
-        "secondary_color": "a80532",
-    },
-    "50": {
-        "id": "50",
-        "display_name": "Florida A&M",
-        "abbreviation": "FAMU",
-        "primary_color": "F89728",
-        "secondary_color": "00843d",
-    },
-    "2226": {
-        "id": "2226",
-        "display_name": "FAU",
-        "abbreviation": "FAU",
-        "primary_color": "004B85",
-        "secondary_color": "bb2f4c",
-    },
-    "57": {
-        "id": "57",
-        "display_name": "Florida",
-        "abbreviation": "FLA",
-        "primary_color": "0021A5",
-        "secondary_color": "0021a5",
-    },
-    "526": {
-        "id": "526",
-        "display_name": "FGCU",
-        "abbreviation": "FGCU",
-        "primary_color": "00885a",
-        "secondary_color": "076c3b",
-    },
-    "2229": {
-        "id": "2229",
-        "display_name": "FIU",
-        "abbreviation": "FIU",
-        "primary_color": "091731",
-        "secondary_color": "c5960c",
-    },
-    "52": {
-        "id": "52",
-        "display_name": "Florida State",
-        "abbreviation": "FSU",
-        "primary_color": "782F40",
-        "secondary_color": "ceb888",
-    },
-    "2230": {
-        "id": "2230",
-        "display_name": "Fordham",
-        "abbreviation": "FOR",
-        "primary_color": "830032",
-        "secondary_color": "909090",
-    },
-    "278": {
-        "id": "278",
-        "display_name": "Fresno State",
-        "abbreviation": "FRES",
-        "primary_color": "c41230",
-        "secondary_color": "231f20",
-    },
-    "231": {
-        "id": "231",
-        "display_name": "Furman",
-        "abbreviation": "FUR",
-        "primary_color": "4A2184",
-        "secondary_color": "909090",
-    },
-    "2241": {
-        "id": "2241",
-        "display_name": "Gardner-Webb",
-        "abbreviation": "GWEB",
-        "primary_color": "c12535",
-        "secondary_color": "909090",
-    },
-    "2244": {
-        "id": "2244",
-        "display_name": "George Mason",
-        "abbreviation": "GMU",
-        "primary_color": "016600",
-        "secondary_color": "ecb010",
-    },
-    "45": {
-        "id": "45",
-        "display_name": "G Washington",
-        "abbreviation": "GW",
-        "primary_color": "002843",
-        "secondary_color": "e8d2a1",
-    },
-    "46": {
-        "id": "46",
-        "display_name": "Georgetown",
-        "abbreviation": "GTWN",
-        "primary_color": "110E42",
-        "secondary_color": "001c58",
-    },
-    "61": {
-        "id": "61",
-        "display_name": "Georgia",
-        "abbreviation": "UGA",
-        "primary_color": "CC0000",
-        "secondary_color": "000000",
-    },
-    "290": {
-        "id": "290",
-        "display_name": "GA Southern",
-        "abbreviation": "GASO",
-        "primary_color": "003775",
-        "secondary_color": "f0f0f0",
-    },
-    "2247": {
-        "id": "2247",
-        "display_name": "Georgia State",
-        "abbreviation": "GAST",
-        "primary_color": "1e539a",
-        "secondary_color": "ebebeb",
-    },
-    "59": {
-        "id": "59",
-        "display_name": "Georgia Tech",
-        "abbreviation": "GT",
-        "primary_color": "00223e",
-        "secondary_color": "002c56",
-    },
-    "2250": {
-        "id": "2250",
-        "display_name": "Gonzaga",
-        "abbreviation": "GONZ",
-        "primary_color": "002967",
-        "secondary_color": "cfd4d8",
-    },
-    "2253": {
-        "id": "2253",
-        "display_name": "Grand Canyon",
-        "abbreviation": "GCU",
-        "primary_color": "522398",
-        "secondary_color": "f0f0f0",
-    },
-    "2261": {
-        "id": "2261",
-        "display_name": "Hampton",
-        "abbreviation": "HAMP",
-        "primary_color": "0067AC",
-        "secondary_color": "000000",
-    },
-    "42": {
-        "id": "42",
-        "display_name": "Hartford",
-        "abbreviation": "HART",
-        "primary_color": "d60008",
-        "secondary_color": "000000",
-    },
-    "108": {
-        "id": "108",
-        "display_name": "Harvard",
-        "abbreviation": "HARV",
-        "primary_color": "990000",
-        "secondary_color": "dbdbdb",
-    },
-    "62": {
-        "id": "62",
-        "display_name": "Hawai'i",
-        "abbreviation": "HAW",
-        "primary_color": "003420",
-        "secondary_color": "ffffff",
-    },
-    "2272": {
-        "id": "2272",
-        "display_name": "High Point",
-        "abbreviation": "HP",
-        "primary_color": "b0b7bc",
-        "secondary_color": "ebebeb",
-    },
-    "2275": {
-        "id": "2275",
-        "display_name": "Hofstra",
-        "abbreviation": "HOF",
-        "primary_color": "00337c",
-        "secondary_color": "f6c934",
-    },
-    "107": {
-        "id": "107",
-        "display_name": "Holy Cross",
-        "abbreviation": "HC",
-        "primary_color": "0a0a0a",
-        "secondary_color": "080808",
-    },
-    "2277": {
-        "id": "2277",
-        "display_name": "Houston Baptist",
-        "abbreviation": "HBU",
-        "primary_color": "00539c",
-        "secondary_color": "000000",
-    },
-    "248": {
-        "id": "248",
-        "display_name": "Houston",
-        "abbreviation": "HOU",
-        "primary_color": "C90822",
-        "secondary_color": "231f20",
-    },
-    "47": {
-        "id": "47",
-        "display_name": "Howard",
-        "abbreviation": "HOW",
-        "primary_color": "9e0b0e",
-        "secondary_color": "6b818d",
-    },
-    "85": {
-        "id": "85",
-        "display_name": "IUPUI",
-        "abbreviation": "IUPU",
-        "primary_color": "A81F30",
-        "secondary_color": "d59f0f",
-    },
-    "304": {
-        "id": "304",
-        "display_name": "Idaho State",
-        "abbreviation": "IDST",
-        "primary_color": "ef8c00",
-        "secondary_color": "e9a126",
-    },
-    "70": {
-        "id": "70",
-        "display_name": "Idaho",
-        "abbreviation": "IDHO",
-        "primary_color": "000000",
-        "secondary_color": "8c6e4a",
-    },
-    "356": {
-        "id": "356",
-        "display_name": "Illinois",
-        "abbreviation": "ILL",
-        "primary_color": "f77329",
-        "secondary_color": "fa6300",
-    },
-    "2287": {
-        "id": "2287",
-        "display_name": "Illinois State",
-        "abbreviation": "ILST",
-        "primary_color": "CE1126",
-        "secondary_color": "ffe716",
-    },
-    "84": {
-        "id": "84",
-        "display_name": "Indiana",
-        "abbreviation": "IU",
-        "primary_color": "7D110C",
-        "secondary_color": "eeedeb",
-    },
-    "282": {
-        "id": "282",
-        "display_name": "Indiana State",
-        "abbreviation": "INST",
-        "primary_color": "00669a",
-        "secondary_color": "f0f0f0",
-    },
-    "314": {
-        "id": "314",
-        "display_name": "Iona",
-        "abbreviation": "IONA",
-        "primary_color": "8c001a",
-        "secondary_color": "f6a704",
-    },
-    "2294": {
-        "id": "2294",
-        "display_name": "Iowa",
-        "abbreviation": "IOWA",
-        "primary_color": "000000",
-        "secondary_color": "ffe100",
-    },
-    "66": {
-        "id": "66",
-        "display_name": "Iowa State",
-        "abbreviation": "ISU",
-        "primary_color": "660015",
-        "secondary_color": "830b2c",
-    },
-    "2296": {
-        "id": "2296",
-        "display_name": "Jackson State",
-        "abbreviation": "JKST",
-        "primary_color": "123297",
-        "secondary_color": "b5b7ba",
-    },
-    "294": {
-        "id": "294",
-        "display_name": "Jacksonville",
-        "abbreviation": "JAX",
-        "primary_color": "00523e",
-        "secondary_color": "000000",
-    },
-    "55": {
-        "id": "55",
-        "display_name": "Jacksonville St",
-        "abbreviation": "JVST",
-        "primary_color": "b50500",
-        "secondary_color": "b5b7ba",
-    },
-    "256": {
-        "id": "256",
-        "display_name": "James Madison",
-        "abbreviation": "JMU",
-        "primary_color": "450084",
-        "secondary_color": "cbb778",
-    },
-    "2305": {
-        "id": "2305",
-        "display_name": "Kansas",
-        "abbreviation": "KU",
-        "primary_color": "0022B4",
-        "secondary_color": "e8000d",
-    },
-    "2306": {
-        "id": "2306",
-        "display_name": "Kansas State",
-        "abbreviation": "KSU",
-        "primary_color": "633194",
-        "secondary_color": "e7d2ad",
-    },
-    "338": {
-        "id": "338",
-        "display_name": "Kennesaw State",
-        "abbreviation": "KENN",
-        "primary_color": "000000",
-        "secondary_color": "fdbb30",
-    },
-    "2309": {
-        "id": "2309",
-        "display_name": "Kent State",
-        "abbreviation": "KENT",
-        "primary_color": "002445",
-        "secondary_color": "f0b510",
-    },
-    "96": {
-        "id": "96",
-        "display_name": "Kentucky",
-        "abbreviation": "UK",
-        "primary_color": "005DAA",
-        "secondary_color": "ffffff",
-    },
-    "99": {
-        "id": "99",
-        "display_name": "LSU",
-        "abbreviation": "LSU",
-        "primary_color": "2B0D57",
-        "secondary_color": "fdd023",
-    },
-    "2325": {
-        "id": "2325",
-        "display_name": "La Salle",
-        "abbreviation": "LAS",
-        "primary_color": "000063",
-        "secondary_color": "feca26",
-    },
-    "322": {
-        "id": "322",
-        "display_name": "Lafayette",
-        "abbreviation": "LAF",
-        "primary_color": "790000",
-        "secondary_color": "a59474",
-    },
-    "2320": {
-        "id": "2320",
-        "display_name": "Lamar",
-        "abbreviation": "LAM",
-        "primary_color": "000000",
-        "secondary_color": "ebebeb",
-    },
-    "2329": {
-        "id": "2329",
-        "display_name": "Lehigh",
-        "abbreviation": "LEH",
-        "primary_color": "6c2b2a",
-        "secondary_color": "b69e70",
-    },
-    "2335": {
-        "id": "2335",
-        "display_name": "Liberty",
-        "abbreviation": "LIB",
-        "primary_color": "071740",
-        "secondary_color": "a61f21",
-    },
-    "288": {
-        "id": "288",
-        "display_name": "Lipscomb",
-        "abbreviation": "LIP",
-        "primary_color": "20366C",
-        "secondary_color": "f6b734",
-    },
-    "2031": {
-        "id": "2031",
-        "display_name": "Little Rock",
-        "abbreviation": "UALR",
-        "primary_color": "AD0000",
-        "secondary_color": "898d8f",
-    },
-    "299": {
-        "id": "299",
-        "display_name": "Long Beach St",
-        "abbreviation": "LBSU",
-        "primary_color": "000000",
-        "secondary_color": "f1f2f3",
-    },
-    "2344": {
-        "id": "2344",
-        "display_name": "Longwood",
-        "abbreviation": "LONG",
-        "primary_color": "003273",
-        "secondary_color": "9ea2a3",
-    },
-    "309": {
-        "id": "309",
-        "display_name": "Louisiana",
-        "abbreviation": "ULL",
-        "primary_color": "ce2842",
-        "secondary_color": "000000",
-    },
-    "2348": {
-        "id": "2348",
-        "display_name": "Louisiana Tech",
-        "abbreviation": "LT",
-        "primary_color": "002d65",
-        "secondary_color": "d3313a",
-    },
-    "97": {
-        "id": "97",
-        "display_name": "Louisville",
-        "abbreviation": "LOU",
-        "primary_color": "ad000a",
-        "secondary_color": "cccccc",
-    },
-    "2352": {
-        "id": "2352",
-        "display_name": "Loyola (MD)",
-        "abbreviation": "L-MD",
-        "primary_color": "76a7a0",
-        "secondary_color": "c9cbca",
-    },
-    "2350": {
-        "id": "2350",
-        "display_name": "Loyola Chicago",
-        "abbreviation": "LUC",
-        "primary_color": "9d1244",
-        "secondary_color": "000000",
-    },
-    "2351": {
-        "id": "2351",
-        "display_name": "Loyola Marymnt",
-        "abbreviation": "LMU",
-        "primary_color": "880029",
-        "secondary_color": "00345b",
-    },
-    "311": {
-        "id": "311",
-        "display_name": "Maine",
-        "abbreviation": "ME",
-        "primary_color": "127dbe",
-        "secondary_color": "000000",
-    },
-    "269": {
-        "id": "269",
-        "display_name": "Marquette",
-        "abbreviation": "MARQ",
-        "primary_color": "083963",
-        "secondary_color": "ffffff",
-    },
-    "276": {
-        "id": "276",
-        "display_name": "Marshall",
-        "abbreviation": "MRSH",
-        "primary_color": "186329",
-        "secondary_color": "be854c",
-    },
-    "120": {
-        "id": "120",
-        "display_name": "Maryland",
-        "abbreviation": "MD",
-        "primary_color": "D5002B",
-        "secondary_color": "ffcd00",
-    },
-    "235": {
-        "id": "235",
-        "display_name": "Memphis",
-        "abbreviation": "MEM",
-        "primary_color": "002447",
-        "secondary_color": "231f20",
-    },
-    "193": {
-        "id": "193",
-        "display_name": "Miami (OH)",
-        "abbreviation": "M-OH",
-        "primary_color": "a4000c",
-        "secondary_color": "f0f0f0",
-    },
-    "127": {
-        "id": "127",
-        "display_name": "Michigan State",
-        "abbreviation": "MSU",
-        "primary_color": "18453B",
-        "secondary_color": "ffffff",
-    },
-    "130": {
-        "id": "130",
-        "display_name": "Michigan",
-        "abbreviation": "MICH",
-        "primary_color": "00274c",
-        "secondary_color": "00274c",
-    },
-    "270": {
-        "id": "270",
-        "display_name": "Milwaukee",
-        "abbreviation": "MILW",
-        "primary_color": "000000",
-        "secondary_color": "ffc20e",
-    },
-    "135": {
-        "id": "135",
-        "display_name": "Minnesota",
-        "abbreviation": "MINN",
-        "primary_color": "981a31",
-        "secondary_color": "981a31",
-    },
-    "344": {
-        "id": "344",
-        "display_name": "Mississippi St",
-        "abbreviation": "MSST",
-        "primary_color": "762123",
-        "secondary_color": "c8c8c8",
-    },
-    "142": {
-        "id": "142",
-        "display_name": "Missouri",
-        "abbreviation": "MIZ",
-        "primary_color": "000000",
-        "secondary_color": "000000",
-    },
-    "149": {
-        "id": "149",
-        "display_name": "Montana",
-        "abbreviation": "MONT",
-        "primary_color": "751D4A",
-        "secondary_color": "666666",
-    },
-    "147": {
-        "id": "147",
-        "display_name": "Montana State",
-        "abbreviation": "MTST",
-        "primary_color": "003875",
-        "secondary_color": "bf965c",
-    },
-    "116": {
-        "id": "116",
-        "display_name": "Mt. St. Mary's",
-        "abbreviation": "MSM",
-        "primary_color": "005596",
-        "secondary_color": "ebebeb",
-    },
-    "93": {
-        "id": "93",
-        "display_name": "Murray State",
-        "abbreviation": "MUR",
-        "primary_color": "002148",
-        "secondary_color": "000e00",
-    },
-    "152": {
-        "id": "152",
-        "display_name": "NC State",
-        "abbreviation": "NCST",
-        "primary_color": "EF1216",
-        "secondary_color": "231f20",
-    },
-    "158": {
-        "id": "158",
-        "display_name": "Nebraska",
-        "abbreviation": "NEB",
-        "primary_color": "F20017",
-        "secondary_color": "f5f1e7",
-    },
-    "160": {
-        "id": "160",
-        "display_name": "New Hampshire",
-        "abbreviation": "UNH",
-        "primary_color": "004990",
-        "secondary_color": "c3c4c6",
-    },
-    "167": {
-        "id": "167",
-        "display_name": "New Mexico",
-        "abbreviation": "UNM",
-        "primary_color": "000000",
-        "secondary_color": "231f20",
-    },
-    "166": {
-        "id": "166",
-        "display_name": "New Mexico St",
-        "abbreviation": "NMSU",
-        "primary_color": "891216",
-        "secondary_color": "000000",
-    },
-    "315": {
-        "id": "315",
-        "display_name": "Niagara",
-        "abbreviation": "NIAG",
-        "primary_color": "69207E",
-        "secondary_color": "f0f0f0",
-    },
-    "153": {
-        "id": "153",
-        "display_name": "North Carolina",
-        "abbreviation": "UNC",
-        "primary_color": "99bfe5",
-        "secondary_color": "13294b",
-    },
-    "155": {
-        "id": "155",
-        "display_name": "North Dakota",
-        "abbreviation": "UND",
-        "primary_color": "00A26B",
-        "secondary_color": "c2c3c0",
-    },
-    "249": {
-        "id": "249",
-        "display_name": "North Texas",
-        "abbreviation": "UNT",
-        "primary_color": "00853D",
-        "secondary_color": "000000",
-    },
-    "111": {
-        "id": "111",
-        "display_name": "Northeastern",
-        "abbreviation": "NE",
-        "primary_color": "CC0001",
-        "secondary_color": "c2c3c0",
-    },
-    "94": {
-        "id": "94",
-        "display_name": "N Kentucky",
-        "abbreviation": "NKU",
-        "primary_color": "000000",
-        "secondary_color": "eab621",
-    },
-    "77": {
-        "id": "77",
-        "display_name": "Northwestern",
-        "abbreviation": "NW",
-        "primary_color": "372286",
-        "secondary_color": "d6cac1",
-    },
-    "87": {
-        "id": "87",
-        "display_name": "Notre Dame",
-        "abbreviation": "ND",
-        "primary_color": "00122b",
-        "secondary_color": "ae9142",
-    },
-    "195": {
-        "id": "195",
-        "display_name": "Ohio",
-        "abbreviation": "OHIO",
-        "primary_color": "295A29",
-        "secondary_color": "e4bb85",
-    },
-    "194": {
-        "id": "194",
-        "display_name": "Ohio State",
-        "abbreviation": "OSU",
-        "primary_color": "de3129",
-        "secondary_color": "666666",
-    },
-    "201": {
-        "id": "201",
-        "display_name": "Oklahoma",
-        "abbreviation": "OU",
-        "primary_color": "7b0000",
-        "secondary_color": "cccccc",
-    },
-    "197": {
-        "id": "197",
-        "display_name": "Oklahoma State",
-        "abbreviation": "OKST",
-        "primary_color": "FF6500",
-        "secondary_color": "ff9900",
-    },
-    "295": {
-        "id": "295",
-        "display_name": "Old Dominion",
-        "abbreviation": "ODU",
-        "primary_color": "00507d",
-        "secondary_color": "a1d2f1",
-    },
-    "145": {
-        "id": "145",
-        "display_name": "Ole Miss",
-        "abbreviation": "MISS",
-        "primary_color": "001148",
-        "secondary_color": "00205b",
-    },
-    "198": {
-        "id": "198",
-        "display_name": "Oral Roberts",
-        "abbreviation": "ORU",
-        "primary_color": "002955",
-        "secondary_color": "ccb48c",
-    },
-    "204": {
-        "id": "204",
-        "display_name": "Oregon State",
-        "abbreviation": "ORST",
-        "primary_color": "c34500",
-        "secondary_color": "dea076",
-    },
-    "279": {
-        "id": "279",
-        "display_name": "Pacific",
-        "abbreviation": "PAC",
-        "primary_color": "F47820",
-        "secondary_color": "c2c3c0",
-    },
-    "213": {
-        "id": "213",
-        "display_name": "Penn State",
-        "abbreviation": "PSU",
-        "primary_color": "00265D",
-        "secondary_color": "002e5c",
-    },
-    "219": {
-        "id": "219",
-        "display_name": "Penn",
-        "abbreviation": "PENN",
-        "primary_color": "082A74",
-        "secondary_color": "a6163d",
-    },
-    "221": {
-        "id": "221",
-        "display_name": "Pittsburgh",
-        "abbreviation": "PITT",
-        "primary_color": "003263",
-        "secondary_color": "231f20",
-    },
-    "163": {
-        "id": "163",
-        "display_name": "Princeton",
-        "abbreviation": "PRIN",
-        "primary_color": "ff9408",
-        "secondary_color": "080808",
-    },
-    "227": {
-        "id": "227",
-        "display_name": "Rhode Island",
-        "abbreviation": "URI",
-        "primary_color": "091f3f",
-        "secondary_color": "5ab3e8",
-    },
-    "242": {
-        "id": "242",
-        "display_name": "Rice",
-        "abbreviation": "RICE",
-        "primary_color": "003D7D",
-        "secondary_color": "d1d5d8",
-    },
-    "257": {
-        "id": "257",
-        "display_name": "Richmond",
-        "abbreviation": "RICH",
-        "primary_color": "9e0712",
-        "secondary_color": "b90b2e",
-    },
-    "164": {
-        "id": "164",
-        "display_name": "Rutgers",
-        "abbreviation": "RUTG",
-        "primary_color": "d21034",
-        "secondary_color": "ffffff",
-    },
-    "16": {
-        "id": "16",
-        "display_name": "Sacramento St",
-        "abbreviation": "SAC",
-        "primary_color": "00573C",
-        "secondary_color": "cdb97d",
-    },
-    "139": {
-        "id": "139",
-        "display_name": "Saint Louis",
-        "abbreviation": "SLU",
-        "primary_color": "00539C",
-        "secondary_color": "ebebeb",
-    },
-    "21": {
-        "id": "21",
-        "display_name": "San Diego State",
-        "abbreviation": "SDSU",
-        "primary_color": "BF2C37",
-        "secondary_color": "a8996e",
-    },
-    "301": {
-        "id": "301",
-        "display_name": "San Diego",
-        "abbreviation": "USD",
-        "primary_color": "2f99d4",
-        "secondary_color": "2f99d4",
-    },
-    "23": {
-        "id": "23",
-        "display_name": "San Jos\u00e9 State",
-        "abbreviation": "SJSU",
-        "primary_color": "005893",
-        "secondary_color": "fdba31",
-    },
-    "6": {
-        "id": "6",
-        "display_name": "South Alabama",
-        "abbreviation": "USA",
-        "primary_color": "003E7E",
-        "secondary_color": "000000",
-    },
-    "233": {
-        "id": "233",
-        "display_name": "South Dakota",
-        "abbreviation": "SDAK",
-        "primary_color": "CD1241",
-        "secondary_color": "f0f0f0",
-    },
-    "58": {
-        "id": "58",
-        "display_name": "South Florida",
-        "abbreviation": "USF",
-        "primary_color": "004A36",
-        "secondary_color": "231f20",
-    },
-    "79": {
-        "id": "79",
-        "display_name": "So Illinois",
-        "abbreviation": "SIU",
-        "primary_color": "85283D",
-        "secondary_color": "c2c3c0",
-    },
-    "253": {
-        "id": "253",
-        "display_name": "Southern Utah",
-        "abbreviation": "SUU",
-        "primary_color": "d10000",
-        "secondary_color": "c2c3c0",
-    },
-    "179": {
-        "id": "179",
-        "display_name": "St. Bonaventure",
-        "abbreviation": "SBU",
-        "primary_color": "70261D",
-        "secondary_color": "000000",
-    },
-    "24": {
-        "id": "24",
-        "display_name": "Stanford",
-        "abbreviation": "STAN",
-        "primary_color": "A80532",
-        "secondary_color": "ffffff",
-    },
-    "56": {
-        "id": "56",
-        "display_name": "Stetson",
-        "abbreviation": "STET",
-        "primary_color": "0a5640",
-        "secondary_color": "56854e",
-    },
-    "183": {
-        "id": "183",
-        "display_name": "Syracuse",
-        "abbreviation": "SYR",
-        "primary_color": "F37321",
-        "secondary_color": "0d1d37",
-    },
-    "218": {
-        "id": "218",
-        "display_name": "Temple",
-        "abbreviation": "TEM",
-        "primary_color": "A80532",
-        "secondary_color": "a7a9ac",
-    },
-    "245": {
-        "id": "245",
-        "display_name": "Texas A&M",
-        "abbreviation": "TA&M",
-        "primary_color": "5C0025",
-        "secondary_color": "ffffff",
-    },
-    "357": {
-        "id": "357",
-        "display_name": "Texas A&M-CC",
-        "abbreviation": "AMCC",
-        "primary_color": "00639c",
-        "secondary_color": "008752",
-    },
-    "251": {
-        "id": "251",
-        "display_name": "Texas",
-        "abbreviation": "TEX",
-        "primary_color": "EE7524",
-        "secondary_color": "f0f0f0",
-    },
-    "326": {
-        "id": "326",
-        "display_name": "Texas State",
-        "abbreviation": "TXST",
-        "primary_color": "4e1719",
-        "secondary_color": "b4975a",
-    },
-    "119": {
-        "id": "119",
-        "display_name": "Towson",
-        "abbreviation": "TOW",
-        "primary_color": "FFC229",
-        "secondary_color": "000000",
-    },
-    "202": {
-        "id": "202",
-        "display_name": "Tulsa",
-        "abbreviation": "TLSA",
-        "primary_color": "004371",
-        "secondary_color": "ee3b33",
-    },
-    "5": {
-        "id": "5",
-        "display_name": "UAB",
-        "abbreviation": "UAB",
-        "primary_color": "054338",
-        "secondary_color": "ffc845",
-    },
-    "302": {
-        "id": "302",
-        "display_name": "UC Davis",
-        "abbreviation": "UCD",
-        "primary_color": "183563",
-        "secondary_color": "bc9305",
-    },
-    "300": {
-        "id": "300",
-        "display_name": "UC Irvine",
-        "abbreviation": "UCI",
-        "primary_color": "002B5C",
-        "secondary_color": "fec52e",
-    },
-    "27": {
-        "id": "27",
-        "display_name": "UC Riverside",
-        "abbreviation": "UCR",
-        "primary_color": "14234F",
-        "secondary_color": "000000",
-    },
-    "28": {
-        "id": "28",
-        "display_name": "UC San Diego",
-        "abbreviation": "UCSD",
-        "primary_color": "000000",
-        "secondary_color": "000000",
-    },
-    "2116": {
-        "id": "2116",
-        "display_name": "UCF",
-        "abbreviation": "UCF",
-        "primary_color": "000000",
-        "secondary_color": "231f20",
-    },
-    "26": {
-        "id": "26",
-        "display_name": "UCLA",
-        "abbreviation": "UCLA",
-        "primary_color": "005C8E",
-        "secondary_color": "ffc72c",
-    },
-    "41": {
-        "id": "41",
-        "display_name": "UConn",
-        "abbreviation": "CONN",
-        "primary_color": "001d40",
-        "secondary_color": "f1f2f3",
-    },
-    "82": {
-        "id": "82",
-        "display_name": "UIC",
-        "abbreviation": "UIC",
-        "primary_color": "234077",
-        "secondary_color": "c30031",
-    },
-    "140": {
-        "id": "140",
-        "display_name": "UM Kansas City",
-        "abbreviation": "UMKC",
-        "primary_color": "004b87",
-        "secondary_color": "ffc72c",
-    },
-    "2349": {
-        "id": "2349",
-        "display_name": "UMass Lowell",
-        "abbreviation": "UML",
-        "primary_color": "00529C",
-        "secondary_color": "cf1f2f",
-    },
-    "113": {
-        "id": "113",
-        "display_name": "UMass",
-        "abbreviation": "MASS",
-        "primary_color": "880007",
-        "secondary_color": "000000",
-    },
-    "350": {
-        "id": "350",
-        "display_name": "UNC Wilmington",
-        "abbreviation": "UNCW",
-        "primary_color": "1d2f68",
-        "secondary_color": "00665e",
-    },
-    "30": {
-        "id": "30",
-        "display_name": "USC",
-        "abbreviation": "USC",
-        "primary_color": "AE2531",
-        "secondary_color": "ffc72c",
-    },
-    "250": {
-        "id": "250",
-        "display_name": "UT Arlington",
-        "abbreviation": "UTA",
-        "primary_color": "004b7c",
-        "secondary_color": "f58024",
-    },
-    "292": {
-        "id": "292",
-        "display_name": "UT Rio Grande",
-        "abbreviation": "UTRGV",
-        "primary_color": "dc6000",
-        "secondary_color": "e1732d",
-    },
-    "328": {
-        "id": "328",
-        "display_name": "Utah State",
-        "abbreviation": "USU",
-        "primary_color": "003263",
-        "secondary_color": "949ca1",
-    },
-    "254": {
-        "id": "254",
-        "display_name": "Utah",
-        "abbreviation": "UTAH",
-        "primary_color": "890012",
-        "secondary_color": "7e8083",
-    },
-    "238": {
-        "id": "238",
-        "display_name": "Vanderbilt",
-        "abbreviation": "VAN",
-        "primary_color": "000000",
-        "secondary_color": "231f20",
-    },
-    "261": {
-        "id": "261",
-        "display_name": "Vermont",
-        "abbreviation": "UVM",
-        "primary_color": "013C24",
-        "secondary_color": "ffc72c",
-    },
-    "222": {
-        "id": "222",
-        "display_name": "Villanova",
-        "abbreviation": "VILL",
-        "primary_color": "123d7C",
-        "secondary_color": "f0f0f0",
-    },
-    "258": {
-        "id": "258",
-        "display_name": "Virginia",
-        "abbreviation": "UVA",
-        "primary_color": "f84c1e",
-        "secondary_color": "242e4a",
-    },
-    "259": {
-        "id": "259",
-        "display_name": "Virginia Tech",
-        "abbreviation": "VT",
-        "primary_color": "74232D",
-        "secondary_color": "c2c1ba",
-    },
-    "154": {
-        "id": "154",
-        "display_name": "Wake Forest",
-        "abbreviation": "WAKE",
-        "primary_color": "9E7E38",
-        "secondary_color": "000000",
-    },
-    "264": {
-        "id": "264",
-        "display_name": "Washington",
-        "abbreviation": "WASH",
-        "primary_color": "2B2F64",
-        "secondary_color": "e8e3d3",
-    },
-    "265": {
-        "id": "265",
-        "display_name": "Washington St",
-        "abbreviation": "WSU",
-        "primary_color": "94022a",
-        "secondary_color": "6a747c",
-    },
-    "277": {
-        "id": "277",
-        "display_name": "West Virginia",
-        "abbreviation": "WVU",
-        "primary_color": "FFC600",
-        "secondary_color": "eaaa00",
-    },
-    "98": {
-        "id": "98",
-        "display_name": "Western KY",
-        "abbreviation": "WKU",
-        "primary_color": "F32026",
-        "secondary_color": "b3b5b8",
-    },
-    "275": {
-        "id": "275",
-        "display_name": "Wisconsin",
-        "abbreviation": "WISC",
-        "primary_color": "A00002",
-        "secondary_color": "f7f7f7",
-    },
-    "43": {
-        "id": "43",
-        "display_name": "Yale",
-        "abbreviation": "YALE",
-        "primary_color": "004a81",
-        "secondary_color": "286dc0",
-    },
-    "2633": {
-        "id": "2633",
-        "display_name": "Tennessee",
-        "abbreviation": "TENN",
-        "primary_color": "EE9627",
-        "secondary_color": "ffffff",
-    },
-    "3158": {
-        "id": "3158",
-        "display_name": "Our Lady",
-        "abbreviation": "LDY",
-        "primary_color": "00000",
-        "secondary_color": "ffffff",
-    },
-    "2641": {
-        "id": "2641",
-        "display_name": "Texas Tech",
-        "abbreviation": "TTU",
-        "primary_color": "C80025",
-        "secondary_color": "231f20",
-    },
-    "2390": {
-        "id": "2390",
-        "display_name": "Miami",
-        "abbreviation": "MIA",
-        "primary_color": "004325",
-        "secondary_color": "f0f0f0",
-    },
-    "2509": {
-        "id": "2509",
-        "display_name": "Purdue",
-        "abbreviation": "PUR",
-        "primary_color": "B89D29",
-        "secondary_color": "a4a9ad",
-    },
-    "2674": {
-        "id": "2674",
-        "display_name": "Valparaiso",
-        "abbreviation": "VAL",
-        "primary_color": "794500",
-        "secondary_color": "ffffff",
-    },
-    "2541": {
-        "id": "2541",
-        "display_name": "Santa Clara",
-        "abbreviation": "SCU",
-        "primary_color": "690b0b",
-        "secondary_color": "101010",
-    },
-    "2628": {
-        "id": "2628",
-        "display_name": "TCU",
-        "abbreviation": "TCU",
-        "primary_color": "3C377D",
-        "secondary_color": "f1f2f3",
-    },
+    "2000": Team.createTeam(
+        "2000",
+        "Abilene Christian",
+        "Wildcats",
+        "Abil Christian",
+        "ACU",
+        "4e2683",
+        "ebebeb",
+    ),
+    "2005": Team.createTeam(
+        "2005", "Air Force", "Falcons", "Air Force", "AFA", "004a7b", "ffffff"
+    ),
+    "2006": Team.createTeam(
+        "2006", "Akron", "Zips", "Akron", "AKR", "00285e", "84754e"
+    ),
+    "2010": Team.createTeam(
+        "2010", "Alabama A&M", "Bulldogs", "Alabama A&M", "AAMU", "790000", "ffffff"
+    ),
+    "333": Team.createTeam(
+        "333", "Alabama", "Crimson Tide", "Alabama", "ALA", "690014", "f1f2f3"
+    ),
+    "2011": Team.createTeam(
+        "2011", "Alabama State", "Hornets", "Alabama State", "ALST", "e9a900", "0a0a0a"
+    ),
+    "399": Team.createTeam(
+        "399", "Albany", "Great Danes", "Albany", "ALB", "3D2777", "ffffff"
+    ),
+    "2016": Team.createTeam(
+        "2016", "Alcorn State", "Braves", "Alcorn State", "ALCN", "4b0058", "46166a"
+    ),
+    "44": Team.createTeam(
+        "44", "American", "Eagles", "American", "AMER", "c41130", "c8102e"
+    ),
+    "2026": Team.createTeam(
+        "2026",
+        "Appalachian State",
+        "Mountaineers",
+        "Appalachian St",
+        "APP",
+        "000000",
+        "ffcd00",
+    ),
+    "9": Team.createTeam(
+        "9", "Arizona State", "Sun Devils", "Arizona State", "ASU", "942139", "f1f2f3"
+    ),
+    "12": Team.createTeam(
+        "12", "Arizona", "Wildcats", "Arizona", "ARIZ", "002449", "00205b"
+    ),
+    "8": Team.createTeam(
+        "8", "Arkansas", "Razorbacks", "Arkansas", "ARK", "9c1831", "000000"
+    ),
+    "2032": Team.createTeam(
+        "2032",
+        "Arkansas State",
+        "Red Wolves",
+        "Arkansas State",
+        "ARST",
+        "e81018",
+        "000000",
+    ),
+    "2029": Team.createTeam(
+        "2029",
+        "Arkansas-Pine Bluff",
+        "Golden Lions",
+        "Ark-Pine Bluff",
+        "UAPB",
+        "e0aa0f",
+        "eaaa00",
+    ),
+    "349": Team.createTeam(
+        "349", "Army", "Black Knights", "Army", "ARMY", "ce9c00", "231f20"
+    ),
+    "2": Team.createTeam("2", "Auburn", "Tigers", "Auburn", "AUB", "03244d", "f1f2f3"),
+    "2046": Team.createTeam(
+        "2046", "Austin Peay", "Governors", "Austin Peay", "APSU", "8e0b0b", "000000"
+    ),
+    "252": Team.createTeam("252", "BYU", "Cougars", "BYU", "BYU", "001E4C", "ffffff"),
+    "2050": Team.createTeam(
+        "2050", "Ball State", "Cardinals", "Ball State", "BALL", "DA0000", "ffffff"
+    ),
+    "239": Team.createTeam(
+        "239", "Baylor", "Bears", "Baylor", "BAY", "004834", "ffb81c"
+    ),
+    "91": Team.createTeam(
+        "91", "Bellarmine", "Knights", "Bellarmine", "BELL", "000000", "000000"
+    ),
+    "2057": Team.createTeam(
+        "2057", "Belmont", "Bruins", "Belmont", "BEL", "182142", "c9262d"
+    ),
+    "2066": Team.createTeam(
+        "2066", "Binghamton", "Bearcats", "Binghamton", "BING", "00614A", "f0f0f0"
+    ),
+    "68": Team.createTeam(
+        "68", "Boise State", "Broncos", "Boise State", "BSU", "09347A", "d8d9da"
+    ),
+    "103": Team.createTeam(
+        "103", "Boston College", "Eagles", "Boston College", "BC", "88001a", "a39161"
+    ),
+    "104": Team.createTeam(
+        "104", "Boston Univ.", "Terriers", "Boston Univ.", "BU", "cc0000", "ffffff"
+    ),
+    "189": Team.createTeam(
+        "189", "Bowling Green", "Falcons", "Bowling Green", "BGSU", "2b1000", "492000"
+    ),
+    "71": Team.createTeam(
+        "71", "Bradley", "Braves", "Bradley", "BRAD", "b70002", "c0c0c0"
+    ),
+    "225": Team.createTeam(
+        "225", "Brown", "Bears", "Brown", "BRWN", "411e09", "949300"
+    ),
+    "2083": Team.createTeam(
+        "2083", "Bucknell", "Bison", "Bucknell", "BUCK", "000060", "00316e"
+    ),
+    "2084": Team.createTeam(
+        "2084", "Buffalo", "Bulls", "Buffalo", "BUFF", "041A9B", "ebebeb"
+    ),
+    "2086": Team.createTeam(
+        "2086", "Butler", "Bulldogs", "Butler", "BUT", "0d1361", "00a3e0"
+    ),
+    "2239": Team.createTeam(
+        "2239", "CSU Fullerton", "Titans", "CSU Fullerton", "CSUF", "10219c", "003057"
+    ),
+    "13": Team.createTeam(
+        "13", "Cal Poly", "Mustangs", "Cal Poly", "CP", "1E4D2B", "eed897"
+    ),
+    "25": Team.createTeam(
+        "25", "California", "Golden Bears", "California", "CAL", "031522", "ffc423"
+    ),
+    "2097": Team.createTeam(
+        "2097", "Campbell", "Fighting Camels", "Campbell", "CAM", "000000", "000000"
+    ),
+    "2099": Team.createTeam(
+        "2099", "Canisius", "Golden Griffins", "Canisius", "CAN", "004a81", "dda50f"
+    ),
+    "2110": Team.createTeam(
+        "2110", "Central Arkansas", "Bears", "Cent Arkansas", "UCA", "a7a9ac", "8e959a"
+    ),
+    "2115": Team.createTeam(
+        "2115",
+        "Central Connecticut",
+        "Blue Devils",
+        "Cent Conn St",
+        "CCSU",
+        "1B49A2",
+        "d1d5d8",
+    ),
+    "2117": Team.createTeam(
+        "2117",
+        "Central Michigan",
+        "Chippewas",
+        "Cent Michigan",
+        "CMU",
+        "6a0032",
+        "ffffff",
+    ),
+    "232": Team.createTeam(
+        "232", "Charleston", "Cougars", "Charleston", "COFC", "9c8456", "e4e2dd"
+    ),
+    "2127": Team.createTeam(
+        "2127",
+        "Charleston Southern",
+        "Buccaneers",
+        "Charleston So",
+        "CHSO",
+        "2e3192",
+        "ded090",
+    ),
+    "236": Team.createTeam(
+        "236", "Chattanooga", "Mocs", "Chattanooga", "UTC", "00386b", "dca71d"
+    ),
+    "2130": Team.createTeam(
+        "2130", "Chicago State", "Cougars", "Chicago State", "CHIC", "006700", "000000"
+    ),
+    "2132": Team.createTeam(
+        "2132", "Cincinnati", "Bearcats", "Cincinnati", "CIN", "000000", "717073"
+    ),
+    "228": Team.createTeam(
+        "228", "Clemson", "Tigers", "Clemson", "CLEM", "F66733", "522d80"
+    ),
+    "325": Team.createTeam(
+        "325",
+        "Cleveland State",
+        "Vikings",
+        "Cleveland State",
+        "CLEV",
+        "006633",
+        "231f20",
+    ),
+    "324": Team.createTeam(
+        "324",
+        "Coastal Carolina",
+        "Chanticleers",
+        "C. Carolina",
+        "CCAR",
+        "007073",
+        "876447",
+    ),
+    "2142": Team.createTeam(
+        "2142", "Colgate", "Raiders", "Colgate", "COLG", "8B011D", "231f20"
+    ),
+    "38": Team.createTeam(
+        "38", "Colorado", "Buffaloes", "Colorado", "COLO", "d1c57e", "ffd200"
+    ),
+    "36": Team.createTeam(
+        "36", "Colorado State", "Rams", "Colorado State", "CSU", "004537", "ffc425"
+    ),
+    "171": Team.createTeam(
+        "171", "Columbia", "Lions", "Columbia", "CLMB", "174785", "004b85"
+    ),
+    "2154": Team.createTeam(
+        "2154", "Coppin St", "Eagles", "Coppin State", "COPP", "2e3192", "ffd204"
+    ),
+    "172": Team.createTeam(
+        "172", "Cornell", "Big Red", "Cornell", "COR", "d60027", "101010"
+    ),
+    "156": Team.createTeam(
+        "156", "Creighton", "Bluejays", "Creighton", "CREI", "13299e", "00235d"
+    ),
+    "159": Team.createTeam(
+        "159", "Dartmouth", "Big Green", "Dartmouth", "DART", "005730", "000000"
+    ),
+    "2166": Team.createTeam(
+        "2166", "Davidson", "Wildcats", "Davidson", "DAV", "000000", "e51837"
+    ),
+    "2168": Team.createTeam(
+        "2168", "Dayton", "Flyers", "Dayton", "DAY", "004B8D", "ffffff"
+    ),
+    "305": Team.createTeam(
+        "305", "DePaul", "Blue Demons", "DePaul", "DEP", "2d649c", "ce1125"
+    ),
+    "48": Team.createTeam(
+        "48", "Delaware", "Blue Hens", "Delaware", "DEL", "033594", "e8ce31"
+    ),
+    "2169": Team.createTeam(
+        "2169", "Delaware St", "Hornets", "Delaware State", "DSU", "FF3630", "009cdd"
+    ),
+    "2172": Team.createTeam(
+        "2172", "Denver", "Pioneers", "Denver", "DEN", "9c143d", "d6ba74"
+    ),
+    "2174": Team.createTeam(
+        "2174", "Detroit Mercy", "Titans", "Detroit Mercy", "DET", "165b9e", "d31733"
+    ),
+    "2181": Team.createTeam(
+        "2181", "Drake", "Bulldogs", "Drake", "DRKE", "004477", "c0c0c0"
+    ),
+    "2182": Team.createTeam(
+        "2182", "Drexel", "Dragons", "Drexel", "DREX", "020260", "ffd65a"
+    ),
+    "150": Team.createTeam(
+        "150", "Duke", "Blue Devils", "Duke", "DUKE", "001A57", "f1f2f3"
+    ),
+    "2184": Team.createTeam(
+        "2184", "Duquesne", "Dukes", "Duquesne", "DUQ", "002D62", "b90b2e"
+    ),
+    "151": Team.createTeam(
+        "151", "East Carolina", "Pirates", "East Carolina", "ECU", "4b1869", "f0907b"
+    ),
+    "2193": Team.createTeam(
+        "2193", "East Tennessee State", "Buccaneers", "ETSU", "ETSU", "002d61", "ffc423"
+    ),
+    "2197": Team.createTeam(
+        "2197", "Eastern Illinois", "Panthers", "E Illinois", "EIU", "000000", "bebab9"
+    ),
+    "2198": Team.createTeam(
+        "2198", "Eastern Kentucky", "Colonels", "E Kentucky", "EKU", "660819", "f0f0f0"
+    ),
+    "2199": Team.createTeam(
+        "2199", "Eastern Michigan", "Eagles", "E Michigan", "EMU", "00331b", "f0f0f0"
+    ),
+    "331": Team.createTeam(
+        "331", "Eastern Washington", "Eagles", "E Washington", "EWU", "a10022", "abb4bc"
+    ),
+    "2210": Team.createTeam(
+        "2210", "Elon", "Phoenix", "Elon", "ELON", "020303", "b59a57"
+    ),
+    "339": Team.createTeam(
+        "339", "Evansville", "Purple Aces", "Evansville", "EVAN", "663399", "ef6f00"
+    ),
+    "2217": Team.createTeam(
+        "2217", "Fairfield", "Stags", "Fairfield", "FAIR", "000000", "ebebeb"
+    ),
+    "161": Team.createTeam(
+        "161",
+        "Fairleigh Dickinson",
+        "Knights",
+        "Fair. Dickinson",
+        "FDU",
+        "00449C",
+        "a80532",
+    ),
+    "50": Team.createTeam(
+        "50", "Florida A&M", "Rattlers", "Florida A&M", "FAMU", "F89728", "00843d"
+    ),
+    "2226": Team.createTeam(
+        "2226", "Florida Atlantic", "Owls", "FAU", "FAU", "004B85", "bb2f4c"
+    ),
+    "57": Team.createTeam(
+        "57", "Florida", "Gators", "Florida", "FLA", "0021A5", "0021a5"
+    ),
+    "526": Team.createTeam(
+        "526", "Florida Gulf Coast", "Eagles", "FGCU", "FGCU", "00885a", "076c3b"
+    ),
+    "2229": Team.createTeam(
+        "2229", "Florida Int'l", "Panthers", "FIU", "FIU", "091731", "c5960c"
+    ),
+    "52": Team.createTeam(
+        "52", "Florida State", "Seminoles", "Florida State", "FSU", "782F40", "ceb888"
+    ),
+    "2230": Team.createTeam(
+        "2230", "Fordham", "Rams", "Fordham", "FOR", "830032", "909090"
+    ),
+    "278": Team.createTeam(
+        "278", "Fresno State", "Bulldogs", "Fresno State", "FRES", "c41230", "231f20"
+    ),
+    "231": Team.createTeam(
+        "231", "Furman", "Paladins", "Furman", "FUR", "4A2184", "909090"
+    ),
+    "2241": Team.createTeam(
+        "2241", "Gardner-Webb", "Bulldogs", "Gardner-Webb", "GWEB", "c12535", "909090"
+    ),
+    "2244": Team.createTeam(
+        "2244", "George Mason", "Patriots", "George Mason", "GMU", "016600", "ecb010"
+    ),
+    "45": Team.createTeam(
+        "45", "George Washington", "Colonials", "G Washington", "GW", "002843", "e8d2a1"
+    ),
+    "46": Team.createTeam(
+        "46", "Georgetown", "Hoyas", "Georgetown", "GTWN", "110E42", "001c58"
+    ),
+    "61": Team.createTeam(
+        "61", "Georgia", "Bulldogs", "Georgia", "UGA", "CC0000", "000000"
+    ),
+    "290": Team.createTeam(
+        "290", "Georgia Southern", "Eagles", "GA Southern", "GASO", "003775", "f0f0f0"
+    ),
+    "2247": Team.createTeam(
+        "2247", "Georgia State", "Panthers", "Georgia State", "GAST", "1e539a", "ebebeb"
+    ),
+    "59": Team.createTeam(
+        "59", "Georgia Tech", "Yellow Jackets", "Georgia Tech", "GT", "00223e", "002c56"
+    ),
+    "2250": Team.createTeam(
+        "2250", "Gonzaga", "Bulldogs", "Gonzaga", "GONZ", "002967", "cfd4d8"
+    ),
+    "2253": Team.createTeam(
+        "2253", "Grand Canyon", "Antelopes", "Grand Canyon", "GCU", "522398", "f0f0f0"
+    ),
+    "2261": Team.createTeam(
+        "2261", "Hampton", "Pirates", "Hampton", "HAMP", "0067AC", "000000"
+    ),
+    "42": Team.createTeam(
+        "42", "Hartford", "Hawks", "Hartford", "HART", "d60008", "000000"
+    ),
+    "108": Team.createTeam(
+        "108", "Harvard", "Crimson", "Harvard", "HARV", "990000", "dbdbdb"
+    ),
+    "62": Team.createTeam(
+        "62", "Hawai'i", "Rainbow Warriors", "Hawai'i", "HAW", "003420", "ffffff"
+    ),
+    "2272": Team.createTeam(
+        "2272", "High Point", "Panthers", "High Point", "HP", "b0b7bc", "ebebeb"
+    ),
+    "2275": Team.createTeam(
+        "2275", "Hofstra", "Pride", "Hofstra", "HOF", "00337c", "f6c934"
+    ),
+    "107": Team.createTeam(
+        "107", "Holy Cross", "Crusaders", "Holy Cross", "HC", "0a0a0a", "080808"
+    ),
+    "2277": Team.createTeam(
+        "2277",
+        "Houston Baptist",
+        "Huskies",
+        "Houston Baptist",
+        "HBU",
+        "00539c",
+        "000000",
+    ),
+    "248": Team.createTeam(
+        "248", "Houston", "Cougars", "Houston", "HOU", "C90822", "231f20"
+    ),
+    "47": Team.createTeam("47", "Howard", "Bison", "Howard", "HOW", "9e0b0e", "6b818d"),
+    "85": Team.createTeam(
+        "85", "IUPUI", "Jaguars", "IUPUI", "IUPU", "A81F30", "d59f0f"
+    ),
+    "304": Team.createTeam(
+        "304", "Idaho State", "Bengals", "Idaho State", "IDST", "ef8c00", "e9a126"
+    ),
+    "70": Team.createTeam(
+        "70", "Idaho", "Vandals", "Idaho", "IDHO", "000000", "8c6e4a"
+    ),
+    "356": Team.createTeam(
+        "356", "Illinois", "Fighting Illini", "Illinois", "ILL", "f77329", "fa6300"
+    ),
+    "2287": Team.createTeam(
+        "2287",
+        "Illinois State",
+        "Redbirds",
+        "Illinois State",
+        "ILST",
+        "CE1126",
+        "ffe716",
+    ),
+    "84": Team.createTeam(
+        "84", "Indiana", "Hoosiers", "Indiana", "IU", "7D110C", "eeedeb"
+    ),
+    "282": Team.createTeam(
+        "282", "Indiana State", "Sycamores", "Indiana State", "INST", "00669a", "f0f0f0"
+    ),
+    "314": Team.createTeam("314", "Iona", "Gaels", "Iona", "IONA", "8c001a", "f6a704"),
+    "2294": Team.createTeam(
+        "2294", "Iowa", "Hawkeyes", "Iowa", "IOWA", "000000", "ffe100"
+    ),
+    "66": Team.createTeam(
+        "66", "Iowa State", "Cyclones", "Iowa State", "ISU", "660015", "830b2c"
+    ),
+    "2296": Team.createTeam(
+        "2296", "Jackson State", "Tigers", "Jackson State", "JKST", "123297", "b5b7ba"
+    ),
+    "294": Team.createTeam(
+        "294", "Jacksonville", "Dolphins", "Jacksonville", "JAX", "00523e", "000000"
+    ),
+    "55": Team.createTeam(
+        "55",
+        "Jacksonville State",
+        "Gamecocks",
+        "Jacksonville St",
+        "JVST",
+        "b50500",
+        "b5b7ba",
+    ),
+    "256": Team.createTeam(
+        "256", "James Madison", "Dukes", "James Madison", "JMU", "450084", "cbb778"
+    ),
+    "2305": Team.createTeam(
+        "2305", "Kansas", "Jayhawks", "Kansas", "KU", "0022B4", "e8000d"
+    ),
+    "2306": Team.createTeam(
+        "2306", "Kansas State", "Wildcats", "Kansas State", "KSU", "633194", "e7d2ad"
+    ),
+    "338": Team.createTeam(
+        "338", "Kennesaw State", "Owls", "Kennesaw State", "KENN", "000000", "fdbb30"
+    ),
+    "2309": Team.createTeam(
+        "2309", "Kent State", "Golden Flashes", "Kent State", "KENT", "002445", "f0b510"
+    ),
+    "96": Team.createTeam(
+        "96", "Kentucky", "Wildcats", "Kentucky", "UK", "005DAA", "ffffff"
+    ),
+    "99": Team.createTeam("99", "LSU", "Tigers", "LSU", "LSU", "2B0D57", "fdd023"),
+    "2325": Team.createTeam(
+        "2325", "La Salle", "Explorers", "La Salle", "LAS", "000063", "feca26"
+    ),
+    "322": Team.createTeam(
+        "322", "Lafayette", "Leopards", "Lafayette", "LAF", "790000", "a59474"
+    ),
+    "2320": Team.createTeam(
+        "2320", "Lamar", "Cardinals", "Lamar", "LAM", "000000", "ebebeb"
+    ),
+    "2329": Team.createTeam(
+        "2329", "Lehigh", "Mountain Hawks", "Lehigh", "LEH", "6c2b2a", "b69e70"
+    ),
+    "2335": Team.createTeam(
+        "2335", "Liberty", "Flames", "Liberty", "LIB", "071740", "a61f21"
+    ),
+    "288": Team.createTeam(
+        "288", "Lipscomb", "Bisons", "Lipscomb", "LIP", "20366C", "f6b734"
+    ),
+    "2031": Team.createTeam(
+        "2031", "Little Rock", "Trojans", "Little Rock", "UALR", "AD0000", "898d8f"
+    ),
+    "299": Team.createTeam(
+        "299", "Long Beach State", "Beach", "Long Beach St", "LBSU", "000000", "f1f2f3"
+    ),
+    "2344": Team.createTeam(
+        "2344", "Longwood", "Lancers", "Longwood", "LONG", "003273", "9ea2a3"
+    ),
+    "309": Team.createTeam(
+        "309", "Louisiana", "Ragin' Cajuns", "Louisiana", "ULL", "ce2842", "000000"
+    ),
+    "2348": Team.createTeam(
+        "2348", "Louisiana Tech", "Bulldogs", "Louisiana Tech", "LT", "002d65", "d3313a"
+    ),
+    "97": Team.createTeam(
+        "97", "Louisville", "Cardinals", "Louisville", "LOU", "ad000a", "cccccc"
+    ),
+    "2352": Team.createTeam(
+        "2352", "Loyola (MD)", "Greyhounds", "Loyola (MD)", "L-MD", "76a7a0", "c9cbca"
+    ),
+    "2350": Team.createTeam(
+        "2350",
+        "Loyola Chicago",
+        "Ramblers",
+        "Loyola Chicago",
+        "LUC",
+        "9d1244",
+        "000000",
+    ),
+    "2351": Team.createTeam(
+        "2351", "Loyola Marymount", "Lions", "Loyola Marymnt", "LMU", "880029", "00345b"
+    ),
+    "311": Team.createTeam(
+        "311", "Maine", "Black Bears", "Maine", "ME", "127dbe", "000000"
+    ),
+    "269": Team.createTeam(
+        "269", "Marquette", "Golden Eagles", "Marquette", "MARQ", "083963", "ffffff"
+    ),
+    "276": Team.createTeam(
+        "276", "Marshall", "Thundering Herd", "Marshall", "MRSH", "186329", "be854c"
+    ),
+    "120": Team.createTeam(
+        "120", "Maryland", "Terrapins", "Maryland", "MD", "D5002B", "ffcd00"
+    ),
+    "235": Team.createTeam(
+        "235", "Memphis", "Tigers", "Memphis", "MEM", "002447", "231f20"
+    ),
+    "193": Team.createTeam(
+        "193", "Miami (OH)", "Redhawks", "Miami (OH)", "M-OH", "a4000c", "f0f0f0"
+    ),
+    "127": Team.createTeam(
+        "127", "Michigan State", "Spartans", "Michigan State", "MSU", "18453B", "ffffff"
+    ),
+    "130": Team.createTeam(
+        "130", "Michigan", "Wolverines", "Michigan", "MICH", "00274c", "00274c"
+    ),
+    "270": Team.createTeam(
+        "270", "Milwaukee", "Panthers", "Milwaukee", "MILW", "000000", "ffc20e"
+    ),
+    "135": Team.createTeam(
+        "135", "Minnesota", "Golden Gophers", "Minnesota", "MINN", "981a31", "981a31"
+    ),
+    "344": Team.createTeam(
+        "344",
+        "Mississippi State",
+        "Bulldogs",
+        "Mississippi St",
+        "MSST",
+        "762123",
+        "c8c8c8",
+    ),
+    "142": Team.createTeam(
+        "142", "Missouri", "Tigers", "Missouri", "MIZ", "000000", "000000"
+    ),
+    "149": Team.createTeam(
+        "149", "Montana", "Grizzlies", "Montana", "MONT", "751D4A", "666666"
+    ),
+    "147": Team.createTeam(
+        "147", "Montana State", "Bobcats", "Montana State", "MTST", "003875", "bf965c"
+    ),
+    "116": Team.createTeam(
+        "116",
+        "Mount St. Mary's",
+        "Mountaineers",
+        "Mt. St. Mary's",
+        "MSM",
+        "005596",
+        "ebebeb",
+    ),
+    "93": Team.createTeam(
+        "93", "Murray State", "Racers", "Murray State", "MUR", "002148", "000e00"
+    ),
+    "152": Team.createTeam(
+        "152", "NC State", "Wolfpack", "NC State", "NCST", "EF1216", "231f20"
+    ),
+    "158": Team.createTeam(
+        "158", "Nebraska", "Cornhuskers", "Nebraska", "NEB", "F20017", "f5f1e7"
+    ),
+    "160": Team.createTeam(
+        "160", "New Hampshire", "Wildcats", "New Hampshire", "UNH", "004990", "c3c4c6"
+    ),
+    "167": Team.createTeam(
+        "167", "New Mexico", "Lobos", "New Mexico", "UNM", "000000", "231f20"
+    ),
+    "166": Team.createTeam(
+        "166", "New Mexico State", "Aggies", "New Mexico St", "NMSU", "891216", "000000"
+    ),
+    "315": Team.createTeam(
+        "315", "Niagara", "Purple Eagles", "Niagara", "NIAG", "69207E", "f0f0f0"
+    ),
+    "153": Team.createTeam(
+        "153",
+        "North Carolina",
+        "Tar Heels",
+        "North Carolina",
+        "UNC",
+        "99bfe5",
+        "13294b",
+    ),
+    "155": Team.createTeam(
+        "155",
+        "North Dakota",
+        "Fighting Hawks",
+        "North Dakota",
+        "UND",
+        "00A26B",
+        "c2c3c0",
+    ),
+    "249": Team.createTeam(
+        "249", "North Texas", "Mean Green", "North Texas", "UNT", "00853D", "000000"
+    ),
+    "111": Team.createTeam(
+        "111", "Northeastern", "Huskies", "Northeastern", "NE", "CC0001", "c2c3c0"
+    ),
+    "94": Team.createTeam(
+        "94", "Northern Kentucky", "Norse", "N Kentucky", "NKU", "000000", "eab621"
+    ),
+    "77": Team.createTeam(
+        "77", "Northwestern", "Wildcats", "Northwestern", "NW", "372286", "d6cac1"
+    ),
+    "87": Team.createTeam(
+        "87", "Notre Dame", "Fighting Irish", "Notre Dame", "ND", "00122b", "ae9142"
+    ),
+    "195": Team.createTeam(
+        "195", "Ohio", "Bobcats", "Ohio", "OHIO", "295A29", "e4bb85"
+    ),
+    "194": Team.createTeam(
+        "194", "Ohio State", "Buckeyes", "Ohio State", "OSU", "de3129", "666666"
+    ),
+    "201": Team.createTeam(
+        "201", "Oklahoma", "Sooners", "Oklahoma", "OU", "7b0000", "cccccc"
+    ),
+    "197": Team.createTeam(
+        "197", "Oklahoma State", "Cowboys", "Oklahoma State", "OKST", "FF6500", "ff9900"
+    ),
+    "295": Team.createTeam(
+        "295", "Old Dominion", "Monarchs", "Old Dominion", "ODU", "00507d", "a1d2f1"
+    ),
+    "145": Team.createTeam(
+        "145", "Ole Miss", "Rebels", "Ole Miss", "MISS", "001148", "00205b"
+    ),
+    "198": Team.createTeam(
+        "198",
+        "Oral Roberts",
+        "Golden Eagles",
+        "Oral Roberts",
+        "ORU",
+        "002955",
+        "ccb48c",
+    ),
+    "204": Team.createTeam(
+        "204", "Oregon State", "Beavers", "Oregon State", "ORST", "c34500", "dea076"
+    ),
+    "279": Team.createTeam(
+        "279", "Pacific", "Tigers", "Pacific", "PAC", "F47820", "c2c3c0"
+    ),
+    "213": Team.createTeam(
+        "213", "Penn State", "Nittany Lions", "Penn State", "PSU", "00265D", "002e5c"
+    ),
+    "219": Team.createTeam(
+        "219", "Pennsylvania", "Quakers", "Penn", "PENN", "082A74", "a6163d"
+    ),
+    "221": Team.createTeam(
+        "221", "Pittsburgh", "Panthers", "Pittsburgh", "PITT", "003263", "231f20"
+    ),
+    "163": Team.createTeam(
+        "163", "Princeton", "Tigers", "Princeton", "PRIN", "ff9408", "080808"
+    ),
+    "227": Team.createTeam(
+        "227", "Rhode Island", "Rams", "Rhode Island", "URI", "091f3f", "5ab3e8"
+    ),
+    "242": Team.createTeam("242", "Rice", "Owls", "Rice", "RICE", "003D7D", "d1d5d8"),
+    "257": Team.createTeam(
+        "257", "Richmond", "Spiders", "Richmond", "RICH", "9e0712", "b90b2e"
+    ),
+    "164": Team.createTeam(
+        "164", "Rutgers", "Scarlet Knights", "Rutgers", "RUTG", "d21034", "ffffff"
+    ),
+    "16": Team.createTeam(
+        "16", "Sacramento State", "Hornets", "Sacramento St", "SAC", "00573C", "cdb97d"
+    ),
+    "139": Team.createTeam(
+        "139", "Saint Louis", "Billikens", "Saint Louis", "SLU", "00539C", "ebebeb"
+    ),
+    "21": Team.createTeam(
+        "21", "San Diego State", "Aztecs", "San Diego State", "SDSU", "BF2C37", "a8996e"
+    ),
+    "301": Team.createTeam(
+        "301", "San Diego", "Toreros", "San Diego", "USD", "2f99d4", "2f99d4"
+    ),
+    "23": Team.createTeam(
+        "23", "San José St", "Spartans", "San José State", "SJSU", "005893", "fdba31"
+    ),
+    "6": Team.createTeam(
+        "6", "South Alabama", "Jaguars", "South Alabama", "USA", "003E7E", "000000"
+    ),
+    "233": Team.createTeam(
+        "233", "South Dakota", "Coyotes", "South Dakota", "SDAK", "CD1241", "f0f0f0"
+    ),
+    "58": Team.createTeam(
+        "58", "South Florida", "Bulls", "South Florida", "USF", "004A36", "231f20"
+    ),
+    "79": Team.createTeam(
+        "79", "Southern Illinois", "Salukis", "So Illinois", "SIU", "85283D", "c2c3c0"
+    ),
+    "253": Team.createTeam(
+        "253",
+        "Southern Utah",
+        "Thunderbirds",
+        "Southern Utah",
+        "SUU",
+        "d10000",
+        "c2c3c0",
+    ),
+    "179": Team.createTeam(
+        "179",
+        "St. Bonaventure",
+        "Bonnies",
+        "St. Bonaventure",
+        "SBU",
+        "70261D",
+        "000000",
+    ),
+    "24": Team.createTeam(
+        "24", "Stanford", "Cardinal", "Stanford", "STAN", "A80532", "ffffff"
+    ),
+    "56": Team.createTeam(
+        "56", "Stetson", "Hatters", "Stetson", "STET", "0a5640", "56854e"
+    ),
+    "183": Team.createTeam(
+        "183", "Syracuse", "Orange", "Syracuse", "SYR", "F37321", "0d1d37"
+    ),
+    "218": Team.createTeam(
+        "218", "Temple", "Owls", "Temple", "TEM", "A80532", "a7a9ac"
+    ),
+    "245": Team.createTeam(
+        "245", "Texas A&M", "Aggies", "Texas A&M", "TA&M", "5C0025", "ffffff"
+    ),
+    "357": Team.createTeam(
+        "357", "Texas A&M-CC", "Islanders", "Texas A&M-CC", "AMCC", "00639c", "008752"
+    ),
+    "251": Team.createTeam(
+        "251", "Texas", "Longhorns", "Texas", "TEX", "EE7524", "f0f0f0"
+    ),
+    "326": Team.createTeam(
+        "326", "Texas State", "Bobcats", "Texas State", "TXST", "4e1719", "b4975a"
+    ),
+    "119": Team.createTeam(
+        "119", "Towson", "Tigers", "Towson", "TOW", "FFC229", "000000"
+    ),
+    "202": Team.createTeam(
+        "202", "Tulsa", "Golden Hurricane", "Tulsa", "TLSA", "004371", "ee3b33"
+    ),
+    "5": Team.createTeam("5", "UAB", "Blazers", "UAB", "UAB", "054338", "ffc845"),
+    "302": Team.createTeam(
+        "302", "UC Davis", "Aggies", "UC Davis", "UCD", "183563", "bc9305"
+    ),
+    "300": Team.createTeam(
+        "300", "UC Irvine", "Anteaters", "UC Irvine", "UCI", "002B5C", "fec52e"
+    ),
+    "27": Team.createTeam(
+        "27", "UC Riverside", "Highlanders", "UC Riverside", "UCR", "14234F", "000000"
+    ),
+    "28": Team.createTeam(
+        "28", "UC San Diego", "Tritons", "UC San Diego", "UCSD", "000000", "000000"
+    ),
+    "2116": Team.createTeam("2116", "UCF", "Knights", "UCF", "UCF", "000000", "231f20"),
+    "26": Team.createTeam("26", "UCLA", "Bruins", "UCLA", "UCLA", "005C8E", "ffc72c"),
+    "41": Team.createTeam(
+        "41", "UConn", "Huskies", "UConn", "CONN", "001d40", "f1f2f3"
+    ),
+    "82": Team.createTeam("82", "UIC", "Flames", "UIC", "UIC", "234077", "c30031"),
+    "140": Team.createTeam(
+        "140", "UM Kansas City", "Roos", "UM Kansas City", "UMKC", "004b87", "ffc72c"
+    ),
+    "2349": Team.createTeam(
+        "2349", "UMass Lowell", "River Hawks", "UMass Lowell", "UML", "00529C", "cf1f2f"
+    ),
+    "113": Team.createTeam(
+        "113", "UMass", "Minutemen", "UMass", "MASS", "880007", "000000"
+    ),
+    "350": Team.createTeam(
+        "350",
+        "UNC Wilmington",
+        "Seahawks",
+        "UNC Wilmington",
+        "UNCW",
+        "1d2f68",
+        "00665e",
+    ),
+    "30": Team.createTeam("30", "USC", "Trojans", "USC", "USC", "AE2531", "ffc72c"),
+    "250": Team.createTeam(
+        "250", "UT Arlington", "Mavericks", "UT Arlington", "UTA", "004b7c", "f58024"
+    ),
+    "292": Team.createTeam(
+        "292",
+        "UT Rio Grande Valley",
+        "Vaqueros",
+        "UT Rio Grande",
+        "UTRGV",
+        "dc6000",
+        "e1732d",
+    ),
+    "328": Team.createTeam(
+        "328", "Utah State", "Aggies", "Utah State", "USU", "003263", "949ca1"
+    ),
+    "254": Team.createTeam("254", "Utah", "Utes", "Utah", "UTAH", "890012", "7e8083"),
+    "238": Team.createTeam(
+        "238", "Vanderbilt", "Commodores", "Vanderbilt", "VAN", "000000", "231f20"
+    ),
+    "261": Team.createTeam(
+        "261", "Vermont", "Catamounts", "Vermont", "UVM", "013C24", "ffc72c"
+    ),
+    "222": Team.createTeam(
+        "222", "Villanova", "Wildcats", "Villanova", "VILL", "123d7C", "f0f0f0"
+    ),
+    "258": Team.createTeam(
+        "258", "Virginia", "Cavaliers", "Virginia", "UVA", "f84c1e", "242e4a"
+    ),
+    "259": Team.createTeam(
+        "259", "Virginia Tech", "Hokies", "Virginia Tech", "VT", "74232D", "c2c1ba"
+    ),
+    "154": Team.createTeam(
+        "154", "Wake Forest", "Demon Deacons", "Wake Forest", "WAKE", "9E7E38", "000000"
+    ),
+    "264": Team.createTeam(
+        "264", "Washington", "Huskies", "Washington", "WASH", "2B2F64", "e8e3d3"
+    ),
+    "265": Team.createTeam(
+        "265", "Washington State", "Cougars", "Washington St", "WSU", "94022a", "6a747c"
+    ),
+    "277": Team.createTeam(
+        "277",
+        "West Virginia",
+        "Mountaineers",
+        "West Virginia",
+        "WVU",
+        "FFC600",
+        "eaaa00",
+    ),
+    "98": Team.createTeam(
+        "98", "Western Kentucky", "Hilltoppers", "Western KY", "WKU", "F32026", "b3b5b8"
+    ),
+    "275": Team.createTeam(
+        "275", "Wisconsin", "Badgers", "Wisconsin", "WISC", "A00002", "f7f7f7"
+    ),
+    "43": Team.createTeam("43", "Yale", "Bulldogs", "Yale", "YALE", "004a81", "286dc0"),
 }
 
 
@@ -1744,12 +850,14 @@ class CollegeBasketball:
         else:
             team = Team.createTeam(
                 int(team_id),
+                competitor["team"]["location"],
+                competitor["team"]["name"],
                 competitor["team"]["shortDisplayName"],
                 competitor["team"]["abbreviation"],
                 competitor["team"].get("color", "00000"),
                 competitor["team"].get("alternateColor", "ffffff"),
             )
-            print(f' "{str(team_id)}": {team},')
+            print(f'Unknown team! "{str(team_id)}": {team},')
             return team
 
     def getGames(testing: bool):

@@ -243,6 +243,8 @@ impl<
                         &response.data.games
                     );
 
+                    info!("Response {}", &resp_string);
+
                     data_sender
                         .send(AWSData::new(
                             response.data.games.into_iter().sorted().collect(),

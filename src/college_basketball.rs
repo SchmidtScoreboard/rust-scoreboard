@@ -64,7 +64,7 @@ impl aws_screen::AWSScreenType for CollegeBasketballGame {
         _pixels_book: &matrix::PixelBook,
         timezone: &str,
     ) {
-        let font = &font_book.font5x8;
+        let font = &font_book.font4x6;
         game::draw_scoreboard(canvas, &font, &self.common, 2);
 
         // Draw the current period
@@ -87,7 +87,7 @@ impl aws_screen::AWSScreenType for CollegeBasketballGame {
                 &font.led_font,
                 "FINAL",
                 34 + font.dimensions.width,
-                29,
+                23 + font.dimensions.height,
                 &yellow,
                 0,
                 false,

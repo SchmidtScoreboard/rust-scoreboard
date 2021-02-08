@@ -101,8 +101,9 @@ where
     D: Deserializer<'de>,
 {
     let s: &str = Deserialize::deserialize(deserializer)?;
-    let naive_time =
-        NaiveDateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M:%SZ").map_err(D::Error::custom)?;
+    let naive_time = NaiveDateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M:%SZ")
+        .or(NaiveDateTime::parse_from_str(&s, "%Y-%m-%dT%H:%MZ"))
+        .map_err(D::Error::custom)?;
     Ok(DateTime::<Utc>::from_utc(naive_time, Utc))
 }
 

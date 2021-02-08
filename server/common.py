@@ -4,9 +4,13 @@ p = inflect.engine()
 
 
 class Team:
-    def createTeam(id, display_name, abbreviation, primary_color, secondary_color):
+    def createTeam(
+        id, location, name, display_name, abbreviation, primary_color, secondary_color
+    ):
         return {
             "id": id,
+            "location": location,
+            "name": name,
             "display_name": display_name,
             "abbreviation": abbreviation,
             "primary_color": primary_color,
