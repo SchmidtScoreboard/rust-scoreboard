@@ -45,6 +45,7 @@ class Common:
             "STATUS_IN_PROGRESS": "ACTIVE",
             "STATUS_FINAL": "END",
             "STATUS_SCHEDULED": "PREGAME",
+            "STATUS_HALFTIME": "INTERMISSION"
         }
         if status not in status_map:
             raise Exception(f"Status {status} not in map")

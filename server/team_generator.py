@@ -1,12 +1,11 @@
 import sys
 import json
 from common import Team
+from color import getRGBFromHex, processTeamColors
 
 
 def get_app_color_shit(color: str):
-    red = int(color[0:2], 16)
-    green = int(color[2:4], 16)
-    blue = int(color[4:6], 16)
+    red, green, blue = getRGBFromHex(color)
     return f"Color.fromRGBO({red}, {green}, {blue}, 1.0)"
 
 
@@ -31,6 +30,7 @@ if __name__ == "__main__":
                 abbreviation = team["abbreviation"]
                 color = team["color"]
                 secondary_color = team.get("alternateColor", "000000")
+                color, secondary_color = processTeamColors(color, secondary_color)
                 server_teams.append(
                     f'"{team_id}": Team.createTeam("{team_id}", "{location}", "{name}", "{display_name}", "{abbreviation}", "{color}", "{secondary_color}"),'
                 )
