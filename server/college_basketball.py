@@ -8,7 +8,7 @@ team_map = {
         "2000",
         "Abilene Christian",
         "Wildcats",
-        "Abil Christian",
+        "Abil Christ",
         "ACU",
         "4e2683",
         "ebebeb",
@@ -26,28 +26,22 @@ team_map = {
         "333", "Alabama", "Crimson Tide", "Alabama", "ALA", "690014", "f1f2f3"
     ),
     "2011": Team.createTeam(
-        "2011", "Alabama State", "Hornets", "Alabama State", "ALST", "e9a900", "0a0a0a"
+        "2011", "Alabama State", "Hornets", "Alabama St", "ALST", "e9a900", "0a0a0a"
     ),
     "399": Team.createTeam(
         "399", "Albany", "Great Danes", "Albany", "ALB", "3D2777", "ffffff"
     ),
     "2016": Team.createTeam(
-        "2016", "Alcorn State", "Braves", "Alcorn State", "ALCN", "4b0058", "ffffff"
+        "2016", "Alcorn State", "Braves", "Alcorn St", "ALCN", "4b0058", "ffffff"
     ),
     "44": Team.createTeam(
         "44", "American", "Eagles", "American", "AMER", "c41130", "ffffff"
     ),
     "2026": Team.createTeam(
-        "2026",
-        "Appalachian State",
-        "Mountaineers",
-        "Appalachian St",
-        "APP",
-        "000000",
-        "ffcd00",
+        "2026", "Appalachian State", "Mountaineers", "App St", "APP", "000000", "ffcd00"
     ),
     "9": Team.createTeam(
-        "9", "Arizona State", "Sun Devils", "Arizona State", "ASU", "942139", "f1f2f3"
+        "9", "Arizona State", "Sun Devils", "Arizona St", "ASU", "942139", "f1f2f3"
     ),
     "12": Team.createTeam(
         "12", "Arizona", "Wildcats", "Arizona", "ARIZ", "002449", "ffffff"
@@ -59,7 +53,7 @@ team_map = {
         "2032",
         "Arkansas State",
         "Red Wolves",
-        "Arkansas State",
+        "Arkansas St",
         "ARST",
         "e81018",
         "000000",
@@ -68,7 +62,7 @@ team_map = {
         "2029",
         "Arkansas-Pine Bluff",
         "Golden Lions",
-        "Ark-Pine Bluff",
+        "Ark-Pine",
         "UAPB",
         "e0aa0f",
         "000000",
@@ -100,13 +94,13 @@ team_map = {
         "68", "Boise State", "Broncos", "Boise State", "BSU", "09347A", "d8d9da"
     ),
     "103": Team.createTeam(
-        "103", "Boston College", "Eagles", "Boston College", "BC", "88001a", "ffffff"
+        "103", "Boston College", "Eagles", "Boston C", "BC", "88001a", "ffffff"
     ),
     "104": Team.createTeam(
-        "104", "Boston Univ.", "Terriers", "Boston Univ.", "BU", "cc0000", "ffffff"
+        "104", "Boston Univ.", "Terriers", "Boston U", "BU", "cc0000", "ffffff"
     ),
     "189": Team.createTeam(
-        "189", "Bowling Green", "Falcons", "Bowling Green", "BGSU", "2b1000", "ffffff"
+        "189", "Bowling Green", "Falcons", "Bowling G", "BGSU", "2b1000", "ffffff"
     ),
     "71": Team.createTeam(
         "71", "Bradley", "Braves", "Bradley", "BRAD", "b70002", "c0c0c0"
@@ -124,7 +118,7 @@ team_map = {
         "2086", "Butler", "Bulldogs", "Butler", "BUT", "0d1361", "00a3e0"
     ),
     "2239": Team.createTeam(
-        "2239", "CSU Fullerton", "Titans", "CSU Fullerton", "CSUF", "10219c", "ffffff"
+        "2239", "CSU Fullerton", "Titans", "Fullerton", "CSUF", "10219c", "ffffff"
     ),
     "13": Team.createTeam(
         "13", "Cal Poly", "Mustangs", "Cal Poly", "CP", "1E4D2B", "eed897"
@@ -139,25 +133,19 @@ team_map = {
         "2099", "Canisius", "Golden Griffins", "Canisius", "CAN", "004a81", "dda50f"
     ),
     "2110": Team.createTeam(
-        "2110", "Central Arkansas", "Bears", "Cent Arkansas", "UCA", "a7a9ac", "000000"
+        "2110", "Central Arkansas", "Bears", "Cent Ark", "UCA", "a7a9ac", "000000"
     ),
     "2115": Team.createTeam(
         "2115",
         "Central Connecticut",
         "Blue Devils",
-        "Cent Conn St",
+        "Cent Conn",
         "CCSU",
         "1B49A2",
         "d1d5d8",
     ),
     "2117": Team.createTeam(
-        "2117",
-        "Central Michigan",
-        "Chippewas",
-        "Cent Michigan",
-        "CMU",
-        "6a0032",
-        "ffffff",
+        "2117", "Central Michigan", "Chippewas", "Cent Mich", "CMU", "6a0032", "ffffff"
     ),
     "232": Team.createTeam(
         "232", "Charleston", "Cougars", "Charleston", "COFC", "9c8456", "000000"
@@ -166,7 +154,7 @@ team_map = {
         "2127",
         "Charleston Southern",
         "Buccaneers",
-        "Charleston So",
+        "Charleston S",
         "CHSO",
         "2e3192",
         "ded090",
@@ -175,7 +163,7 @@ team_map = {
         "236", "Chattanooga", "Mocs", "Chattanooga", "UTC", "00386b", "dca71d"
     ),
     "2130": Team.createTeam(
-        "2130", "Chicago State", "Cougars", "Chicago State", "CHIC", "006700", "ffffff"
+        "2130", "Chicago State", "Cougars", "Chicago St", "CHIC", "006700", "ffffff"
     ),
     "2132": Team.createTeam(
         "2132", "Cincinnati", "Bearcats", "Cincinnati", "CIN", "000000", "717073"
@@ -184,13 +172,7 @@ team_map = {
         "228", "Clemson", "Tigers", "Clemson", "CLEM", "F66733", "000000"
     ),
     "325": Team.createTeam(
-        "325",
-        "Cleveland State",
-        "Vikings",
-        "Cleveland State",
-        "CLEV",
-        "006633",
-        "ffffff",
+        "325", "Cleveland State", "Vikings", "C St", "CLEV", "006633", "ffffff"
     ),
     "324": Team.createTeam(
         "324",
@@ -208,13 +190,13 @@ team_map = {
         "38", "Colorado", "Buffaloes", "Colorado", "COLO", "d1c57e", "000000"
     ),
     "36": Team.createTeam(
-        "36", "Colorado State", "Rams", "Colorado State", "CSU", "004537", "ffc425"
+        "36", "Colorado State", "Rams", "Colorado St", "CSU", "004537", "ffc425"
     ),
     "171": Team.createTeam(
         "171", "Columbia", "Lions", "Columbia", "CLMB", "174785", "ffffff"
     ),
     "2154": Team.createTeam(
-        "2154", "Coppin St", "Eagles", "Coppin State", "COPP", "2e3192", "ffd204"
+        "2154", "Coppin St", "Eagles", "Coppin St", "COPP", "2e3192", "ffd204"
     ),
     "172": Team.createTeam(
         "172", "Cornell", "Big Red", "Cornell", "COR", "d60027", "101010"
@@ -238,13 +220,13 @@ team_map = {
         "48", "Delaware", "Blue Hens", "Delaware", "DEL", "033594", "e8ce31"
     ),
     "2169": Team.createTeam(
-        "2169", "Delaware St", "Hornets", "Delaware State", "DSU", "FF3630", "000000"
+        "2169", "Delaware St", "Hornets", "Delaware St", "DSU", "FF3630", "000000"
     ),
     "2172": Team.createTeam(
         "2172", "Denver", "Pioneers", "Denver", "DEN", "9c143d", "d6ba74"
     ),
     "2174": Team.createTeam(
-        "2174", "Detroit Mercy", "Titans", "Detroit Mercy", "DET", "165b9e", "ffffff"
+        "2174", "Detroit Mercy", "Titans", "Detroit M", "DET", "165b9e", "ffffff"
     ),
     "2181": Team.createTeam(
         "2181", "Drake", "Bulldogs", "Drake", "DRKE", "004477", "c0c0c0"
@@ -259,7 +241,7 @@ team_map = {
         "2184", "Duquesne", "Dukes", "Duquesne", "DUQ", "002D62", "ffffff"
     ),
     "151": Team.createTeam(
-        "151", "East Carolina", "Pirates", "East Carolina", "ECU", "4b1869", "f0907b"
+        "151", "East Carolina", "Pirates", "E Carolina", "ECU", "4b1869", "f0907b"
     ),
     "2193": Team.createTeam(
         "2193", "East Tennessee State", "Buccaneers", "ETSU", "ETSU", "002d61", "ffc423"
@@ -274,7 +256,7 @@ team_map = {
         "2199", "Eastern Michigan", "Eagles", "E Michigan", "EMU", "00331b", "f0f0f0"
     ),
     "331": Team.createTeam(
-        "331", "Eastern Washington", "Eagles", "E Washington", "EWU", "a10022", "abb4bc"
+        "331", "Eastern Washington", "Eagles", "E Wash", "EWU", "a10022", "abb4bc"
     ),
     "2210": Team.createTeam(
         "2210", "Elon", "Phoenix", "Elon", "ELON", "020303", "b59a57"
@@ -286,13 +268,7 @@ team_map = {
         "2217", "Fairfield", "Stags", "Fairfield", "FAIR", "000000", "ebebeb"
     ),
     "161": Team.createTeam(
-        "161",
-        "Fairleigh Dickinson",
-        "Knights",
-        "Fair. Dickinson",
-        "FDU",
-        "00449C",
-        "ffffff",
+        "161", "Fairleigh Dickinson", "Knights", "Fair Dick", "FDU", "00449C", "ffffff"
     ),
     "50": Team.createTeam(
         "50", "Florida A&M", "Rattlers", "Florida A&M", "FAMU", "F89728", "000000"
@@ -310,25 +286,25 @@ team_map = {
         "2229", "Florida Int'l", "Panthers", "FIU", "FIU", "091731", "c5960c"
     ),
     "52": Team.createTeam(
-        "52", "Florida State", "Seminoles", "Florida State", "FSU", "782F40", "ceb888"
+        "52", "Florida State", "Seminoles", "Florida St", "FSU", "782F40", "ceb888"
     ),
     "2230": Team.createTeam(
         "2230", "Fordham", "Rams", "Fordham", "FOR", "830032", "ffffff"
     ),
     "278": Team.createTeam(
-        "278", "Fresno State", "Bulldogs", "Fresno State", "FRES", "c41230", "ffffff"
+        "278", "Fresno State", "Bulldogs", "Fresno St", "FRES", "c41230", "ffffff"
     ),
     "231": Team.createTeam(
         "231", "Furman", "Paladins", "Furman", "FUR", "4A2184", "909090"
     ),
     "2241": Team.createTeam(
-        "2241", "Gardner-Webb", "Bulldogs", "Gardner-Webb", "GWEB", "c12535", "ffffff"
+        "2241", "Gardner-Webb", "Bulldogs", "Gardner W", "GWEB", "c12535", "ffffff"
     ),
     "2244": Team.createTeam(
-        "2244", "George Mason", "Patriots", "George Mason", "GMU", "016600", "ecb010"
+        "2244", "George Mason", "Patriots", "George M", "GMU", "016600", "ecb010"
     ),
     "45": Team.createTeam(
-        "45", "George Washington", "Colonials", "G Washington", "GW", "002843", "e8d2a1"
+        "45", "George Washington", "Colonials", "G Wash", "GW", "002843", "e8d2a1"
     ),
     "46": Team.createTeam(
         "46", "Georgetown", "Hoyas", "Georgetown", "GTWN", "110E42", "ffffff"
@@ -340,16 +316,16 @@ team_map = {
         "290", "Georgia Southern", "Eagles", "GA Southern", "GASO", "003775", "f0f0f0"
     ),
     "2247": Team.createTeam(
-        "2247", "Georgia State", "Panthers", "Georgia State", "GAST", "1e539a", "ebebeb"
+        "2247", "Georgia State", "Panthers", "Georgia St", "GAST", "1e539a", "ebebeb"
     ),
     "59": Team.createTeam(
-        "59", "Georgia Tech", "Yellow Jackets", "Georgia Tech", "GT", "00223e", "ffffff"
+        "59", "Georgia Tech", "Yellow Jackets", "G Tech", "GT", "00223e", "ffffff"
     ),
     "2250": Team.createTeam(
         "2250", "Gonzaga", "Bulldogs", "Gonzaga", "GONZ", "002967", "cfd4d8"
     ),
     "2253": Team.createTeam(
-        "2253", "Grand Canyon", "Antelopes", "Grand Canyon", "GCU", "522398", "f0f0f0"
+        "2253", "Grand Canyon", "Antelopes", "G Canyon", "GCU", "522398", "f0f0f0"
     ),
     "2261": Team.createTeam(
         "2261", "Hampton", "Pirates", "Hampton", "HAMP", "0067AC", "000000"
@@ -373,13 +349,7 @@ team_map = {
         "107", "Holy Cross", "Crusaders", "Holy Cross", "HC", "0a0a0a", "ffffff"
     ),
     "2277": Team.createTeam(
-        "2277",
-        "Houston Baptist",
-        "Huskies",
-        "Houston Baptist",
-        "HBU",
-        "00539c",
-        "ffffff",
+        "2277", "Houston Baptist", "Huskies", "H Baptist", "HBU", "00539c", "ffffff"
     ),
     "248": Team.createTeam(
         "248", "Houston", "Cougars", "Houston", "HOU", "C90822", "ffffff"
@@ -398,19 +368,13 @@ team_map = {
         "356", "Illinois", "Fighting Illini", "Illinois", "ILL", "f77329", "000000"
     ),
     "2287": Team.createTeam(
-        "2287",
-        "Illinois State",
-        "Redbirds",
-        "Illinois State",
-        "ILST",
-        "CE1126",
-        "ffe716",
+        "2287", "Illinois State", "Redbirds", "Illinois St", "ILST", "CE1126", "ffe716"
     ),
     "84": Team.createTeam(
         "84", "Indiana", "Hoosiers", "Indiana", "IU", "7D110C", "eeedeb"
     ),
     "282": Team.createTeam(
-        "282", "Indiana State", "Sycamores", "Indiana State", "INST", "00669a", "f0f0f0"
+        "282", "Indiana State", "Sycamores", "Indiana St", "INST", "00669a", "f0f0f0"
     ),
     "314": Team.createTeam("314", "Iona", "Gaels", "Iona", "IONA", "8c001a", "f6a704"),
     "2294": Team.createTeam(
@@ -420,31 +384,25 @@ team_map = {
         "66", "Iowa State", "Cyclones", "Iowa State", "ISU", "660015", "ffffff"
     ),
     "2296": Team.createTeam(
-        "2296", "Jackson State", "Tigers", "Jackson State", "JKST", "123297", "b5b7ba"
+        "2296", "Jackson State", "Tigers", "Jackson St", "JKST", "123297", "b5b7ba"
     ),
     "294": Team.createTeam(
-        "294", "Jacksonville", "Dolphins", "Jacksonville", "JAX", "00523e", "ffffff"
+        "294", "Jacksonville", "Dolphins", "Jack", "JAX", "00523e", "ffffff"
     ),
     "55": Team.createTeam(
-        "55",
-        "Jacksonville State",
-        "Gamecocks",
-        "Jacksonville St",
-        "JVST",
-        "b50500",
-        "ffffff",
+        "55", "Jacksonville State", "Gamecocks", "Jack St", "JVST", "b50500", "ffffff"
     ),
     "256": Team.createTeam(
-        "256", "James Madison", "Dukes", "James Madison", "JMU", "450084", "cbb778"
+        "256", "James Madison", "Dukes", "James M", "JMU", "450084", "cbb778"
     ),
     "2305": Team.createTeam(
         "2305", "Kansas", "Jayhawks", "Kansas", "KU", "0022B4", "ffffff"
     ),
     "2306": Team.createTeam(
-        "2306", "Kansas State", "Wildcats", "Kansas State", "KSU", "633194", "e7d2ad"
+        "2306", "Kansas State", "Wildcats", "Kansas St", "KSU", "633194", "e7d2ad"
     ),
     "338": Team.createTeam(
-        "338", "Kennesaw State", "Owls", "Kennesaw State", "KENN", "000000", "fdbb30"
+        "338", "Kennesaw State", "Owls", "Kennesaw St", "KENN", "000000", "fdbb30"
     ),
     "2309": Team.createTeam(
         "2309", "Kent State", "Golden Flashes", "Kent State", "KENT", "002445", "f0b510"
@@ -475,7 +433,7 @@ team_map = {
         "2031", "Little Rock", "Trojans", "Little Rock", "UALR", "AD0000", "ffffff"
     ),
     "299": Team.createTeam(
-        "299", "Long Beach State", "Beach", "Long Beach St", "LBSU", "000000", "f1f2f3"
+        "299", "Long Beach State", "Beach", "LB State", "LBSU", "000000", "f1f2f3"
     ),
     "2344": Team.createTeam(
         "2344", "Longwood", "Lancers", "Longwood", "LONG", "003273", "9ea2a3"
@@ -484,7 +442,7 @@ team_map = {
         "309", "Louisiana", "Ragin' Cajuns", "Louisiana", "ULL", "ce2842", "000000"
     ),
     "2348": Team.createTeam(
-        "2348", "Louisiana Tech", "Bulldogs", "Louisiana Tech", "LT", "002d65", "ffffff"
+        "2348", "Louisiana Tech", "Bulldogs", "L Tech", "LT", "002d65", "ffffff"
     ),
     "97": Team.createTeam(
         "97", "Louisville", "Cardinals", "Louisville", "LOU", "ad000a", "cccccc"
@@ -493,16 +451,10 @@ team_map = {
         "2352", "Loyola (MD)", "Greyhounds", "Loyola (MD)", "L-MD", "76a7a0", "000000"
     ),
     "2350": Team.createTeam(
-        "2350",
-        "Loyola Chicago",
-        "Ramblers",
-        "Loyola Chicago",
-        "LUC",
-        "9d1244",
-        "ffffff",
+        "2350", "Loyola Chicago", "Ramblers", "Loyola C", "LUC", "9d1244", "ffffff"
     ),
     "2351": Team.createTeam(
-        "2351", "Loyola Marymount", "Lions", "Loyola Marymnt", "LMU", "880029", "ffffff"
+        "2351", "Loyola Marymount", "Lions", "Loyola M", "LMU", "880029", "ffffff"
     ),
     "311": Team.createTeam(
         "311", "Maine", "Black Bears", "Maine", "ME", "127dbe", "000000"
@@ -523,7 +475,7 @@ team_map = {
         "193", "Miami (OH)", "Redhawks", "Miami (OH)", "M-OH", "a4000c", "f0f0f0"
     ),
     "127": Team.createTeam(
-        "127", "Michigan State", "Spartans", "Michigan State", "MSU", "18453B", "ffffff"
+        "127", "Michigan State", "Spartans", "Michigan St", "MSU", "18453B", "ffffff"
     ),
     "130": Team.createTeam(
         "130", "Michigan", "Wolverines", "Michigan", "MICH", "00274c", "ffffff"
@@ -535,13 +487,7 @@ team_map = {
         "135", "Minnesota", "Golden Gophers", "Minnesota", "MINN", "981a31", "ffffff"
     ),
     "344": Team.createTeam(
-        "344",
-        "Mississippi State",
-        "Bulldogs",
-        "Mississippi St",
-        "MSST",
-        "762123",
-        "c8c8c8",
+        "344", "Mississippi State", "Bulldogs", "Miss St", "MSST", "762123", "c8c8c8"
     ),
     "142": Team.createTeam(
         "142", "Missouri", "Tigers", "Missouri", "MIZ", "000000", "ffffff"
@@ -550,19 +496,19 @@ team_map = {
         "149", "Montana", "Grizzlies", "Montana", "MONT", "751D4A", "ffffff"
     ),
     "147": Team.createTeam(
-        "147", "Montana State", "Bobcats", "Montana State", "MTST", "003875", "bf965c"
+        "147", "Montana State", "Bobcats", "Montana St", "MTST", "003875", "bf965c"
     ),
     "116": Team.createTeam(
         "116",
         "Mount St. Mary's",
         "Mountaineers",
-        "Mt. St. Mary's",
+        "Mt St Mary",
         "MSM",
         "005596",
         "ebebeb",
     ),
     "93": Team.createTeam(
-        "93", "Murray State", "Racers", "Murray State", "MUR", "002148", "ffffff"
+        "93", "Murray State", "Racers", "Murray St", "MUR", "002148", "ffffff"
     ),
     "152": Team.createTeam(
         "152", "NC State", "Wolfpack", "NC State", "NCST", "EF1216", "231f20"
@@ -571,46 +517,34 @@ team_map = {
         "158", "Nebraska", "Cornhuskers", "Nebraska", "NEB", "F20017", "f5f1e7"
     ),
     "160": Team.createTeam(
-        "160", "New Hampshire", "Wildcats", "New Hampshire", "UNH", "004990", "c3c4c6"
+        "160", "New Hampshire", "Wildcats", "New Hamp", "UNH", "004990", "c3c4c6"
     ),
     "167": Team.createTeam(
         "167", "New Mexico", "Lobos", "New Mexico", "UNM", "000000", "ffffff"
     ),
     "166": Team.createTeam(
-        "166", "New Mexico State", "Aggies", "New Mexico St", "NMSU", "891216", "ffffff"
+        "166", "New Mexico State", "Aggies", "New Mex St", "NMSU", "891216", "ffffff"
     ),
     "315": Team.createTeam(
         "315", "Niagara", "Purple Eagles", "Niagara", "NIAG", "69207E", "f0f0f0"
     ),
     "153": Team.createTeam(
-        "153",
-        "North Carolina",
-        "Tar Heels",
-        "North Carolina",
-        "UNC",
-        "99bfe5",
-        "13294b",
+        "153", "North Carolina", "Tar Heels", "N Carolina", "UNC", "99bfe5", "13294b"
     ),
     "155": Team.createTeam(
-        "155",
-        "North Dakota",
-        "Fighting Hawks",
-        "North Dakota",
-        "UND",
-        "00A26B",
-        "000000",
+        "155", "North Dakota", "Fighting Hawks", "N Dakota", "UND", "00A26B", "000000"
     ),
     "249": Team.createTeam(
         "249", "North Texas", "Mean Green", "North Texas", "UNT", "00853D", "000000"
     ),
     "111": Team.createTeam(
-        "111", "Northeastern", "Huskies", "Northeastern", "NE", "CC0001", "ffffff"
+        "111", "Northeastern", "Huskies", "NE", "NE", "CC0001", "ffffff"
     ),
     "94": Team.createTeam(
         "94", "Northern Kentucky", "Norse", "N Kentucky", "NKU", "000000", "eab621"
     ),
     "77": Team.createTeam(
-        "77", "Northwestern", "Wildcats", "Northwestern", "NW", "372286", "d6cac1"
+        "77", "Northwestern", "Wildcats", "NW", "NW", "372286", "d6cac1"
     ),
     "87": Team.createTeam(
         "87", "Notre Dame", "Fighting Irish", "Notre Dame", "ND", "00122b", "ae9142"
@@ -625,25 +559,19 @@ team_map = {
         "201", "Oklahoma", "Sooners", "Oklahoma", "OU", "7b0000", "cccccc"
     ),
     "197": Team.createTeam(
-        "197", "Oklahoma State", "Cowboys", "Oklahoma State", "OKST", "FF6500", "000000"
+        "197", "Oklahoma State", "Cowboys", "Oklahoma St", "OKST", "FF6500", "000000"
     ),
     "295": Team.createTeam(
-        "295", "Old Dominion", "Monarchs", "Old Dominion", "ODU", "00507d", "a1d2f1"
+        "295", "Old Dominion", "Monarchs", "Old D", "ODU", "00507d", "a1d2f1"
     ),
     "145": Team.createTeam(
         "145", "Ole Miss", "Rebels", "Ole Miss", "MISS", "001148", "ffffff"
     ),
     "198": Team.createTeam(
-        "198",
-        "Oral Roberts",
-        "Golden Eagles",
-        "Oral Roberts",
-        "ORU",
-        "002955",
-        "ccb48c",
+        "198", "Oral Roberts", "Golden Eagles", "Oral R", "ORU", "002955", "ccb48c"
     ),
     "204": Team.createTeam(
-        "204", "Oregon State", "Beavers", "Oregon State", "ORST", "c34500", "ffffff"
+        "204", "Oregon State", "Beavers", "Oregon St", "ORST", "c34500", "ffffff"
     ),
     "279": Team.createTeam(
         "279", "Pacific", "Tigers", "Pacific", "PAC", "F47820", "000000"
@@ -661,7 +589,7 @@ team_map = {
         "163", "Princeton", "Tigers", "Princeton", "PRIN", "ff9408", "080808"
     ),
     "227": Team.createTeam(
-        "227", "Rhode Island", "Rams", "Rhode Island", "URI", "091f3f", "5ab3e8"
+        "227", "Rhode Island", "Rams", "Rhode Isl", "URI", "091f3f", "5ab3e8"
     ),
     "242": Team.createTeam("242", "Rice", "Owls", "Rice", "RICE", "003D7D", "d1d5d8"),
     "257": Team.createTeam(
@@ -671,49 +599,37 @@ team_map = {
         "164", "Rutgers", "Scarlet Knights", "Rutgers", "RUTG", "d21034", "ffffff"
     ),
     "16": Team.createTeam(
-        "16", "Sacramento State", "Hornets", "Sacramento St", "SAC", "00573C", "cdb97d"
+        "16", "Sacramento State", "Hornets", "Sac St", "SAC", "00573C", "cdb97d"
     ),
     "139": Team.createTeam(
         "139", "Saint Louis", "Billikens", "Saint Louis", "SLU", "00539C", "ebebeb"
     ),
     "21": Team.createTeam(
-        "21", "San Diego State", "Aztecs", "San Diego State", "SDSU", "BF2C37", "ffffff"
+        "21", "San Diego State", "Aztecs", "San D St", "SDSU", "BF2C37", "ffffff"
     ),
     "301": Team.createTeam(
         "301", "San Diego", "Toreros", "San Diego", "USD", "2f99d4", "000000"
     ),
     "23": Team.createTeam(
-        "23", "San José St", "Spartans", "San José State", "SJSU", "005893", "fdba31"
+        "23", "San José St", "Spartans", "San José St", "SJSU", "005893", "fdba31"
     ),
     "6": Team.createTeam(
-        "6", "South Alabama", "Jaguars", "South Alabama", "USA", "003E7E", "ffffff"
+        "6", "South Alabama", "Jaguars", "S Alabama", "USA", "003E7E", "ffffff"
     ),
     "233": Team.createTeam(
-        "233", "South Dakota", "Coyotes", "South Dakota", "SDAK", "CD1241", "f0f0f0"
+        "233", "South Dakota", "Coyotes", "S Dakota", "SDAK", "CD1241", "f0f0f0"
     ),
     "58": Team.createTeam(
-        "58", "South Florida", "Bulls", "South Florida", "USF", "004A36", "ffffff"
+        "58", "South Florida", "Bulls", "S Florida", "USF", "004A36", "ffffff"
     ),
     "79": Team.createTeam(
         "79", "Southern Illinois", "Salukis", "So Illinois", "SIU", "85283D", "c2c3c0"
     ),
     "253": Team.createTeam(
-        "253",
-        "Southern Utah",
-        "Thunderbirds",
-        "Southern Utah",
-        "SUU",
-        "d10000",
-        "ffffff",
+        "253", "Southern Utah", "Thunderbirds", "S Utah", "SUU", "d10000", "ffffff"
     ),
     "179": Team.createTeam(
-        "179",
-        "St. Bonaventure",
-        "Bonnies",
-        "St. Bonaventure",
-        "SBU",
-        "70261D",
-        "ffffff",
+        "179", "St. Bonaventure", "Bonnies", "St. Bon", "SBU", "70261D", "ffffff"
     ),
     "24": Team.createTeam(
         "24", "Stanford", "Cardinal", "Stanford", "STAN", "A80532", "ffffff"
@@ -731,7 +647,7 @@ team_map = {
         "245", "Texas A&M", "Aggies", "Texas A&M", "TA&M", "5C0025", "ffffff"
     ),
     "357": Team.createTeam(
-        "357", "Texas A&M-CC", "Islanders", "Texas A&M-CC", "AMCC", "00639c", "ffffff"
+        "357", "Texas A&M-CC", "Islanders", "Tex A&M CC", "AMCC", "00639c", "ffffff"
     ),
     "251": Team.createTeam(
         "251", "Texas", "Longhorns", "Texas", "TEX", "EE7524", "000000"
@@ -753,10 +669,10 @@ team_map = {
         "300", "UC Irvine", "Anteaters", "UC Irvine", "UCI", "002B5C", "fec52e"
     ),
     "27": Team.createTeam(
-        "27", "UC Riverside", "Highlanders", "UC Riverside", "UCR", "14234F", "ffffff"
+        "27", "UC Riverside", "Highlanders", "UC River", "UCR", "14234F", "ffffff"
     ),
     "28": Team.createTeam(
-        "28", "UC San Diego", "Tritons", "UC San Diego", "UCSD", "000000", "ffffff"
+        "28", "UC San Diego", "Tritons", "UC SD", "UCSD", "000000", "ffffff"
     ),
     "2116": Team.createTeam("2116", "UCF", "Knights", "UCF", "UCF", "000000", "ffffff"),
     "26": Team.createTeam("26", "UCLA", "Bruins", "UCLA", "UCLA", "005C8E", "ffc72c"),
@@ -765,35 +681,23 @@ team_map = {
     ),
     "82": Team.createTeam("82", "UIC", "Flames", "UIC", "UIC", "234077", "ffffff"),
     "140": Team.createTeam(
-        "140", "UM Kansas City", "Roos", "UM Kansas City", "UMKC", "004b87", "ffc72c"
+        "140", "UM Kansas City", "Roos", "UM KC", "UMKC", "004b87", "ffc72c"
     ),
     "2349": Team.createTeam(
-        "2349", "UMass Lowell", "River Hawks", "UMass Lowell", "UML", "00529C", "ffffff"
+        "2349", "UMass Lowell", "River Hawks", "UMass L", "UML", "00529C", "ffffff"
     ),
     "113": Team.createTeam(
         "113", "UMass", "Minutemen", "UMass", "MASS", "880007", "ffffff"
     ),
     "350": Team.createTeam(
-        "350",
-        "UNC Wilmington",
-        "Seahawks",
-        "UNC Wilmington",
-        "UNCW",
-        "1d2f68",
-        "ffffff",
+        "350", "UNC Wilmington", "Seahawks", "UNC Wilm", "UNCW", "1d2f68", "ffffff"
     ),
     "30": Team.createTeam("30", "USC", "Trojans", "USC", "USC", "AE2531", "ffc72c"),
     "250": Team.createTeam(
-        "250", "UT Arlington", "Mavericks", "UT Arlington", "UTA", "004b7c", "ffffff"
+        "250", "UT Arlington", "Mavericks", "UT A", "UTA", "004b7c", "ffffff"
     ),
     "292": Team.createTeam(
-        "292",
-        "UT Rio Grande Valley",
-        "Vaqueros",
-        "UT Rio Grande",
-        "UTRGV",
-        "dc6000",
-        "000000",
+        "292", "UT Rio Grande Valley", "Vaqueros", "UT RG", "UTRGV", "dc6000", "000000"
     ),
     "328": Team.createTeam(
         "328", "Utah State", "Aggies", "Utah State", "USU", "003263", "949ca1"
@@ -812,7 +716,7 @@ team_map = {
         "258", "Virginia", "Cavaliers", "Virginia", "UVA", "f84c1e", "242e4a"
     ),
     "259": Team.createTeam(
-        "259", "Virginia Tech", "Hokies", "Virginia Tech", "VT", "74232D", "c2c1ba"
+        "259", "Virginia Tech", "Hokies", "V Tech", "VT", "74232D", "c2c1ba"
     ),
     "154": Team.createTeam(
         "154", "Wake Forest", "Demon Deacons", "Wake Forest", "WAKE", "9E7E38", "000000"
@@ -821,16 +725,10 @@ team_map = {
         "264", "Washington", "Huskies", "Washington", "WASH", "2B2F64", "e8e3d3"
     ),
     "265": Team.createTeam(
-        "265", "Washington State", "Cougars", "Washington St", "WSU", "94022a", "ffffff"
+        "265", "Washington State", "Cougars", "Wash St", "WSU", "94022a", "ffffff"
     ),
     "277": Team.createTeam(
-        "277",
-        "West Virginia",
-        "Mountaineers",
-        "West Virginia",
-        "WVU",
-        "FFC600",
-        "000000",
+        "277", "West Virginia", "Mountaineers", "W Virginia", "WVU", "FFC600", "000000"
     ),
     "98": Team.createTeam(
         "98", "Western Kentucky", "Hilltoppers", "Western KY", "WKU", "F32026", "000000"
