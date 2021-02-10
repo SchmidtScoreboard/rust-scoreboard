@@ -770,7 +770,7 @@ class CollegeBasketball:
             app_out = f'{team_id}: Team({team_id}, "{location}", "{name}", "{abbreviation}", {get_app_color_shit(color)}, {get_app_color_shit(secondary_color)}),'
             print(f"Unknown team!\n {server_out}\n{app_out}")
             team = Team.createTeam(
-                int(team_id),
+                team_id,
                 competitor["team"]["location"],
                 competitor["team"]["name"],
                 competitor["team"]["shortDisplayName"],
