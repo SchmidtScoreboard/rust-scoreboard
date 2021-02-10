@@ -1,6 +1,6 @@
 from common import Common, Team
 from fetcher import Fetcher
-from team_generator import get_app_color_shit
+from team_generator import get_app_color_shit, getDisplayName
 from color import processTeamColors
 
 team_map = {
@@ -761,8 +761,8 @@ class CollegeBasketball:
             team_id = team["id"]  # string
             location = team["location"]
             name = team["name"]
-            display_name = team["shortDisplayName"]
             abbreviation = team["abbreviation"]
+            display_name = getDisplayName(team)
             color = team["color"]
             secondary_color = team.get("alternateColor", "000000")
             color, secondary_color = processTeamColors(color, secondary_color)
@@ -771,12 +771,12 @@ class CollegeBasketball:
             print(f"Unknown team!\n {server_out}\n{app_out}")
             team = Team.createTeam(
                 team_id,
-                competitor["team"]["location"],
-                competitor["team"]["name"],
-                competitor["team"]["shortDisplayName"],
-                competitor["team"]["abbreviation"],
-                competitor["team"].get("color", "00000"),
-                competitor["team"].get("alternateColor", "ffffff"),
+                location,
+                name,
+                display_name if len(display_name) <= 11 else abbreviation,
+                abbreviation,
+                color,
+                secondary_color,
             )
             return team
 
