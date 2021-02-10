@@ -748,6 +748,8 @@ team_map = {
 
 class CollegeBasketball:
     def createGame(common):
+        if common is None:
+            return None
         return {"common": common}
 
     def getTeam(team_id, competitor):
@@ -789,7 +791,7 @@ class CollegeBasketball:
                 )
                 for game in raw_games
             ]
-            return {"games": games}
+            return {"games": [g for g in games if g]}
 
 
 if __name__ == "__main__":
