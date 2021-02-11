@@ -741,7 +741,7 @@ team_map = {
         "2674", "Valparaiso", "Crusaders", "Valparaiso", "VAL", "794500", "000000"
     ),
     "2509": Team.createTeam(
-        "2509", "Purdue", "Boilermakers", "Purdue", "PUR", "CEB888", "000000"
+        "2509", "Purdue", "Boilermakers", "Purdon't", "PUR", "CEB888", "000000"
     ),
 }
 
