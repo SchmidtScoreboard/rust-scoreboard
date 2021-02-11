@@ -47,7 +47,7 @@ impl aws_screen::AWSScreenType for CollegeBasketballGame {
         common::ScreenId::CollegeBasketball
     }
     fn get_refresh_texts() -> Vec<&'static str> {
-        return vec!["Warming up", "Icing", "Calling Toronto"];
+        return vec!["Warming up", "Alley oop", "Taking a shot"];
     }
     fn involves_team(self: &Self, team_id: u32) -> bool {
         return self.common.home_team.id == team_id || self.common.away_team.id == team_id;
