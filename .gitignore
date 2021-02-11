@@ -143,13 +143,9 @@ dmypy.json
 cython_debug/
 
 bin/
-certifi-2020.12.5.dist-info/
 certifi/
-chardet-4.0.0.dist-info/
 chardet/
-idna-2.10.dist-info/
 idna/
-requests-2.25.1.dist-info/
 requests/
-urllib3-1.26.3.dist-info/
+*dist-info/
 urllib3/
