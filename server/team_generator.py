@@ -1,6 +1,5 @@
 import sys
 import json
-from common import Team
 from color import getRGBFromHex, processTeamColors
 
 
@@ -8,8 +7,9 @@ def get_app_color_shit(color: str):
     red, green, blue = getRGBFromHex(color)
     return f"Color.fromRGBO({red}, {green}, {blue}, 1.0)"
 
+
 def getDisplayName(team):
-    raw_display_name= team["shortDisplayName"]
+    raw_display_name = team["shortDisplayName"]
     display_name = raw_display_name
     if len(raw_display_name) > 11:
         splat = raw_display_name.split()
@@ -17,9 +17,7 @@ def getDisplayName(team):
         if splat[-1] == "State":
             splat[-1] = "St"
             display_name = " ".join(splat)
-            print(
-                f"Shortened state '{raw_display_name}' name to '{display_name}'"
-            )
+            print(f"Shortened state '{raw_display_name}' name to '{display_name}'")
         directions = {
             "North": "N",
             "East": "E",
@@ -30,9 +28,7 @@ def getDisplayName(team):
         if splat[0] in directions:
             splat[0] = directions[splat[0]]
             display_name = " ".join(splat)
-            print(
-                f"Shortened state '{raw_display_name}' name to '{display_name}'"
-            )
+            print(f"Shortened state '{raw_display_name}' name to '{display_name}'")
     return display_name
 
 
@@ -58,7 +54,7 @@ if __name__ == "__main__":
                 secondary_color = team.get("alternateColor", "000000")
                 color, secondary_color = processTeamColors(color, secondary_color)
 
-                display_name = getDisplayName(team) 
+                display_name = getDisplayName(team)
                 if len(display_name) > 11:
                     display_name = input(
                         f"Display name {display_name} too long: {team}, enter alternative\n\n>"

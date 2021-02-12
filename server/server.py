@@ -9,5 +9,10 @@ def college_basketball():
     return lambda_handler("college-basketball")
 
 
+@app.route("/basketball")
+def college_basketball():
+    return lambda_handler("basketball")
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

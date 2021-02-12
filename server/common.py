@@ -1,4 +1,7 @@
 import inflect
+from team_generator import get_app_color_shit, getDisplayName
+from color import processTeamColors
+
 
 p = inflect.engine()
 
@@ -16,6 +19,34 @@ class Team:
             "primary_color": primary_color,
             "secondary_color": secondary_color,
         }
+
+    def getTeam(team_id, competitor, team_map):
+        if team_id in team_map:
+            return team_map[team_id]
+        else:
+            team = competitor["team"]
+
+            team_id = team["id"]  # string
+            location = team["location"]
+            name = team["name"]
+            abbreviation = team["abbreviation"]
+            display_name = getDisplayName(team)
+            color = team["color"]
+            secondary_color = team.get("alternateColor", "000000")
+            color, secondary_color = processTeamColors(color, secondary_color)
+            server_out = f'"{team_id}": Team.createTeam("{team_id}", "{location}", "{name}", "{display_name}", "{abbreviation}", "{color}", "{secondary_color}"),'
+            app_out = f'{team_id}: Team({team_id}, "{location}", "{name}", "{abbreviation}", {get_app_color_shit(color)}, {get_app_color_shit(secondary_color)}),'
+            print(f"Unknown team!\n {server_out}\n{app_out}")
+            team = Team.createTeam(
+                team_id,
+                location,
+                name,
+                display_name if len(display_name) <= 11 else abbreviation,
+                abbreviation,
+                color,
+                secondary_color,
+            )
+            return team
 
 
 class Common:
@@ -45,7 +76,7 @@ class Common:
             "STATUS_IN_PROGRESS": "ACTIVE",
             "STATUS_FINAL": "END",
             "STATUS_SCHEDULED": "PREGAME",
-            "STATUS_HALFTIME": "INTERMISSION"
+            "STATUS_HALFTIME": "INTERMISSION",
         }
         if status not in status_map:
             raise Exception(f"Status {status} not in map")
@@ -55,13 +86,13 @@ class Common:
     def toOrdinal(period: int):
         return p.ordinal(period)
 
-    def from_json(json, team_func):
+    def from_json(json, team_func, team_map):
         try:
             competition = json["competitions"][0]
             home_team, away_team = competition["competitors"]
             return Common.createCommon(
-                team_func(home_team["id"], home_team),
-                team_func(away_team["id"], away_team),
+                team_func(home_team["id"], home_team, team_map),
+                team_func(away_team["id"], away_team, team_map),
                 Common.convertStatus(competition["status"]["type"]["name"]),
                 Common.toOrdinal(competition["status"]["period"]),
                 competition["date"],

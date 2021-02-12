@@ -1,4 +1,5 @@
 from college_basketball import CollegeBasketball
+from basketball import Basketball
 import time
 import json
 
@@ -22,6 +23,12 @@ def lambda_handler(event, context):
 
     if sport == "college-basketball":
         result = CollegeBasketball.getGames(False)
+    elif sport == "basketball":
+        result = Basketball.getGames(False)
+    else:
+        result = None
+
+    if result is not None:
         cache[sport] = (result, time.time())
         return success_response(result)
 
