@@ -3,6 +3,7 @@
 mod animation;
 mod aws_screen;
 mod baseball;
+mod basketball;
 mod button;
 mod clock;
 mod college_basketball;
@@ -27,6 +28,7 @@ extern crate log;
 use animation::AnimationTestScreen;
 use aws_screen::AWSScreen;
 use baseball::BaseballGame;
+use basketball::BasketballGame;
 use clap;
 use college_basketball::CollegeBasketballGame;
 use common::ScreenId;
@@ -211,7 +213,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     map.insert(ScreenId::Baseball, Box::new(baseball));
 
     // College Basketball
-    let baseball: AWSScreen<CollegeBasketballGame> = AWSScreen::new(
+    let college_basketball: AWSScreen<CollegeBasketballGame> = AWSScreen::new(
         scheduler_sender.clone(),
         v2_url.clone(),
         settings.get_settings().rotation_time,
@@ -221,8 +223,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         matrix::FontBook::new(&root_path),
         matrix::PixelBook::new(&root_path),
     );
+    map.insert(ScreenId::CollegeBasketball, Box::new(college_basketball));
 
-    map.insert(ScreenId::CollegeBasketball, Box::new(baseball));
+    // Basketball
+    let basketball: AWSScreen<BasketballGame> = AWSScreen::new(
+        scheduler_sender.clone(),
+        v2_url.clone(),
+        settings.get_settings().rotation_time,
+        settings.get_settings().favorite_teams.clone(),
+        api_key.clone(),
+        settings.get_settings().timezone.clone(),
+        matrix::FontBook::new(&root_path),
+        matrix::PixelBook::new(&root_path),
+    );
+    map.insert(ScreenId::Basketball, Box::new(basketball));
+
     // Clock
     let clock = clock::Clock::new(
         scheduler_sender.clone(),
