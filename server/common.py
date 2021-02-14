@@ -93,16 +93,20 @@ class Common:
         try:
             competition = json["competitions"][0]
             home_team, away_team = competition["competitors"]
-            return Common.createCommon(
-                team_func(home_team["id"], home_team, team_map),
-                team_func(away_team["id"], away_team, team_map),
-                Common.convertStatus(competition["status"]["type"]["name"]),
-                Common.toOrdinal(competition["status"]["period"]),
-                competition["date"],
-                competition["id"],
-                int(home_team["score"]),
-                int(away_team["score"]),
-            )
+            status = Common.convertStatus(competition["status"]["type"]["name"])
+            if status is not None:
+                return Common.createCommon(
+                    team_func(home_team["id"], home_team, team_map),
+                    team_func(away_team["id"], away_team, team_map),
+                    status,
+                    Common.toOrdinal(competition["status"]["period"]),
+                    competition["date"],
+                    competition["id"],
+                    int(home_team["score"]),
+                    int(away_team["score"]),
+                )
+            else:
+                return None
         except Exception as e:
             print(e)
             return None
