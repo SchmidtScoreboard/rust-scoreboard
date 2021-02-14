@@ -475,7 +475,7 @@ team_map = {
         "127", "Michigan State", "Spartans", "Michigan St", "MSU", "18453B", "ffffff"
     ),
     "130": Team.createTeam(
-        "130", "Michigan", "Wolverines", "Michigan", "MICH", "00274c", "ffffff"
+        "130", "Michigan", "Wolverines", "Michigan", "MICH", "00274c", "ffcb05"
     ),
     "270": Team.createTeam(
         "270", "Milwaukee", "Panthers", "Milwaukee", "MILW", "000000", "ffc20e"
