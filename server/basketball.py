@@ -1,5 +1,6 @@
 from common import Common, Team
 from fetcher import Fetcher
+import time
 
 team_map = {
     "1": Team.createTeam("1", "Atlanta", "Hawks", "Hawks", "ATL", "002B5C", "ffffff"),
@@ -100,5 +101,9 @@ class Basketball:
 
 
 if __name__ == "__main__":
-    print("Fetching games")
-    print(Basketball.getGames(False))
+    while True:
+        print("Fetching games")
+        print(Basketball.getGames(False))
+        time.sleep(60)
+
+
