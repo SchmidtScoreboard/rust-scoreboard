@@ -541,7 +541,7 @@ team_map = {
         "94", "Northern Kentucky", "Norse", "N Kentucky", "NKU", "000000", "eab621"
     ),
     "77": Team.createTeam(
-        "77", "Northwestern", "Wildcats", "NW", "NW", "372286", "d6cac1"
+        "77", "Northwestern", "Wildcats", "N Western", "NW", "372286", "d6cac1"
     ),
     "87": Team.createTeam(
         "87", "Notre Dame", "Fighting Irish", "Notre Dame", "ND", "00122b", "ae9142"
