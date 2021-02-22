@@ -90,7 +90,7 @@ class Basketball:
 
     def getGames(testing: bool):
         if testing:
-            return {"games": []}
+            return Common.get_testing_games("basketball")
         else:
             raw_games = Fetcher.fetch("basketball", "nba")
             games = [

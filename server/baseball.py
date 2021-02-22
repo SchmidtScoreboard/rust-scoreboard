@@ -1,9 +1,12 @@
 from common import Common, Team
 from fetcher import Fetcher
-from ncaa import team_map
+import time
+
+team_map = {
+}
 
 
-class CollegeBasketball:
+class Baseball:
     def createGame(common):
         if common is None:
             return None
@@ -11,18 +14,20 @@ class CollegeBasketball:
 
     def getGames(testing: bool):
         if testing:
-            return Common.get_testing_games("college-basketball")
+            return Common.get_testing_games("baseball")
         else:
-            raw_games = Fetcher.fetch("basketball", "mens-college-basketball")
+            raw_games = Fetcher.fetch("baseball", "mlb")
             games = [
-                CollegeBasketball.createGame(
-                    Common.from_json(game, Team.getTeam, team_map)
-                )
+                Baseball.createGame(Common.from_json(game, Team.getTeam, team_map))
                 for game in raw_games
             ]
             return {"games": [g for g in games if g]}
 
 
 if __name__ == "__main__":
-    print("Fetching games")
-    print(CollegeBasketball.getGames(False))
+    while True:
+        print("Fetching games")
+        print(Baseball.getGames(False))
+        time.sleep(60)
+
+

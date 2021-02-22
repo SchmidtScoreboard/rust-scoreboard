@@ -550,7 +550,7 @@ team_map = {
         "195", "Ohio", "Bobcats", "Ohio", "OHIO", "295A29", "e4bb85"
     ),
     "194": Team.createTeam(
-        "194", "Ohio State", "Buckeyes", "Ohio State", "OSU", "de3129", "ffffff"
+        "194", "Ohio State", "Buckeyes", "Ohio State", "OSU", "bb0000", "ffffff"
     ),
     "201": Team.createTeam(
         "201", "Oklahoma", "Sooners", "Oklahoma", "OU", "7b0000", "cccccc"

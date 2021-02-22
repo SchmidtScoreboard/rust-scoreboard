@@ -1,6 +1,8 @@
 import inflect
 from team_generator import get_app_color_shit, getDisplayName
 from color import processTeamColors
+import os
+import json
 
 
 p = inflect.engine()
@@ -110,3 +112,14 @@ class Common:
         except Exception as e:
             print(e)
             return None
+
+    def get_testing_games(game_type: str):
+
+        path = os.path.join("saved-games", f"{game_type}.json") 
+        try:
+            with open(path) as games_file:
+                data = json.load(games_file)
+                return data
+        except Exception as e:
+            print(e)
+            return {"games": []}

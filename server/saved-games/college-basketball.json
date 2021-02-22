@@ -1,0 +1,32 @@
+{
+   "games":[
+      {
+         "common":{
+            "home_team":{
+               "id":"356",
+               "location":"Illinois",
+               "name":"Fighting Illini",
+               "display_name":"Illinois",
+               "abbreviation":"ILL",
+               "primary_color":"f77239",
+               "secondary_color":"000000"
+            },
+            "away_team":{
+               "id":"130",
+               "location":"Michigan",
+               "name":"Wolverines",
+               "display_name":"Michigan",
+               "abbreviation":"MICH",
+               "primary_color":"00274c",
+               "secondary_color":"ffcb05"
+            },
+            "home_score":84,
+            "away_score":72,
+            "status":"ACTIVE",
+            "ordinal":"2nd",
+            "start_time":"2021-02-21T18:00Z",
+            "id":"401263373"
+         }
+      }
+   ]
+}

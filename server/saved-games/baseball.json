@@ -1,0 +1,37 @@
+{
+   "games":[
+      {
+         "common":{
+            "home_team":{
+               "id":"112",
+               "location":"Chicago",
+               "name":"Chicago Cubs",
+               "display_name":"Cubs",
+               "abbreviation":"CHC",
+               "primary_color":"0e3386",
+               "secondary_color":"ffffff"
+            },
+            "away_team":{
+               "id":"145",
+               "location":"Chicago",
+               "name":"White Sox",
+               "display_name":"White Sox",
+               "abbreviation":"CWS",
+               "primary_color":"27251f",
+               "secondary_color":"c4ced4"
+            },
+            "home_score":6,
+            "away_score":6,
+            "status":"ACTIVE",
+            "ordinal":"9th",
+            "start_time":"2021-02-21T18:00Z",
+            "id":"401263373"
+         },
+        "inning": 9,
+        "is_inning_top": true,
+        "balls": 3,
+        "strikes": 2,
+        "outs": 2
+      }
+   ]
+}

@@ -1,0 +1,32 @@
+{
+   "games":[
+      {
+         "common":{
+            "home_team":{
+               "id":"4",
+               "location":"Chicago",
+               "name":"Chicago Bulls",
+               "display_name":"Bulls",
+               "abbreviation":"CHI",
+               "primary_color":"CE1141",
+               "secondary_color":"000000"
+            },
+            "away_team":{
+               "id":"11",
+               "location":"Indiana",
+               "name":"Indiana Pacers",
+               "display_name":"Pacers",
+               "abbreviation":"IND",
+               "primary_color":"061642",
+               "secondary_color":"ffffff"
+            },
+            "home_score":112,
+            "away_score":109,
+            "status":"ACTIVE",
+            "ordinal":"4th",
+            "start_time":"2021-02-21T18:00Z",
+            "id":"401263373"
+         }
+      }
+   ]
+}
