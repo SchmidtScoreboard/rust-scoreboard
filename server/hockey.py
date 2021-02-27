@@ -1,6 +1,7 @@
 from common import Common, Team, SportId
 from fetcher import Fetcher
 import time
+import asyncio
 
 # .*: \{ id: (.*), city: (.*), name: (.*), display_name: (.*), abbreviation: (.*), primary_color: (.*), secondary_color: (.*) \},
 
@@ -51,23 +52,22 @@ class Hockey:
             return None
         return {"common": common, "away_powerplay": away_powerplay, "home_powerplay": home_powerplay, "away_players" : away_players, "home_players": home_players }
 
-    def get_games(testing: bool):
+    async def get_games(testing: bool):
         if testing:
             return Common.get_testing_games("hockey")
         else:
-            raw_games = Fetcher.schedule_fetch("https://statsapi.web.nhl.com/api/v1/schedule")
+            raw_games = await Fetcher.schedule_fetch("https://statsapi.web.nhl.com/api/v1/schedule")
             games = [
                 Common.from_schedule_json(game, team_map, SportId.HOCKEY)
                 for game in raw_games
             ]
             
-            # TODO parallelize this activity
-            return [Hockey.refresh(game) for game in games if game]
+            group = asyncio.gather(*[Hockey.refresh_game(game) for game in games if game])
+            return await group
 
-
-    def refresh_game(game):
+    async def refresh_game(game):
         print(f"Refreshing game " + str(game["id"]))
-        data = Fetcher.game_fetch("https://statsapi.web.nhl.com/api/v1/game/" + str(game["id"]) + "/linescore")
+        data = await Fetcher.game_fetch("https://statsapi.web.nhl.com/api/v1/game/" + str(game["id"]) + "/linescore")
         teams = data["teams"]
         away = teams["away"]
         home = teams["home"]
@@ -106,10 +106,15 @@ class Hockey:
         return game
 
 
+async def main():
+    print("Fetching games")
+    print(await Hockey.get_games(False))
+
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
     while True:
-        print("Fetching games")
-        print(Hockey.get_games(False))
+        loop.run_until_complete(main())
         time.sleep(60)
+    loop.close()
 
 

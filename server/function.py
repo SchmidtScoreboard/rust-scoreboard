@@ -2,8 +2,10 @@ from college_basketball import CollegeBasketball
 from basketball import Basketball
 from hockey import Hockey
 from baseball import Baseball
+from all_sports import All
 import time
 import json
+import asyncio
 
 cache = {}
 
@@ -19,6 +21,7 @@ def wrap_games(games):
 
 def lambda_handler(event, context):
     # First, hit the cache
+    loop = asyncio.get_event_loop()
     print(event)
     sport = event["path"][1:]
     if sport in cache:
@@ -27,13 +30,15 @@ def lambda_handler(event, context):
             return success_response(item)
 
     if sport == "college-basketball":
-        result = wrap_games(CollegeBasketball.get_games(False))
+        result = wrap_games(loop.run_until_complete(CollegeBasketball.get_games(False)))
     elif sport == "basketball":
-        result = wrap_games(Basketball.get_games(False))
+        result = wrap_games(loop.run_until_complete(Basketball.get_games(False)))
     elif sport == "hockey":
-        result = wrap_games(Hockey.get_games(False))
+        result = wrap_games(loop.run_until_complete(Hockey.get_games(False)))
     elif sport == "baseball":
-        result = wrap_games(Baseball.get_games(False))
+        result = wrap_games(loop.run_until_complete(Baseball.get_games(False)))
+    elif sport == "all":
+        result = wrap_games(loop.run_until_complete(All.get_games(False)))
     else:
         result = None
 

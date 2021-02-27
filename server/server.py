@@ -3,26 +3,39 @@ from college_basketball import CollegeBasketball
 from basketball import Basketball
 from hockey import Hockey
 from baseball import Baseball
+from all_sports import All
+import asyncio
+import argparse
 
+parser = argparse.ArgumentParser(description='Run a testing server')
+parser.add_argument('--fake', help='Run with fake data')
+args = parser.parse_args()
+
+testing = args.fake
+
+loop = asyncio.get_event_loop()
 app = Flask(__name__)
 
 
 @app.route("/college-basketball")
 def college_basketball():
-    return {"data": { "games" : CollegeBasketball.get_games(True)}}
+    return {"data": { "games" : loop.run_until_complete(CollegeBasketball.get_games(testing))}}
 
+@app.route("/all")
+def all():
+    return {"data": { "games": loop.run_until_complete(All.get_games(testing))}}
 
 @app.route("/basketball")
 def basketball():
-    return {"data": { "games" : Basketball.get_games(True)}}
+    return {"data": { "games" : loop.run_until_complete(Basketball.get_games(testing))}}
 
 @app.route("/nhl")
 def hockey():
-    return {"data": { "games" : Hockey.get_games(True)}}
+    return {"data": { "games" : loop.run_until_complete(Hockey.get_games(testing))}}
 
 @app.route("/mlb")
 def baseball():
-    return {"data": { "games" : Baseball.get_games(True)}}
+    return {"data": { "games" : loop.run_until_complete(Baseball.get_games(testing))}}
 
 
 if __name__ == "__main__":

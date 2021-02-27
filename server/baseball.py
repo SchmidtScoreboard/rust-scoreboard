@@ -1,6 +1,7 @@
 from common import Common, Team, SportId
 from fetcher import Fetcher
 import time
+import asyncio
 
 team_map = {
     108: Team.create_team("108", 'Los Angeles', "Angels", "Angels", "LAA", "ba0021", "c4ced4"),
@@ -44,21 +45,21 @@ class Baseball:
             return None
         return {"common": common, "balls": balls, "outs": outs, "strikes": strikes, "inning": inning, "is_inning_top" : is_inning_top}
 
-    def get_games(testing: bool):
+    async def get_games(testing: bool):
         if testing:
             return Common.get_testing_games("baseball")
         else:
-            raw_games = Fetcher.schedule_fetch("http://statsapi.mlb.com/api/v1/schedule?sportId=1")
+            raw_games = await Fetcher.schedule_fetch("http://statsapi.mlb.com/api/v1/schedule?sportId=1")
             games = [
                 Common.from_schedule_json(game, team_map, SportId.BASEBALL)
                 for game in raw_games
             ]
             
-            # TODO run this asynchronously
-            return [Baseball.refresh(game) for game in games if game]
+            group = asyncio.gather(*[Baseball.refresh_game(game) for game in games if game])
+            return await group
 
-    def refresh_game(game):
-        data = Fetcher.game_fetch("http://statsapi.mlb.com/api/v1.1/game/" + str(game["id"]) + "/feed/live")
+    async def refresh_game(game):
+        data = await Fetcher.game_fetch("http://statsapi.mlb.com/api/v1.1/game/" + str(game["id"]) + "/feed/live")
         linescore = data["liveData"]["linescore"]
         teams = linescore["teams"]
         away = teams["away"]
@@ -97,10 +98,15 @@ class Baseball:
         return Baseball.create_game(game, balls, outs, strikes, inning, is_inning_top)
 
 
+async def main():
+    print("Fetching games")
+    print(await Baseball.get_games(False))
+
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
     while True:
-        print("Fetching games")
-        print(Baseball.get_games(False))
+        loop.run_until_complete(main())
         time.sleep(60)
+    loop.close()
 
 

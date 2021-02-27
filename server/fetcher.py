@@ -1,30 +1,35 @@
 import requests
 
+import aiohttp
+
 
 class Fetcher:
-    def schedule_fetch(schedule_url: str):
-        r = requests.get(url=schedule_url)
-        json = r.json()
-        dates = json["dates"]
-        if len(dates) > 0:
-            return dates[0]["games"]
-        else:
-            return []
+    async def schedule_fetch(schedule_url: str):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(schedule_url) as r:
+                json = await r.json()
+                dates = json["dates"]
+                if len(dates) > 0:
+                    return dates[0]["games"]
+                else:
+                    return []
             
 
-    def game_fetch(game_url: str):
-        r = requests.get(url=game_url)
-        return r.json()
+    async def game_fetch(game_url: str):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(game_url) as r:
+                return await r.json()
 
 
     def get_espn_url(sport: str, selection: str):
         return f"http://site.api.espn.com/apis/site/v2/sports/{sport}/{selection}/scoreboard"
 
-    def espn_fetch(sport: str, selection: str):
-        r = requests.get(url=Fetcher.get_espn_url(sport, selection))
-        json = r.json()
-        events = json["events"]
-        return events
+    async def espn_fetch(sport: str, selection: str):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(Fetcher.get_espn_url(sport, selection)) as r:
+                json = await r.json()
+                events = json["events"]
+                return events
 
 
 if __name__ == "__main__":

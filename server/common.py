@@ -149,7 +149,7 @@ class Common:
         try:
             with open(path) as games_file:
                 data = json.load(games_file)
-                return data
+                return data["games"]
         except Exception as e:
             print(e)
-            return {"games": []}
+            return []
