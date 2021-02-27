@@ -1,4 +1,4 @@
-from common import Common, Team
+from common import Common, Team, SportId
 from fetcher import Fetcher
 import time
 
@@ -57,18 +57,13 @@ class Hockey:
         else:
             raw_games = Fetcher.schedule_fetch("https://statsapi.web.nhl.com/api/v1/schedule")
             games = [
-                Common.from_schedule_json(game, team_map)
+                Common.from_schedule_json(game, team_map, SportId.HOCKEY)
                 for game in raw_games
             ]
             
             # TODO parallelize this activity
-            complete_games = []
-            for game in games:
-                if game is None:
-                    continue
-                complete_games.append(Hockey.refresh_game(game))
+            return [Hockey.refresh(game) for game in games if game]
 
-            return {"games": g for g in complete_games if g}
 
     def refresh_game(game):
         print(f"Refreshing game " + str(game["id"]))
@@ -106,8 +101,9 @@ class Hockey:
             status = "PREGAME"
 
         game["status"] = status
-        print(f"Done refreshing game " + str(game["id"]))
-        return Hockey.createGame(game, away_powerplay, home_powerplay, away_players, home_players)
+        game = Hockey.createGame(game, away_powerplay, home_powerplay, away_players, home_players)
+        print(f"Done refreshing game " + str(game["common"]["id"]))
+        return game
 
 
 if __name__ == "__main__":

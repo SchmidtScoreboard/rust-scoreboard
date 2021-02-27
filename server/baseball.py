@@ -1,4 +1,4 @@
-from common import Common, Team
+from common import Common, Team, SportId
 from fetcher import Fetcher
 import time
 
@@ -50,18 +50,12 @@ class Baseball:
         else:
             raw_games = Fetcher.schedule_fetch("http://statsapi.mlb.com/api/v1/schedule?sportId=1")
             games = [
-                Common.from_schedule_json(game, team_map)
+                Common.from_schedule_json(game, team_map, SportId.BASEBALL)
                 for game in raw_games
             ]
             
             # TODO run this asynchronously
-            complete_games = []
-            for game in games:
-                if game is None:
-                    continue
-                complete_games.append(Baseball.refresh_game(game))
-
-            return {"games": g for g in complete_games if g}
+            return [Baseball.refresh(game) for game in games if game]
 
     def refresh_game(game):
         data = Fetcher.game_fetch("http://statsapi.mlb.com/api/v1.1/game/" + str(game["id"]) + "/feed/live")

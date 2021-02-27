@@ -3,9 +3,16 @@ from team_generator import get_app_color_shit, getDisplayName
 from color import processTeamColors
 import os
 import json
+from enum import Enum
 
 
 p = inflect.engine()
+
+class SportId(Enum):
+    HOCKEY = 0
+    BASEBALL = 1
+    COLLEGE_BASKETBALL = 2
+    BASKETBALL = 3
 
 
 class Team:
@@ -53,6 +60,7 @@ class Team:
 
 class Common:
     def createCommon(
+        sport_id,
         home_team,
         away_team,
         status,
@@ -63,6 +71,7 @@ class Common:
         away_score=0,
     ):
         return {
+            "sport_id": sport_id,
             "home_team": home_team,
             "away_team": away_team,
             "home_score": home_score,
@@ -91,13 +100,14 @@ class Common:
     def toOrdinal(period: int):
         return p.ordinal(period)
 
-    def from_espn_json(json, team_func, team_map):
+    def from_espn_json(json, team_func, team_map, screen_id):
         try:
             competition = json["competitions"][0]
             home_team, away_team = competition["competitors"]
             status = Common.convertStatus(competition["status"]["type"]["name"])
             if status is not None:
                 return Common.createCommon(
+                    screen_id.value,
                     team_func(home_team["id"], home_team, team_map),
                     team_func(away_team["id"], away_team, team_map),
                     status,
@@ -113,19 +123,24 @@ class Common:
             print(e)
             return None
     
-    def from_schedule_json(json, team_map):
-        away_team= json["teams"]["away"]["team"]
-        home_team= json["teams"]["away"]["team"]
-        return Common.createCommon(
-            team_map[home_team["id"]],
-            team_map[away_team["id"]],
-            "", # status
-            "", # ordinal
-            json["gameDate"],
-            json["gamePk"],
-            0,
-            0
-        )
+    def from_schedule_json(json, team_map, screen_id):
+        try:
+            away_team= json["teams"]["away"]["team"]
+            home_team= json["teams"]["away"]["team"]
+            return Common.createCommon(
+                screen_id.value,
+                team_map[home_team["id"]],
+                team_map[away_team["id"]],
+                "", # status
+                "", # ordinal
+                json["gameDate"],
+                json["gamePk"],
+                0,
+                0
+            )
+        except Exception as e:
+            print(e)
+            return None
 
 
     def get_testing_games(game_type: str):

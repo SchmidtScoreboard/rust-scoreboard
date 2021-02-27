@@ -1,4 +1,4 @@
-from common import Common, Team
+from common import Common, Team, SportId
 from fetcher import Fetcher
 from ncaa import team_map
 
@@ -16,11 +16,11 @@ class CollegeBasketball:
             raw_games = Fetcher.espn_fetch("basketball", "mens-college-basketball")
             games = [
                 CollegeBasketball.createGame(
-                    Common.from_espn_json(game, Team.getESPNTeam, team_map)
+                    Common.from_espn_json(game, Team.getESPNTeam, team_map, SportId.COLLEGE_BASKETBALL)
                 )
                 for game in raw_games
             ]
-            return {"games": [g for g in games if g]}
+            return [g for g in games if g]
 
 
 if __name__ == "__main__":
