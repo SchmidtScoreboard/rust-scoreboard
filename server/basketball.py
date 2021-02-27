@@ -92,9 +92,9 @@ class Basketball:
         if testing:
             return Common.get_testing_games("basketball")
         else:
-            raw_games = Fetcher.fetch("basketball", "nba")
+            raw_games = Fetcher.espn_fetch("basketball", "nba")
             games = [
-                Basketball.createGame(Common.from_json(game, Team.getTeam, team_map))
+                Basketball.createGame(Common.from_espn_json(game, Team.getESPNTeam, team_map))
                 for game in raw_games
             ]
             return {"games": [g for g in games if g]}

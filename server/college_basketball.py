@@ -13,10 +13,10 @@ class CollegeBasketball:
         if testing:
             return Common.get_testing_games("college-basketball")
         else:
-            raw_games = Fetcher.fetch("basketball", "mens-college-basketball")
+            raw_games = Fetcher.espn_fetch("basketball", "mens-college-basketball")
             games = [
                 CollegeBasketball.createGame(
-                    Common.from_json(game, Team.getTeam, team_map)
+                    Common.from_espn_json(game, Team.getESPNTeam, team_map)
                 )
                 for game in raw_games
             ]

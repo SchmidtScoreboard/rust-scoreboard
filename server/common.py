@@ -22,7 +22,7 @@ class Team:
             "secondary_color": secondary_color,
         }
 
-    def getTeam(team_id, competitor, team_map):
+    def getESPNTeam(team_id, competitor, team_map):
         if team_id in team_map:
             return team_map[team_id]
         else:
@@ -91,7 +91,7 @@ class Common:
     def toOrdinal(period: int):
         return p.ordinal(period)
 
-    def from_json(json, team_func, team_map):
+    def from_espn_json(json, team_func, team_map):
         try:
             competition = json["competitions"][0]
             home_team, away_team = competition["competitors"]
@@ -112,6 +112,21 @@ class Common:
         except Exception as e:
             print(e)
             return None
+    
+    def from_schedule_json(json, team_map):
+        away_team= json["teams"]["away"]["team"]
+        home_team= json["teams"]["away"]["team"]
+        return Common.createCommon(
+            team_map[home_team["id"]],
+            team_map[away_team["id"]],
+            "", # status
+            "", # ordinal
+            json["gameDate"],
+            json["gamePk"],
+            0,
+            0
+        )
+
 
     def get_testing_games(game_type: str):
 

@@ -342,22 +342,34 @@ impl<'a> Matrix<'a> {
         }
     }
 }
-
-#[derive(Hash, Eq, PartialEq, Debug, Clone)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub struct Dimensions {
     pub width: i32,
+    pub height: i32
+}
+
+#[derive(Eq, PartialEq, Debug, Clone)]
+pub struct FontDimensions {
+    pub width: i32,
     pub height: i32,
+    pub width_overrides: HashMap<char, i32>
+}
+
+impl FontDimensions {
+    pub fn new(width: i32, height: i32, width_overrides: HashMap<char, i32>) -> FontDimensions {
+        FontDimensions { width , height, width_overrides}
+    }
 }
 
 impl Dimensions {
     pub fn new(width: i32, height: i32) -> Dimensions {
-        Dimensions { width, height }
+        Dimensions {width, height}
     }
 }
 
 pub struct Font {
     pub led_font: rpi_led_matrix::LedFont,
-    pub dimensions: Dimensions,
+    pub dimensions: FontDimensions,
 }
 
 impl Font {
@@ -368,21 +380,25 @@ impl Font {
         let _create_dir_result = fs::create_dir(&target_dir);
         fs::write(&target_dir.join(file_name), bytes).expect("Failed to write file");
     }
-    pub fn new(root_path: &std::path::Path, font_file: &str, width: i32, height: i32) -> Font {
+    pub fn new(root_path: &std::path::Path, font_file: &str, width: i32, height: i32, width_overrides: HashMap<char, i32>) -> Font {
         Font::dump_file(root_path, font_file);
         let full_path = root_path.join(format!("fonts/{}", font_file));
         Font {
             led_font: rpi_led_matrix::LedFont::new(std::path::Path::new(&full_path))
                 .expect(&format!("Failed to find font file {:?}", &full_path)),
-            dimensions: Dimensions::new(width, height),
+            dimensions: FontDimensions::new(width, height, width_overrides),
         }
     }
 
-    pub fn get_text_dimensions(self: &Self, display_text: &str) -> Dimensions {
-        Dimensions::new(
-            display_text.len() as i32 * self.dimensions.width,
-            self.dimensions.height,
-        )
+    pub fn get_text_dimensions(self: &Self, display_text: &str) -> Dimensions{
+        let width = display_text.chars().map(|c| {
+            match self.dimensions.width_overrides.get(&c) {
+                Some(w) => w,
+                None => &self.dimensions.width
+            }
+        } ).sum();
+        Dimensions::new(width, self.dimensions.height)
+
     }
 }
 
@@ -398,14 +414,19 @@ pub struct FontBook {
 
 impl FontBook {
     pub fn new(root_path: &std::path::Path) -> FontBook {
+        let mut override4x6= HashMap::new();
+        let mut override5x8= HashMap::new();
+
+        override4x6.insert('N',5);
+        override5x8.insert('Y',6);
         FontBook {
             font4x6: Font::new(
-                root_path, "4x6.bdf", 4, 5, // True text height is 5
+                root_path, "4x6.bdf", 4, 5, override4x6 // True text height is 5
             ),
             font5x8: Font::new(
-                root_path, "5x8.bdf", 5, 6, // True text height is 6
+                root_path, "5x8.bdf", 5, 6, override5x8 // True text height is 6
             ),
-            font7x13: Font::new(root_path, "7x13.bdf", 7, 9), // True text height is 9
+            font7x13: Font::new(root_path, "7x13.bdf", 7, 9, HashMap::new()), // True text height is 9
         }
     }
 }
