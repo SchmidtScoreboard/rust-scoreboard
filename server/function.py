@@ -27,13 +27,13 @@ def lambda_handler(event, context):
             return success_response(item)
 
     if sport == "college-basketball":
-        result = wrap_games(CollegeBasketball.getGames(False))
+        result = wrap_games(CollegeBasketball.get_games(False))
     elif sport == "basketball":
-        result = wrap_games(Basketball.getGames(False))
+        result = wrap_games(Basketball.get_games(False))
     elif sport == "hockey":
-        result = wrap_games(Hockey.getGames(False))
+        result = wrap_games(Hockey.get_games(False))
     elif sport == "baseball":
-        result = wrap_games(Baseball.getGames(False))
+        result = wrap_games(Baseball.get_games(False))
     else:
         result = None
 

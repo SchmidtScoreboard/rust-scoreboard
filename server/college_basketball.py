@@ -4,19 +4,19 @@ from ncaa import team_map
 
 
 class CollegeBasketball:
-    def createGame(common):
+    def create_game(common):
         if common is None:
             return None
         return {"common": common}
 
-    def getGames(testing: bool):
+    def get_games(testing: bool):
         if testing:
             return Common.get_testing_games("college-basketball")
         else:
             raw_games = Fetcher.espn_fetch("basketball", "mens-college-basketball")
             games = [
-                CollegeBasketball.createGame(
-                    Common.from_espn_json(game, Team.getESPNTeam, team_map, SportId.COLLEGE_BASKETBALL)
+                CollegeBasketball.create_game(
+                    Common.from_espn_json(game, Team.get_espn_team, team_map, SportId.COLLEGE_BASKETBALL)
                 )
                 for game in raw_games
             ]
@@ -25,4 +25,4 @@ class CollegeBasketball:
 
 if __name__ == "__main__":
     print("Fetching games")
-    print(CollegeBasketball.getGames(False))
+    print(CollegeBasketball.get_games(False))

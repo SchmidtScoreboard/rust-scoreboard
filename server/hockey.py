@@ -5,53 +5,53 @@ import time
 # .*: \{ id: (.*), city: (.*), name: (.*), display_name: (.*), abbreviation: (.*), primary_color: (.*), secondary_color: (.*) \},
 
 team_map = {
-    1: Team.createTeam("1", "New Jersey", "Devils", "Devils", "NJD", "c8102e", "000000"),
-    2: Team.createTeam("2", "New York", "Islanders", "Islanders", "NYI", "003087", "fc4c02"),
-    3: Team.createTeam("3", "New York", "Rangers", "Rangers", "NYR", "0033a0", "c8102e"),
-    4: Team.createTeam("4", "Philadelphia", "Flyers", "Flyers", "PHI", "fa4616", "000000"),
-    5: Team.createTeam("5", "Pittsburgh", "Penguins", "Penguins", "PIT", "ffb81c", "000000"),
-    6: Team.createTeam("6", "Boston", "Bruins", "Bruins", "BOS", "fcb514", "000000"),
-    7: Team.createTeam("7", "Buffalo", "Sabres", "Sabres", "BUF", "002654", "fcb514"),
-    8: Team.createTeam("8", "Montréal", "Canadiens", "Canadiens", "MTL", "a6192e", "001e62"),
-    9: Team.createTeam("9", "Ottawa", "Senators", "Senators", "OTT", "c8102e", "c69214"),
-    10: Team.createTeam("10", "Toronto", "Maple Leafs", "Leafs", "TOR", "00205b", "ffffff"),
-    12: Team.createTeam("12", "Carolina", "Hurricanes", "Canes", "CAR", "cc0000", "ffffff"),
-    13: Team.createTeam("13", "Florida", "Panthers", "Panthers", "FLA", "041e42", "b9975b"),
-    14: Team.createTeam("14", "Tampa Bay", "Lightning", "Lightning", "TBL", "00205b", "ffffff"),
-    15: Team.createTeam("15", "Washington", "Capitals", "Capitals", "WSH", "041e42", "c8102e"),
-    16: Team.createTeam("16", "Chicago", "Blackhawks", "B Hawks", "CHI", "ce1126", "000000"),
-    17: Team.createTeam("17", "Detroit", "Red Wings", "Red Wings", "DET", "c8102e", "ffffff"),
-    18: Team.createTeam("18", "Nashville", "Predators", "Predators", "NSH", "ffb81c", "041e42"),
-    19: Team.createTeam("19", "St. Louis", "Blues", "Blues", "STL", "002f87", "ffb81c"),
-    20: Team.createTeam("20", "Calgary", "Flames", "Flames", "CGY", "ce1126", "f3bc52"),
-    21: Team.createTeam("21", "Colorado", "Avalanche", "Avalanche", "COL", "236192", "d94574"),
-    22: Team.createTeam("22", "Edmonton", "Oilers", "Oilers", "EDM", "fc4c02", "041e42"),
-    23: Team.createTeam("23", "Vancouver", "Canucks", "Canucks", "VAN", "00843D", "ffffff"),
-    24: Team.createTeam("24", "Anaheim", "Ducks", "Ducks", "ANA", "b5985a", "ffffff"),
-    25: Team.createTeam("25", "Dallas", "Stars", "Stars", "DAL", "006341", "a2aaad"),
-    26: Team.createTeam("26", "Los Angeles", "Kings", "Kings", "LAK", "a2aaad", "000000"),
-    28: Team.createTeam("28", "San Jose", "Sharks", "Sharks", "SJS", "006272", "e57200"),
-    29: Team.createTeam("29", "Columbus", "Blue Jackets", "B Jackets", "CBJ", "041e42", "c8102e"),
-    30: Team.createTeam("30", "Minnesota", "Wild", "Wild", "MIN", "154734", "a6192e"),
-    52: Team.createTeam("52", "Winnipeg", "Jets", "Jets", "WPG", "041e42", "a2aaad"),
-    53: Team.createTeam("53", "Arizona", "Coyotes", "Coyotes", "ARI", "8c2633", "e2d6b5"),
-    54: Team.createTeam("54", "Las Vegas", "Golden Knights", "Knights", "VGK", "B4975A", "000000"),
-    87: Team.createTeam("87", "Atlantic", "Atlantic All Stars", "Atlantic", "ATL", "fa1b1b", "000000"),
-    88: Team.createTeam("88", "Metropolitan", "Metropolitan All Stars", "Metro", "MET", "fae71b", "000000"),
-    89: Team.createTeam("89", "Central", "Central All Stars", "Central", "CEN", "1411bd", "000000"),
-    90: Team.createTeam("90", "Pacific", "Pacific All Stars", "Pacific", "PAC", "11bd36", "000000"),
-    7460: Team.createTeam("7460", "Canada", "Canadian All Stars", "Canada", "CA", "d11717", "ffffff"),
-    7461: Team.createTeam("7461", "America", "American All Stars", "America", "USA", "3271a8", "ffffff"),
+    1: Team.create_team("1", "New Jersey", "Devils", "Devils", "NJD", "c8102e", "000000"),
+    2: Team.create_team("2", "New York", "Islanders", "Islanders", "NYI", "003087", "fc4c02"),
+    3: Team.create_team("3", "New York", "Rangers", "Rangers", "NYR", "0033a0", "c8102e"),
+    4: Team.create_team("4", "Philadelphia", "Flyers", "Flyers", "PHI", "fa4616", "000000"),
+    5: Team.create_team("5", "Pittsburgh", "Penguins", "Penguins", "PIT", "ffb81c", "000000"),
+    6: Team.create_team("6", "Boston", "Bruins", "Bruins", "BOS", "fcb514", "000000"),
+    7: Team.create_team("7", "Buffalo", "Sabres", "Sabres", "BUF", "002654", "fcb514"),
+    8: Team.create_team("8", "Montréal", "Canadiens", "Canadiens", "MTL", "a6192e", "001e62"),
+    9: Team.create_team("9", "Ottawa", "Senators", "Senators", "OTT", "c8102e", "c69214"),
+    10: Team.create_team("10", "Toronto", "Maple Leafs", "Leafs", "TOR", "00205b", "ffffff"),
+    12: Team.create_team("12", "Carolina", "Hurricanes", "Canes", "CAR", "cc0000", "ffffff"),
+    13: Team.create_team("13", "Florida", "Panthers", "Panthers", "FLA", "041e42", "b9975b"),
+    14: Team.create_team("14", "Tampa Bay", "Lightning", "Lightning", "TBL", "00205b", "ffffff"),
+    15: Team.create_team("15", "Washington", "Capitals", "Capitals", "WSH", "041e42", "c8102e"),
+    16: Team.create_team("16", "Chicago", "Blackhawks", "B Hawks", "CHI", "ce1126", "000000"),
+    17: Team.create_team("17", "Detroit", "Red Wings", "Red Wings", "DET", "c8102e", "ffffff"),
+    18: Team.create_team("18", "Nashville", "Predators", "Predators", "NSH", "ffb81c", "041e42"),
+    19: Team.create_team("19", "St. Louis", "Blues", "Blues", "STL", "002f87", "ffb81c"),
+    20: Team.create_team("20", "Calgary", "Flames", "Flames", "CGY", "ce1126", "f3bc52"),
+    21: Team.create_team("21", "Colorado", "Avalanche", "Avalanche", "COL", "236192", "d94574"),
+    22: Team.create_team("22", "Edmonton", "Oilers", "Oilers", "EDM", "fc4c02", "041e42"),
+    23: Team.create_team("23", "Vancouver", "Canucks", "Canucks", "VAN", "00843D", "ffffff"),
+    24: Team.create_team("24", "Anaheim", "Ducks", "Ducks", "ANA", "b5985a", "ffffff"),
+    25: Team.create_team("25", "Dallas", "Stars", "Stars", "DAL", "006341", "a2aaad"),
+    26: Team.create_team("26", "Los Angeles", "Kings", "Kings", "LAK", "a2aaad", "000000"),
+    28: Team.create_team("28", "San Jose", "Sharks", "Sharks", "SJS", "006272", "e57200"),
+    29: Team.create_team("29", "Columbus", "Blue Jackets", "B Jackets", "CBJ", "041e42", "c8102e"),
+    30: Team.create_team("30", "Minnesota", "Wild", "Wild", "MIN", "154734", "a6192e"),
+    52: Team.create_team("52", "Winnipeg", "Jets", "Jets", "WPG", "041e42", "a2aaad"),
+    53: Team.create_team("53", "Arizona", "Coyotes", "Coyotes", "ARI", "8c2633", "e2d6b5"),
+    54: Team.create_team("54", "Las Vegas", "Golden Knights", "Knights", "VGK", "B4975A", "000000"),
+    87: Team.create_team("87", "Atlantic", "Atlantic All Stars", "Atlantic", "ATL", "fa1b1b", "000000"),
+    88: Team.create_team("88", "Metropolitan", "Metropolitan All Stars", "Metro", "MET", "fae71b", "000000"),
+    89: Team.create_team("89", "Central", "Central All Stars", "Central", "CEN", "1411bd", "000000"),
+    90: Team.create_team("90", "Pacific", "Pacific All Stars", "Pacific", "PAC", "11bd36", "000000"),
+    7460: Team.create_team("7460", "Canada", "Canadian All Stars", "Canada", "CA", "d11717", "ffffff"),
+    7461: Team.create_team("7461", "America", "American All Stars", "America", "USA", "3271a8", "ffffff"),
 }
 
 
 class Hockey:
-    def createGame(common, away_powerplay, home_powerplay, away_players, home_players):
+    def create_game(common, away_powerplay, home_powerplay, away_players, home_players):
         if common is None:
             return None
         return {"common": common, "away_powerplay": away_powerplay, "home_powerplay": home_powerplay, "away_players" : away_players, "home_players": home_players }
 
-    def getGames(testing: bool):
+    def get_games(testing: bool):
         if testing:
             return Common.get_testing_games("hockey")
         else:
@@ -101,7 +101,7 @@ class Hockey:
             status = "PREGAME"
 
         game["status"] = status
-        game = Hockey.createGame(game, away_powerplay, home_powerplay, away_players, home_players)
+        game = Hockey.create_game(game, away_powerplay, home_powerplay, away_players, home_players)
         print(f"Done refreshing game " + str(game["common"]["id"]))
         return game
 
@@ -109,7 +109,7 @@ class Hockey:
 if __name__ == "__main__":
     while True:
         print("Fetching games")
-        print(Hockey.getGames(False))
+        print(Hockey.get_games(False))
         time.sleep(60)
 
 

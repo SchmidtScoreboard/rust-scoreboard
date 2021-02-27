@@ -1,6 +1,6 @@
 import inflect
-from team_generator import get_app_color_shit, getDisplayName
-from color import processTeamColors
+from team_generator import get_app_color_shit, get_display_name
+from color import process_team_colors
 import os
 import json
 from enum import Enum
@@ -16,7 +16,7 @@ class SportId(Enum):
 
 
 class Team:
-    def createTeam(
+    def create_team(
         id, location, name, display_name, abbreviation, primary_color, secondary_color
     ):
         return {
@@ -29,7 +29,7 @@ class Team:
             "secondary_color": secondary_color,
         }
 
-    def getESPNTeam(team_id, competitor, team_map):
+    def get_espn_team(team_id, competitor, team_map):
         if team_id in team_map:
             return team_map[team_id]
         else:
@@ -39,14 +39,14 @@ class Team:
             location = team["location"]
             name = team["name"]
             abbreviation = team["abbreviation"]
-            display_name = getDisplayName(team)
+            display_name = get_display_name(team)
             color = team["color"]
             secondary_color = team.get("alternateColor", "000000")
-            color, secondary_color = processTeamColors(color, secondary_color)
-            server_out = f'"{team_id}": Team.createTeam("{team_id}", "{location}", "{name}", "{display_name}", "{abbreviation}", "{color}", "{secondary_color}"),'
+            color, secondary_color = process_team_colors(color, secondary_color)
+            server_out = f'"{team_id}": Team.create_team("{team_id}", "{location}", "{name}", "{display_name}", "{abbreviation}", "{color}", "{secondary_color}"),'
             app_out = f'{team_id}: Team({team_id}, "{location}", "{name}", "{abbreviation}", {get_app_color_shit(color)}, {get_app_color_shit(secondary_color)}),'
             print(f"Unknown team!\n {server_out}\n{app_out}")
-            team = Team.createTeam(
+            team = Team.create_team(
                 team_id,
                 location,
                 name,
@@ -59,7 +59,7 @@ class Team:
 
 
 class Common:
-    def createCommon(
+    def create_common(
         sport_id,
         home_team,
         away_team,
@@ -82,7 +82,7 @@ class Common:
             "id": id,
         }
 
-    def convertStatus(status: str):
+    def convert_status(status: str):
         status_map = {
             "STATUS_IN_PROGRESS": "ACTIVE",
             "STATUS_FINAL": "END",
@@ -97,21 +97,21 @@ class Common:
         else:
             return status_map[status]
 
-    def toOrdinal(period: int):
+    def to_ordinal(period: int):
         return p.ordinal(period)
 
     def from_espn_json(json, team_func, team_map, screen_id):
         try:
             competition = json["competitions"][0]
             home_team, away_team = competition["competitors"]
-            status = Common.convertStatus(competition["status"]["type"]["name"])
+            status = Common.convert_status(competition["status"]["type"]["name"])
             if status is not None:
-                return Common.createCommon(
+                return Common.create_common(
                     screen_id.value,
                     team_func(home_team["id"], home_team, team_map),
                     team_func(away_team["id"], away_team, team_map),
                     status,
-                    Common.toOrdinal(competition["status"]["period"]),
+                    Common.to_ordinal(competition["status"]["period"]),
                     competition["date"],
                     competition["id"],
                     int(home_team["score"]),
@@ -127,7 +127,7 @@ class Common:
         try:
             away_team= json["teams"]["away"]["team"]
             home_team= json["teams"]["away"]["team"]
-            return Common.createCommon(
+            return Common.create_common(
                 screen_id.value,
                 team_map[home_team["id"]],
                 team_map[away_team["id"]],

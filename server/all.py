@@ -5,8 +5,8 @@ from baseball import Baseball
 import time
 
 class All:
-    def getGames(testing: bool):
-        game_sets = [CollegeBasketball.getGames(testing), Basketball.getGames(testing), Hockey.getGames(testing), Baseball.getGames(testing)]
+    def get_games(testing: bool):
+        game_sets = [CollegeBasketball.get_games(testing), Basketball.get_games(testing), Hockey.get_games(testing), Baseball.get_games(testing)]
 
         flatten_list = [game for game_set in game_sets for game in game_set] 
 
@@ -15,5 +15,5 @@ class All:
 if __name__ == "__main__":
     while True:
         print("Fetching games")
-        print(All.getGames(False))
+        print(All.get_games(False))
         time.sleep(60)

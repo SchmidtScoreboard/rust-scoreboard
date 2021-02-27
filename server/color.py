@@ -1,11 +1,11 @@
-def getRGBFromHex(color: str):
+def get_rgb_from_hex(color: str):
     red = int(color[0:2], 16)
     green = int(color[2:4], 16)
     blue = int(color[4:6], 16)
     return red, green, blue
 
 
-def getLuminance(red, green, blue):
+def get_luminance(red, green, blue):
     r = red / 255
     g = green / 255
     b = blue / 255
@@ -23,32 +23,32 @@ def getLuminance(red, green, blue):
     return (0.2126 * r) + (0.7152 * g) + (0.0722 * b)
 
 
-def getContrast(primary, secondary):
-    primary_luminance = getLuminance(*primary)
-    secondary_luminance = getLuminance(*secondary)
+def get_contrast(primary, secondary):
+    primary_luminance = get_luminance(*primary)
+    secondary_luminance = get_luminance(*secondary)
     if primary_luminance > secondary_luminance:
         return (primary_luminance + 0.05) / (secondary_luminance + 0.05)
     else:
         return (secondary_luminance + 0.05) / (primary_luminance + 0.05)
 
 
-def processTeamColors(primaryHex: str, secondaryHex: str):
-    primary = getRGBFromHex(primaryHex)
-    secondary = getRGBFromHex(secondaryHex)
+def process_team_colors(primary_hex: str, secondary_hex: str):
+    primary = get_rgb_from_hex(primary_hex)
+    secondary = get_rgb_from_hex(secondary_hex)
 
-    contrast = getContrast(primary, secondary)
-    white_contrast = getContrast(primary, (255, 255, 255))
-    black_contrast = getContrast(primary, (0, 0, 0))
+    contrast = get_contrast(primary, secondary)
+    white_contrast = get_contrast(primary, (255, 255, 255))
+    black_contrast = get_contrast(primary, (0, 0, 0))
     print(
-        f"For colors {primaryHex} and {secondaryHex}, contrast is {contrast}, white contrast with primary is {white_contrast}, constrast with black is {black_contrast}"
+        f"For colors {primary_hex} and {secondary_hex}, contrast is {contrast}, white contrast with primary is {white_contrast}, constrast with black is {black_contrast}"
     )
     if contrast > 3.5:
-        return primaryHex, secondaryHex
+        return primary_hex, secondary_hex
     elif white_contrast > black_contrast:
-        return primaryHex, "ffffff"
+        return primary_hex, "ffffff"
     else:
-        return primaryHex, "000000"
+        return primary_hex, "000000"
 
 
 if __name__ == "__main__":
-    print(processTeamColors("de3129", "666666"))
+    print(process_team_colors("de3129", "666666"))
