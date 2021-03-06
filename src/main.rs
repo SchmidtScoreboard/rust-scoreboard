@@ -8,6 +8,7 @@ mod button;
 mod clock;
 mod college_basketball;
 mod common;
+mod sport;
 mod game;
 mod hockey;
 mod matrix;
@@ -26,13 +27,9 @@ extern crate rust_embed;
 extern crate log;
 
 use animation::AnimationTestScreen;
-use aws_screen::AWSScreen;
-use baseball::BaseballGame;
-use basketball::BasketballGame;
+use sport::AWSScreen;
 use clap;
-use college_basketball::CollegeBasketballGame;
 use common::ScreenId;
-use hockey::HockeyGame;
 use matrix::{Matrix, ScreenProvider};
 use rpi_led_matrix;
 use self_update;
@@ -186,34 +183,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
 
-    // Hockey
-    let hockey: AWSScreen<HockeyGame> = AWSScreen::new(
-        scheduler_sender.clone(),
-        base_url.clone(),
-        settings.get_settings().rotation_time,
-        settings.get_settings().favorite_teams.clone(),
-        api_key.clone(),
-        settings.get_settings().timezone.clone(),
-        matrix::FontBook::new(&root_path),
-        matrix::PixelBook::new(&root_path),
-    );
-    map.insert(ScreenId::Hockey, Box::new(hockey));
-
-    // Baseball
-    let baseball: AWSScreen<BaseballGame> = AWSScreen::new(
-        scheduler_sender.clone(),
-        base_url.clone(),
-        settings.get_settings().rotation_time,
-        settings.get_settings().favorite_teams.clone(),
-        api_key.clone(),
-        settings.get_settings().timezone.clone(),
-        matrix::FontBook::new(&root_path),
-        matrix::PixelBook::new(&root_path),
-    );
-    map.insert(ScreenId::Baseball, Box::new(baseball));
-
-    // College Basketball
-    let college_basketball: AWSScreen<CollegeBasketballGame> = AWSScreen::new(
+    let sports: AWSScreen = AWSScreen::new(
         scheduler_sender.clone(),
         v2_url.clone(),
         settings.get_settings().rotation_time,
@@ -223,20 +193,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         matrix::FontBook::new(&root_path),
         matrix::PixelBook::new(&root_path),
     );
-    map.insert(ScreenId::CollegeBasketball, Box::new(college_basketball));
-
-    // Basketball
-    let basketball: AWSScreen<BasketballGame> = AWSScreen::new(
-        scheduler_sender.clone(),
-        v2_url.clone(),
-        settings.get_settings().rotation_time,
-        settings.get_settings().favorite_teams.clone(),
-        api_key.clone(),
-        settings.get_settings().timezone.clone(),
-        matrix::FontBook::new(&root_path),
-        matrix::PixelBook::new(&root_path),
-    );
-    map.insert(ScreenId::Basketball, Box::new(basketball));
+    map.insert(ScreenId::Smart, Box::new(sports));
 
     // Clock
     let clock = clock::Clock::new(

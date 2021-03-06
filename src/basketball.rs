@@ -7,7 +7,6 @@ use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
-static BASKETBALL_QUERY: &str = "";
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct BasketballGame {
@@ -35,13 +34,6 @@ impl PartialEq for BasketballGame {
 impl Eq for BasketballGame {}
 
 impl aws_screen::AWSScreenType for BasketballGame {
-    fn get_endpoint() -> &'static str {
-        "basketball"
-    }
-
-    fn get_query() -> &'static str {
-        BASKETBALL_QUERY
-    }
 
     fn get_screen_id() -> common::ScreenId {
         common::ScreenId::Basketball
