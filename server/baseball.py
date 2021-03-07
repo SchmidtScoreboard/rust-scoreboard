@@ -43,7 +43,7 @@ class Baseball:
     def create_game(common, balls, outs, strikes, inning, is_inning_top):
         if common is None:
             return None
-        return {"common": common, "balls": balls, "outs": outs, "strikes": strikes, "inning": inning, "is_inning_top" : is_inning_top}
+        return {"type": "Baseball", "common": common, "balls": balls, "outs": outs, "strikes": strikes, "inning": inning, "is_inning_top" : is_inning_top}
 
     async def get_games(testing: bool):
         if testing:

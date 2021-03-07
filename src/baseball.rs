@@ -7,47 +7,10 @@ use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
-static BASEBALL_QUERY: &str = r#"
-{
-    games {
-        common {
-            home_team {
-                id
-                name
-                city
-                display_name
-                abbreviation
-                primary_color
-                secondary_color
-            }
-            away_team {
-                id
-                name
-                city
-                display_name
-                abbreviation
-                primary_color
-                secondary_color
-            }
-            away_score
-            home_score
-            status
-            ordinal
-            start_time
-            id
-        }
-        inning
-        is_inning_top
-        balls
-        outs
-        strikes
-    }
-}
-"#;
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct BaseballGame {
-    common: game::CommonGameData,
+    pub common: game::CommonGameData,
     inning: u8,
     is_inning_top: bool,
     balls: u8,
@@ -74,19 +37,7 @@ impl PartialEq for BaseballGame {
 impl Eq for BaseballGame {}
 
 impl aws_screen::AWSScreenType for BaseballGame {
-    fn get_endpoint() -> &'static str {
-        "mlb"
-    }
-
-    fn get_query() -> &'static str {
-        BASEBALL_QUERY
-    }
-
-    fn get_screen_id() -> common::ScreenId {
-        common::ScreenId::Baseball
-    }
-
-    fn get_refresh_texts() -> Vec<&'static str> {
+    fn get_refresh_texts(self: &Self) -> Vec<&'static str> {
         return vec![
             "Warming up",
             "Pitching change",

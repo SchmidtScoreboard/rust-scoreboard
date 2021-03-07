@@ -62,6 +62,8 @@ pub struct CommonGameData {
     pub away_score: u8,
     pub status: GameStatus,
     pub ordinal: String,
+    pub id: usize,
+    pub sport_id: common::ScreenId,
     #[serde(deserialize_with = "datetime_from_string")]
     pub start_time: DateTime<Utc>,
 }
@@ -93,6 +95,14 @@ impl CommonGameData {
         } else {
             self.ordinal.clone()
         }
+    }
+
+    pub fn involves_team(self: &Self, team_id: u32) -> bool {
+        return self.home_team.id == team_id || self.away_team.id == team_id;
+    }
+
+    pub fn is_active_game(self: &Self) -> bool {
+        return self.status == GameStatus::ACTIVE || self.status == GameStatus::INTERMISSION;
     }
 }
 

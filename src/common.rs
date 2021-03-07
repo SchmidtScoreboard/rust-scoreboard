@@ -25,6 +25,15 @@ pub enum ScreenId {
     Smart = 10000,
 }
 
+impl ScreenId {
+    pub fn get_base_id(self: &Self) -> &ScreenId {
+        match self{
+            ScreenId::Baseball | ScreenId::Basketball | ScreenId::Hockey | ScreenId::CollegeBasketball => &ScreenId::Smart,
+            _ => self  
+        }
+    }
+}
+
 pub enum MatrixCommand {
     SetActiveScreen(ScreenId),
     SetPower {

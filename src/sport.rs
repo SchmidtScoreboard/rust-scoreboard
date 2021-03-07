@@ -3,7 +3,9 @@ use crate::hockey::HockeyGame;
 use crate::basketball::BasketballGame;
 use crate::baseball::BaseballGame;
 use crate::college_basketball::CollegeBasketballGame;
+use crate::aws_screen::AWSScreenType;
 use crate::common;
+
 use crate::game;
 use crate::matrix;
 use crate::rpi_led_matrix;
@@ -11,9 +13,13 @@ use crate::scheduler;
 use crate::animation;
 use std::sync::mpsc;
 use std::any::Any;
+use std::collections::HashSet;
 
 use std::time::{Duration, Instant};
+use serde::Deserialize;
 
+#[derive(Deserialize, Debug)]
+#[serde(tag = "type")]
 enum SportData {
     Hockey(HockeyGame),
     Baseball(BaseballGame),
@@ -21,11 +27,34 @@ enum SportData {
     Basketball(BasketballGame),
 }
 
+impl SportData {
+    fn get_common(self: &Self) -> &game::CommonGameData {
+        match self {
+            SportData::Hockey(hockey) => &hockey.common,
+            SportData::Baseball(baseball) => &baseball.common,
+            SportData::CollegeBasketball(college_basketball) => &college_basketball.common,
+            SportData::Basketball(basketball) => &basketball.common
+        }
+    }
+
+    fn get_aws_screen(self: &Self) -> &dyn AWSScreenType {
+        match self {
+            SportData::Hockey(hockey) => hockey,
+            SportData::Baseball(baseball) => baseball,
+            SportData::CollegeBasketball(college_basketball) => college_basketball,
+            SportData::Basketball(basketball) => basketball,
+        }
+
+    }
+}
+
+
 
 struct AWSData{
     games: Result<Vec<SportData>, String>,
     data_received_timestamp: Instant,
     last_cycle_timestamp: Instant,
+    active_index: Option<usize>
 }
 
 impl AWSData {
@@ -34,19 +63,47 @@ impl AWSData {
             games: Ok(games),
             data_received_timestamp: Instant::now(),
             last_cycle_timestamp: Instant::now(),
+            active_index: None
         }
     }
 
-    pub fn update(self: &mut Self, new_data: AWSData) {
-        self.games = new_data.games;
+    pub fn update(self: &mut Self, new_data: AWSData, current_leagues: &HashSet<common::ScreenId>, favorite_teams: &Vec<common::FavoriteTeam>) {
+        self.games = new_data.games.map(|games| { 
+            let (priority_games, other_games): (Vec<SportData>, Vec<SportData>) = games.into_iter()
+            .filter(|game| current_leagues.contains(&game.get_common().sport_id))
+            .partition(|game| favorite_teams.into_iter()
+                .any(|favorite_team| &game.get_common().sport_id == &favorite_team.screen_id && game.get_common().involves_team(favorite_team.team_id) && game.get_common().is_active_game()));
+            if priority_games.len() > 0 {
+                priority_games
+            } else {
+                other_games
+            }
+        }
+        );
         self.data_received_timestamp = new_data.data_received_timestamp;
     }
 
     pub fn try_rotate(
         self: &mut Self,
-        favorite_teams: &Vec<common::FavoriteTeam>,
         rotation_time: Duration,
     ) {
+        let now = Instant::now();
+        if let Ok(games) = &self.games {
+            if now.duration_since(self.last_cycle_timestamp) > rotation_time {
+                self.last_cycle_timestamp = now;
+            }
+            if games.len() > 0 {
+                self.active_index = match self.active_index {
+                    Some(index) => Some((index + 1) % games.len()),
+                    None => Some(0)
+                }
+            } else {
+                self.active_index = None;
+            }
+        } else {
+            self.active_index = None;
+        }
+
     }
 
     pub fn error(error_message: &str) -> AWSData {
@@ -54,12 +111,14 @@ impl AWSData {
             games: Err(error_message.to_owned()),
             data_received_timestamp: Instant::now(),
             last_cycle_timestamp: Instant::now(),
+            active_index: None
         }
     }
 }
 pub struct AWSScreen {
     sender: mpsc::Sender<scheduler::DelayedCommand>,
     favorite_teams: Vec<common::FavoriteTeam>,
+    current_leagues: HashSet<common::ScreenId>,
     rotation_time: Duration,
     timezone: String,
     data: Option<AWSData>,
@@ -104,6 +163,7 @@ impl
         AWSScreen {
             sender,
             favorite_teams,
+            current_leagues: HashSet::new(),
             rotation_time: Duration::from_secs(rotation_time_secs.into()),
             timezone,
             data: None,
@@ -184,7 +244,7 @@ impl
                 data_sender.send(AWSData::error("Network Error")).unwrap();
             }
             if let Ok(resp_string) = resp.into_string() {
-                let result: Result<game::Response<AWSData>, _> = serde_json::from_str(&resp_string);
+                let result: Result<game::Response<SportData>, _> = serde_json::from_str(&resp_string);
                 if let Ok(response) = result {
                     info!(
                         "Successfully parsed response: {:?}",
@@ -195,7 +255,7 @@ impl
 
                     data_sender
                         .send(AWSData::new(
-                            response.data.games.into_iter().sorted().collect(),
+                            response.data.games
                         ))
                         .unwrap();
                 } else {
@@ -247,6 +307,10 @@ impl matrix::ScreenProvider for AWSScreen
         self.timezone = settings.timezone.parse().expect("Failed to parse timezone");
         self.favorite_teams = settings.favorite_teams.clone();
         self.rotation_time = Duration::from_secs(settings.rotation_time.into());
+        self.current_leagues = match settings.active_screen {
+            common::ScreenId::Smart => (vec![common::ScreenId::Hockey, common::ScreenId::Baseball, common::ScreenId::CollegeBasketball, common::ScreenId::Basketball]).into_iter().collect(),
+            _ => (vec![settings.active_screen]).into_iter().collect()
+        }
     }
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
@@ -255,7 +319,7 @@ impl matrix::ScreenProvider for AWSScreen
         if let Ok(new_data) = self.data_pipe_receiver.try_recv() {
             match &mut self.data {
                 Some(current_data) => {
-                    current_data.update(new_data);
+                    current_data.update(new_data, &self.current_leagues, &self.favorite_teams);
                 }
                 None => {
                     self.data = Some(new_data);
@@ -266,7 +330,7 @@ impl matrix::ScreenProvider for AWSScreen
         // if we need to change the displayed image, do that now
         match &mut self.data {
             Some(current_data) => {
-                current_data.try_rotate(&self.favorite_teams, self.rotation_time);
+                current_data.try_rotate( self.rotation_time);
             }
             None => (),
         }
@@ -280,12 +344,19 @@ impl matrix::ScreenProvider for AWSScreen
                     match &current_data.games {
                         Ok(games) => {
                             if games.len() > 0 {
-                                &games[current_data.active_index].draw_screen(
-                                    canvas,
-                                    &self.fonts,
-                                    &self.pixels,
-                                    &self.timezone,
-                                );
+                                match current_data.active_index {
+                                    Some(active_index) => {
+                                        &games[active_index].get_aws_screen().draw_screen(
+                                            canvas,
+                                            &self.fonts,
+                                            &self.pixels,
+                                            &self.timezone,
+                                        );
+                                    },
+                                    None => {
+                                        self.draw_no_games(canvas);
+                                    }
+                                }
                             } else {
                                 self.draw_no_games(canvas);
                             }
@@ -319,7 +390,7 @@ impl matrix::ScreenProvider for AWSScreen
         self
     }
 
-    fn has_priority(self: &Self, team_id: u32) -> bool {
+    fn has_priority(self: &Self, _team_id: u32) -> bool {
         false
     }
 }

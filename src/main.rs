@@ -41,7 +41,6 @@ use std::sync::mpsc;
 use std::thread::sleep;
 use std::time::Duration;
 use updater::Updater;
-const AWS_URL: &str = "https://opbhrfuhq5.execute-api.us-east-2.amazonaws.com/Prod/";
 const V2_URL: &str = "https://uhoijpn7d1.execute-api.us-east-2.amazonaws.com/Prod/";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -177,7 +176,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap();
     }
 
-    let base_url = env::var("AWS_URL").unwrap_or(AWS_URL.to_string());
     let v2_url = env::var("V2_URL").unwrap_or(V2_URL.to_string()); // TODO use the actual new AWS URL
 
     // Setup ScreenProvider map
