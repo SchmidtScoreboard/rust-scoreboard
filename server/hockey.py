@@ -50,7 +50,7 @@ class Hockey:
     def create_game(common, away_powerplay, home_powerplay, away_players, home_players):
         if common is None:
             return None
-        return {"common": common, "away_powerplay": away_powerplay, "home_powerplay": home_powerplay, "away_players" : away_players, "home_players": home_players }
+        return {"type": "Hockey", "common": common, "away_powerplay": away_powerplay, "home_powerplay": home_powerplay, "away_players" : away_players, "home_players": home_players }
 
     async def get_games(testing: bool):
         if testing:

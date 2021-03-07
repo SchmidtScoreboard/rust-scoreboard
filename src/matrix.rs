@@ -58,11 +58,12 @@ impl<'a> Matrix<'a> {
     }
 
     fn get_mut_active_screen(self: &mut Self) -> &mut Box<dyn ScreenProvider + 'a> {
-        let id = self.settings.get_active_screen().clone();
+        let id = self.settings.get_active_screen().get_base_id().clone();
         self.get_mut_screen(&id)
     }
 
     fn activate_screen(self: &mut Self) {
+        self.update_settings_on_active_screen();
         let screen = self.get_mut_active_screen();
         screen.activate();
     }
@@ -172,7 +173,7 @@ impl<'a> Matrix<'a> {
                         canvas = self.led_matrix.swap(canvas);
                         canvas.clear();
                     } else {
-                        if id == *self.settings.get_active_screen() && *self.settings.get_power() {
+                        if id == *self.settings.get_active_screen().get_base_id() && *self.settings.get_power() {
                             // If the id received matches the active id, display the image
                             self.get_mut_screen(&id).draw(&mut canvas);
                             canvas = self.led_matrix.swap(canvas);

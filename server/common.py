@@ -113,7 +113,7 @@ class Common:
                     status,
                     Common.to_ordinal(competition["status"]["period"]),
                     competition["date"],
-                    competition["id"],
+                    int(competition["id"]),
                     int(home_team["score"]),
                     int(away_team["score"]),
                 )
