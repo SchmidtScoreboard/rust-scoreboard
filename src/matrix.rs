@@ -48,13 +48,10 @@ impl<'a> Matrix<'a> {
     }
 
     fn get_mut_screen(self: &mut Self, id: &common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
-        match id {
-            common::ScreenId::Smart => self.get_smart_screen(),
-            _ => self
-                .screens_map
-                .get_mut(id)
-                .expect(&format!("Could not find screen {:?}", id)),
-        }
+        self
+            .screens_map
+            .get_mut(id)
+            .expect(&format!("Could not find screen {:?}", id))
     }
 
     fn get_mut_active_screen(self: &mut Self) -> &mut Box<dyn ScreenProvider + 'a> {
@@ -104,25 +101,6 @@ impl<'a> Matrix<'a> {
             Some(setup_screen) => setup_screen,
             None => panic!("Found screen is NOT the setup screen"),
         }
-    }
-
-    fn get_smart_screen(self: &mut Self) -> &mut Box<dyn ScreenProvider + 'a> {
-        let teams = self.settings.get_settings().favorite_teams.clone(); // Make a copy
-        let mut team_iterator = teams.iter();
-        let priority_id = loop {
-            match team_iterator.next() {
-                Some(team) => {
-                    let screen = self.get_mut_screen(&team.screen_id);
-                    if screen.has_priority(team.team_id) {
-                        break team.screen_id;
-                    }
-                }
-                None => {
-                    break common::ScreenId::Clock;
-                }
-            }
-        };
-        self.get_mut_screen(&priority_id)
     }
 
     // This is the main loop of the entire code

@@ -83,6 +83,9 @@ class Baseball:
             game["ordinal"] = "Stats Error"
             game["status"] = "INVALID"
 
+        balls = 0
+        strikes = 0
+        outs = 0;
         if game["status"] == "ACTIVE":
             balls = linescore["balls"]
             outs= linescore["outs"]
@@ -95,6 +98,7 @@ class Baseball:
                 else:
                     game["ordinal"] = "Middle " + game["ordinal"]
                     game["status"] = "INTERMISSION"
+        
         return Baseball.create_game(game, balls, outs, strikes, inning, is_inning_top)
 
 
