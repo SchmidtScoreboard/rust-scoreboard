@@ -126,7 +126,7 @@ class Common:
     def from_schedule_json(json, team_map, screen_id):
         try:
             away_team= json["teams"]["away"]["team"]
-            home_team= json["teams"]["away"]["team"]
+            home_team= json["teams"]["home"]["team"]
             return Common.create_common(
                 screen_id.value,
                 team_map[home_team["id"]],
