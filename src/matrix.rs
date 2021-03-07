@@ -397,6 +397,8 @@ impl FontBook {
         let mut override5x8= HashMap::new();
 
         override4x6.insert('N',5);
+        override5x8.insert('I',4);
+        override5x8.insert('T',4);
         override5x8.insert('Y',6);
         FontBook {
             font4x6: Font::new(

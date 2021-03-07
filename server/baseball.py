@@ -71,7 +71,7 @@ class Baseball:
 
         state = data["gameData"]["status"]["abstractGameState"]
         if state == "Final":
-            game["ordinal"] = "Final"
+            game["ordinal"] = linescore.get("currentInningOrdinal", "FINAL")
             game["status"] = "END"
         elif state == "Live":
             game["ordinal"] = linescore.get("currentInningOrdinal", "")
@@ -93,6 +93,7 @@ class Baseball:
             if(outs == 3):
                 if inning >= 9 and ((is_inning_top and game["home_score"] > game["away_score"]) or (not is_inning_top and game["home_score"] != game["away_score"])):
                     print("Detected game end")
+                    game["ordinal"] = linescore.get("currentInningOrdinal", "FINAL")
                     game["status"] = "END"
                 else:
                     game["ordinal"] = "Middle " + game["ordinal"]
