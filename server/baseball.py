@@ -71,7 +71,6 @@ class Baseball:
 
         state = data["gameData"]["status"]["abstractGameState"]
         if state == "Final":
-            game["ordinal"] = "Final"
             game["status"] = "END"
         elif state == "Live":
             game["ordinal"] = linescore.get("currentInningOrdinal", "")
