@@ -6,7 +6,6 @@ mod baseball;
 mod basketball;
 mod button;
 mod clock;
-mod college_basketball;
 mod common;
 mod sport;
 mod game;

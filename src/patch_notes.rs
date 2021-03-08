@@ -15,7 +15,7 @@ impl Patch {
 
 pub fn get_patches() -> Vec<Patch> {
     vec![
-        Patch::create("1.7.0", "Smart switch mode!"),
+        Patch::create("1.7.0", "Smart switch mode. Also variable width fonts for more readable text"),
         Patch::create("1.6.0", "Basketball!"),
         Patch::create("1.5.0", "College basketball!"),
         Patch::create("1.3.0", "Allow brightness control"),

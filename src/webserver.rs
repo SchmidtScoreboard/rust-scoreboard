@@ -284,8 +284,9 @@ pub fn run_webserver(
     receiver: mpsc::Receiver<WebserverResponse>,
     file_path: PathBuf,
 ) {
-    let config = Config::build(Environment::Development)
+    let config = Config::build(Environment::Production)
         .address("0.0.0.0")
+        .log_level(rocket::config::LoggingLevel::Critical)
         .port(5005)
         .workers(1)
         .finalize()

@@ -66,5 +66,5 @@ fi
 
 if [[ $should_run -eq 0 ]] ; then
     echo "Running with environment ${environment}"
-    ssh pi@$pi_ip "sudo RUST_LOG=\"debug, rocket= error\" ${environment} /var/lib/scoreboard/scoreboard --skip_update"
+    ssh pi@$pi_ip "sudo RUST_BACKTRACE=1 RUST_LOG=\"debug\" ${environment} /var/lib/scoreboard/scoreboard --skip_update"
 fi

@@ -37,23 +37,6 @@ impl PartialEq for BaseballGame {
 impl Eq for BaseballGame {}
 
 impl aws_screen::AWSScreenType for BaseballGame {
-    fn get_refresh_texts(self: &Self) -> Vec<&'static str> {
-        return vec![
-            "Warming up",
-            "Pitching change",
-            "Loading bases",
-            "Batter up!",
-        ];
-    }
-
-    fn involves_team(self: &Self, team_id: u32) -> bool {
-        return self.common.home_team.id == team_id || self.common.away_team.id == team_id;
-    }
-
-    fn status(self: &Self) -> game::GameStatus {
-        return self.common.status;
-    }
-
     fn draw_screen(
         self: &Self,
         canvas: &mut rpi_led_matrix::LedCanvas,

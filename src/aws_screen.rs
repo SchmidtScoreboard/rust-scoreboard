@@ -1,4 +1,3 @@
-use crate::game;
 use crate::matrix;
 
 
@@ -11,11 +10,5 @@ pub trait AWSScreenType {
         pixels_book: &matrix::PixelBook,
         timezone: &str,
     );
-
-    fn get_refresh_texts(self: &Self) -> Vec<&'static str>;
-
-    fn involves_team(self: &Self, team_id: u32) -> bool;
-
-    fn status(self: &Self) -> game::GameStatus;
 }
 

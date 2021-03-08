@@ -32,6 +32,17 @@ impl ScreenId {
             _ => self  
         }
     }
+
+    pub fn get_refresh_texts(self: &Self) -> Vec<&'static str> {
+        let mut texts = vec!("Warming up!");
+        match self {
+            ScreenId::Hockey=> texts.extend(vec!("Calling Toronto!", "Icing")),
+            ScreenId::Baseball => texts.extend(vec!("Pitching change!", "Batter up!")),
+            ScreenId::CollegeBasketball | ScreenId::Basketball => texts.extend(vec!("Taking a shot!")),
+            _ => {}
+        };
+        texts
+    }
 }
 
 pub enum MatrixCommand {

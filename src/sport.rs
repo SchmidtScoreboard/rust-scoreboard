@@ -1,8 +1,7 @@
 // Draw a sport
 use crate::hockey::HockeyGame;
-use crate::basketball::BasketballGame;
+use crate::basketball::{BasketballGame, CollegeBasketballGame};
 use crate::baseball::BaseballGame;
-use crate::college_basketball::CollegeBasketballGame;
 use crate::aws_screen::AWSScreenType;
 use crate::common;
 
@@ -17,6 +16,7 @@ use std::collections::HashSet;
 
 use std::time::{Duration, Instant};
 use serde::Deserialize;
+use rand::seq::SliceRandom;
 
 #[derive(Deserialize, Debug)]
 #[serde(tag = "type")]
@@ -54,7 +54,7 @@ struct AWSData{
     games: Vec<SportData>,
     filtered_games: Vec<usize>, // indices of important games in the games vec
     data_received_timestamp: Instant,
-    last_cycle_timestamp: Instant,
+    last_cycle_timestamp: Option<Instant>,
     active_index: Option<usize>
 }
 
@@ -64,7 +64,7 @@ impl AWSData {
             games: games,
             filtered_games: Vec::new(),
             data_received_timestamp: Instant::now(),
-            last_cycle_timestamp: Instant::now(),
+            last_cycle_timestamp: None,
             active_index: None
         }
     }
@@ -91,6 +91,8 @@ impl AWSData {
             }
         };
 
+        info!("Filtered games: {:?}", self.filtered_games);
+
     }
     
 
@@ -99,19 +101,26 @@ impl AWSData {
         rotation_time: Duration,
     ) {
         let now = Instant::now();
-        if self.filtered_games.len() > 0 {
-            if now.duration_since(self.last_cycle_timestamp) > rotation_time {
-                self.last_cycle_timestamp = now;
-                self.active_index = match self.active_index {
-                    Some(index) => Some((index + 1) % self.filtered_games.len()),
-                    None => Some(0)
+        self.active_index = match self.filtered_games.len() {
+            0 => None,
+            games_length => {
+                let should_rotate = match self.last_cycle_timestamp {
+                    None => true,
+                    Some(last_cycle_timestamp) => now.duration_since(last_cycle_timestamp) > rotation_time
+                };
+                if should_rotate {
+                    self.last_cycle_timestamp = Some(now);
+                    let new_index = match self.active_index {
+                        Some(index) => Some((index + 1) % games_length),
+                        None => Some(0)
+                    };
+                    info!("Old index: {:?}, new index: {:?}", self.active_index, new_index);
+                    new_index
+                } else {
+                    self.active_index.map(|index| index % games_length)
                 }
-            } else if self.active_index.is_none() {
-                self.active_index = Some(0);
             }
-        } else {
-            self.active_index = None;
-        }
+        };
     }
 
 
@@ -191,13 +200,17 @@ impl
             if let Some(text) = &self.flavor_text {
                 text
             } else {
-                "Warming up"
-                // let text = T::get_refresh_texts()
-                //     .choose(&mut rand::thread_rng())
-                //     .unwrap_or(&"Refreshing...")
-                //     .to_string();
-                // self.flavor_text = Some(text);
-                // self.flavor_text.as_ref().unwrap()
+                let texts = match self.current_leagues.len() {
+                    0 => panic!("No screens set"),
+                    1 => self.current_leagues.iter().next().expect("Could not get current league").get_refresh_texts(),
+                    _ => common::ScreenId::Smart.get_refresh_texts()
+                };
+                let text = texts
+                    .choose(&mut rand::thread_rng())
+                    .unwrap_or(&"Refreshing...")
+                    .to_string();
+                self.flavor_text = Some(text);
+                self.flavor_text.as_ref().unwrap()
             }
         };
         matrix::draw_message(
@@ -243,38 +256,39 @@ impl
         data_sender: mpsc::Sender<Result<AWSData, String>>,
     ) {
         let mut wait_time = Duration::from_secs(60 * 60); // Default to an hour
+        let mut skip_flag = false;
         loop {
-            info!("Fetching games from {}", &base_url);
-            let resp = game::fetch_games(&base_url, "all", "", &api_key);
-            if resp.error() {
-                error!(
-                    "There was an error fetching games for endpoint",
-                   
-                );
-                data_sender.send(Err("Network Error".to_owned())).unwrap();
-            }
-            if let Ok(resp_string) = resp.into_string() {
-                let result: Result<game::Response<SportData>, _> = serde_json::from_str(&resp_string);
-                if let Ok(response) = result {
-                    info!(
-                        "Successfully parsed response: {:?}",
-                        &response.data.games
-                    );
-
-                    info!("Response {}", &resp_string);
-
-                    data_sender.send(Ok(AWSData::new(response.data.games))).unwrap();
-                } else {
+            if !skip_flag {
+                info!("Fetching games from {}", &base_url);
+                let resp = game::fetch_games(&base_url, "all", "", &api_key);
+                if resp.error() {
                     error!(
-                        "Failed to parse response {}, reason: {}",
-                        resp_string,
-                        result.err().unwrap()
+                        "There was an error fetching games for endpoint",
+                    
                     );
-                    data_sender.send(Err("Invalid Data".to_owned())).unwrap();
+                    data_sender.send(Err("Network Error".to_owned())).unwrap();
                 }
-            } else {
-                data_sender.send(Err("Invalid Repsonse".to_owned())).unwrap();
+                if let Ok(resp_string) = resp.into_string() {
+                    let result: Result<game::Response<SportData>, _> = serde_json::from_str(&resp_string);
+                    if let Ok(response) = result {
+                        info!(
+                            "Successfully parsed response",
+                        );
+                        data_sender.send(Ok(AWSData::new(response.data.games))).unwrap();
+                    } else {
+                        error!(
+                            "Failed to parse response {}, reason: {}",
+                            resp_string,
+                            result.err().unwrap()
+                        );
+                        data_sender.send(Err("Invalid Data".to_owned())).unwrap();
+                    }
+                } else {
+                    data_sender.send(Err("Invalid Repsonse".to_owned())).unwrap();
+                }
+
             }
+            skip_flag = false;
             if let Ok(state) = refresh_control_receiver.recv_timeout(wait_time) {
                 match state {
                     RefreshThreadState::ACTIVE => {
@@ -282,7 +296,7 @@ impl
                     }
                     RefreshThreadState::HIBERNATING => {
                         wait_time = Duration::from_secs(60 * 60);
-                        continue; // go wait again, now for about an hour
+                        skip_flag = true;
                     }
                 }
             }
@@ -317,6 +331,7 @@ impl matrix::ScreenProvider for AWSScreen
         };
         if let ReceivedData::Valid(data) = &mut self.data {
             data.filter_games(&self.current_leagues, &self.favorite_teams);
+            data.try_rotate( self.rotation_time);
         }
     }
 
@@ -325,12 +340,14 @@ impl matrix::ScreenProvider for AWSScreen
         let now = Instant::now();
         if let Ok(data_or_error) = self.data_pipe_receiver.try_recv() {
             match data_or_error {
-                Ok(new_data) => {
+                Ok(mut new_data) => {
                     match &mut self.data {
                         ReceivedData::Valid(current_data) => {
                             current_data.update(new_data, &self.current_leagues, &self.favorite_teams);
+                            current_data.try_rotate(self.rotation_time);
                         }
                         _ => {
+                            new_data.filter_games(&self.current_leagues, &self.favorite_teams);
                             self.data = ReceivedData::Valid(new_data);
                         }
                     }
@@ -339,12 +356,12 @@ impl matrix::ScreenProvider for AWSScreen
                     self.data = ReceivedData::Error
                 }
             }
+            self.flavor_text = None; // Clear the flavor text
         }
 
         // if we need to change the displayed image, do that now
         if let ReceivedData::Valid(current_data) = &mut self.data {
             current_data.try_rotate( self.rotation_time);
-
         }
 
         // Actually draw the data

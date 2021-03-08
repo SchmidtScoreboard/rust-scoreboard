@@ -33,27 +33,34 @@ impl PartialEq for BasketballGame {
 
 impl Eq for BasketballGame {}
 
-impl aws_screen::AWSScreenType for BasketballGame {
-    fn get_refresh_texts(self: &Self) -> Vec<&'static str> {
-        return vec!["Warming up", "Alley oop", "Taking a shot"];
-    }
-    fn involves_team(self: &Self, team_id: u32) -> bool {
-        return self.common.home_team.id == team_id || self.common.away_team.id == team_id;
-    }
+#[derive(Deserialize, Debug, Clone)]
+pub struct CollegeBasketballGame {
+    pub common: game::CommonGameData,
+}
 
-    fn status(self: &Self) -> game::GameStatus {
-        return self.common.status;
+impl Ord for CollegeBasketballGame {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.common.cmp(&other.common)
     }
+}
 
-    fn draw_screen(
-        self: &Self,
-        canvas: &mut rpi_led_matrix::LedCanvas,
-        font_book: &matrix::FontBook,
-        _pixels_book: &matrix::PixelBook,
-        timezone: &str,
-    ) {
+impl PartialOrd for CollegeBasketballGame {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for CollegeBasketballGame {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.common,) == (&other.common,)
+    }
+}
+
+impl Eq for CollegeBasketballGame {}
+
+fn basketball_draw(common: &game::CommonGameData, canvas: &mut rpi_led_matrix::LedCanvas, font_book: &matrix::FontBook, timezone: &str) {
         let font = &font_book.font4x6;
-        game::draw_scoreboard(canvas, &font, &self.common, 2);
+        game::draw_scoreboard(canvas, &font, &common, 2);
 
         // Draw the current period
         let white = common::new_color(255, 255, 255);
@@ -61,7 +68,7 @@ impl aws_screen::AWSScreenType for BasketballGame {
 
         canvas.draw_text(
             &font.led_font,
-            &self.common.get_ordinal_text(timezone),
+            &common.get_ordinal_text(timezone),
             5,
             23 + font.dimensions.height,
             &white,
@@ -70,16 +77,40 @@ impl aws_screen::AWSScreenType for BasketballGame {
         );
 
         // Draw FINAL
-        if self.common.status == game::GameStatus::END {
+        if common.status == game::GameStatus::END {
             canvas.draw_text(
                 &font.led_font,
                 "FINAL",
-                34 + font.dimensions.width,
+                36 + font.dimensions.width,
                 23 + font.dimensions.height,
                 &yellow,
                 0,
                 false,
             );
         }
+
+}
+
+impl aws_screen::AWSScreenType for BasketballGame {
+    fn draw_screen(
+        self: &Self,
+        canvas: &mut rpi_led_matrix::LedCanvas,
+        font_book: &matrix::FontBook,
+        _pixels_book: &matrix::PixelBook,
+        timezone: &str,
+    ) {
+        basketball_draw(&self.common, canvas, font_book, timezone);
+    }
+}
+
+impl aws_screen::AWSScreenType for CollegeBasketballGame {
+    fn draw_screen(
+        self: &Self,
+        canvas: &mut rpi_led_matrix::LedCanvas,
+        font_book: &matrix::FontBook,
+        _pixels_book: &matrix::PixelBook,
+        timezone: &str,
+    ) {
+        basketball_draw(&self.common, canvas, font_book, timezone);
     }
 }
