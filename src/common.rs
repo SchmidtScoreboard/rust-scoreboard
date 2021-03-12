@@ -15,6 +15,8 @@ pub enum ScreenId {
     Baseball = 1,
     CollegeBasketball = 2,
     Basketball = 3,
+    Football = 4,
+    CollegeFootball = 5,
     Clock = 50,
     Reboot = 99,
     Refresh = 100,

@@ -1,6 +1,7 @@
 // Draw a sport
 use crate::hockey::HockeyGame;
 use crate::basketball::{BasketballGame, CollegeBasketballGame};
+use crate::football::{FootballGame, CollegeFootballGame};
 use crate::baseball::BaseballGame;
 use crate::aws_screen::AWSScreenType;
 use crate::common;
@@ -25,6 +26,8 @@ enum SportData {
     Baseball(BaseballGame),
     CollegeBasketball(CollegeBasketballGame),
     Basketball(BasketballGame),
+    CollegeFootball(CollegeFootballGame),
+    Football(FootballGame),
 }
 
 impl SportData {
@@ -33,7 +36,9 @@ impl SportData {
             SportData::Hockey(hockey) => &hockey.common,
             SportData::Baseball(baseball) => &baseball.common,
             SportData::CollegeBasketball(college_basketball) => &college_basketball.common,
-            SportData::Basketball(basketball) => &basketball.common
+            SportData::Basketball(basketball) => &basketball.common,
+            SportData::CollegeFootball(football) => &football.common,
+            SportData::Football(football) => &football.common,
         }
     }
 
@@ -43,6 +48,8 @@ impl SportData {
             SportData::Baseball(baseball) => baseball,
             SportData::CollegeBasketball(college_basketball) => college_basketball,
             SportData::Basketball(basketball) => basketball,
+            SportData::CollegeFootball(college_football) => college_football,
+            SportData::Football(football) => football,
         }
 
     }
@@ -326,7 +333,7 @@ impl matrix::ScreenProvider for AWSScreen
         self.favorite_teams = settings.favorite_teams.clone();
         self.rotation_time = Duration::from_secs(settings.rotation_time.into());
         self.current_leagues = match settings.active_screen {
-            common::ScreenId::Smart => (vec![common::ScreenId::Hockey, common::ScreenId::Baseball, common::ScreenId::CollegeBasketball, common::ScreenId::Basketball]).into_iter().collect(),
+            common::ScreenId::Smart => (vec![common::ScreenId::Hockey, common::ScreenId::Baseball, common::ScreenId::CollegeBasketball, common::ScreenId::Basketball, common::ScreenId::CollegeBasketball, common::ScreenId::Football]).into_iter().collect(),
             _ => (vec![settings.active_screen]).into_iter().collect()
         };
         if let ReceivedData::Valid(data) = &mut self.data {

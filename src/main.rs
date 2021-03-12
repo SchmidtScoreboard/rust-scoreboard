@@ -4,6 +4,7 @@ mod animation;
 mod aws_screen;
 mod baseball;
 mod basketball;
+mod football;
 mod button;
 mod clock;
 mod common;
