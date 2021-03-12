@@ -30,7 +30,7 @@ pub enum ScreenId {
 impl ScreenId {
     pub fn get_base_id(self: &Self) -> &ScreenId {
         match self{
-            ScreenId::Baseball | ScreenId::Basketball | ScreenId::Hockey | ScreenId::CollegeBasketball => &ScreenId::Smart,
+            ScreenId::Baseball | ScreenId::Basketball | ScreenId::Hockey | ScreenId::CollegeBasketball | ScreenId::CollegeFootball | ScreenId::Football => &ScreenId::Smart,
             _ => self  
         }
     }
@@ -41,6 +41,7 @@ impl ScreenId {
             ScreenId::Hockey=> texts.extend(vec!("Calling Toronto!", "Icing")),
             ScreenId::Baseball => texts.extend(vec!("Pitching change!", "Batter up!")),
             ScreenId::CollegeBasketball | ScreenId::Basketball => texts.extend(vec!("Taking a shot!")),
+            ScreenId::CollegeFootball | ScreenId::Football=> texts.extend(vec!("First down!")),
             _ => {}
         };
         texts
