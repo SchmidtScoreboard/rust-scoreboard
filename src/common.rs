@@ -41,7 +41,7 @@ impl ScreenId {
             ScreenId::Hockey=> texts.extend(vec!("Calling Toronto!", "Icing")),
             ScreenId::Baseball => texts.extend(vec!("Pitching change!", "Batter up!")),
             ScreenId::CollegeBasketball | ScreenId::Basketball => texts.extend(vec!("Taking a shot!")),
-            ScreenId::CollegeFootball | ScreenId::Football=> texts.extend(vec!("First down!")),
+            ScreenId::CollegeFootball | ScreenId::Football=> texts.extend(vec!("First down!", "Blue, 42...")),
             _ => {}
         };
         texts
