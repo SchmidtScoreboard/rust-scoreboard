@@ -54,12 +54,13 @@ pub enum MatrixCommand {
         from_webserver: bool,
         power: Option<bool>,
     },
+    AutoPower(bool),
     Display(ScreenId),
     UpdateSettings(ScoreboardSettingsData),
 
     // Setup Commands
     GetSettings(), // Fetch the settings
-    _CheckSmartScreen(),
+    CheckSmartScreen(),
     Reboot(),
     Reset {
         from_webserver: bool,
@@ -80,6 +81,7 @@ pub enum MatrixCommand {
 pub enum WebserverResponse {
     UpdateSettingsResponse(ScoreboardSettingsData),
     SetPowerResponse(ScoreboardSettingsData),
+    SetAutoPowerResponse(ScoreboardSettingsData),
     SetActiveScreenResponse(ScoreboardSettingsData),
     GetSettingsResponse(ScoreboardSettingsData),
     RebootResponse(Option<ScoreboardSettingsData>),
@@ -189,6 +191,10 @@ fn default_rotation_time() -> u32 {
 fn default_brightness() -> u8 {
     100
 }
+
+fn default_auto_power() -> bool {
+    false
+}
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 pub struct ScoreboardSettingsData {
     pub timezone: String,
@@ -198,6 +204,8 @@ pub struct ScoreboardSettingsData {
     pub name: String,
     pub screens: Vec<ScreenSettings>,
     pub screen_on: bool,
+    #[serde(default = "default_auto_power")]
+    pub auto_power: bool,
     pub version: u32,
 
     #[serde(default)]

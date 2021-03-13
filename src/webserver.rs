@@ -15,6 +15,10 @@ struct PowerRequest {
     screen_on: bool,
 }
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
+struct AutoPowerRequest {
+    auto_power: bool,
+}
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 struct SportRequest {
     sport: ScreenId,
 }
@@ -104,6 +108,24 @@ fn set_power(
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::SetPowerResponse(settings) => Ok(Content(content, Json(settings))),
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
+}
+#[post("/autoPower", format = "json", data = "<auto_power_request>")]
+fn auto_power(
+    auto_power_request: Json<AutoPowerRequest>,
+    state: State<Mutex<ServerState>>,
+) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
+    let state = state.lock().unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::AutoPower(
+            auto_power_request.auto_power))
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::SetAutoPowerResponse(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -297,7 +319,7 @@ pub fn run_webserver(
         .mount(
             "/",
             routes![
-                index, configure, set_power, set_sport, wifi, logs, show_sync, reboot, reset, sync,
+                index, configure, set_power, auto_power, set_sport, wifi, logs, show_sync, reboot, reset, sync,
                 connect, version
             ],
         )

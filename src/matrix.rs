@@ -23,6 +23,7 @@ pub struct Matrix<'a> {
     settings: ScoreboardSettings, // The main scoreboard settings
     webserver_responder: mpsc::Sender<common::WebserverResponse>, // Send responses to the webserver
     shell_sender: mpsc::Sender<common::ShellCommand>, // Send commands to shell
+    scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
     message_screen: message::MessageScreen, // If this is set, display this message until it is unset
 }
 
@@ -35,6 +36,7 @@ impl<'a> Matrix<'a> {
         settings: ScoreboardSettings,
         webserver_responder: mpsc::Sender<common::WebserverResponse>,
         shell_sender: mpsc::Sender<common::ShellCommand>,
+        scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
@@ -43,6 +45,7 @@ impl<'a> Matrix<'a> {
             settings,
             webserver_responder,
             shell_sender,
+            scheduler_sender,
             message_screen,
         }
     }
@@ -103,6 +106,18 @@ impl<'a> Matrix<'a> {
         }
     }
 
+    fn check_priority(self: &mut Self) {
+        info!("Checking priority games");
+        let command = common::MatrixCommand::SetPower { 
+            from_webserver: false,
+            power: Some(self.get_mut_active_screen().has_priority()),
+        };
+        // Send the power on/off command
+        self.scheduler_sender.send(scheduler::DelayedCommand::new(scheduler::Command::MatrixCommand(command), None)).unwrap();
+        // Delay command to check priority status
+        self.scheduler_sender.send(scheduler::DelayedCommand::new(scheduler::Command::MatrixCommand(common::MatrixCommand::CheckSmartScreen()), Some(Duration::from_secs(60 * 30)))).unwrap();
+    }
+
     // This is the main loop of the entire code
     // Call this after everything else is set up
     pub fn run(self: &mut Self) {
@@ -131,6 +146,7 @@ impl<'a> Matrix<'a> {
                         None => !self.settings.get_power(),
                     };
                     self.settings.set_power(&on);
+                    self.settings.set_auto_power(&false);
                     if *self.settings.get_power() {
                         self.activate_screen();
                     } else {
@@ -144,6 +160,16 @@ impl<'a> Matrix<'a> {
                             self.settings.get_settings_clone(),
                         ));
                     }
+                }
+                common::MatrixCommand::AutoPower(auto_power) => {
+                    self.settings.set_auto_power(&auto_power);
+                    if auto_power {
+                        self.check_priority();
+                    }
+                    self.scheduler_sender.send(scheduler::DelayedCommand::new(scheduler::Command::MatrixCommand(common::MatrixCommand::CheckSmartScreen()), Some(Duration::from_secs(30 * 60)))).unwrap();
+                    self.send_response(common::WebserverResponse::SetAutoPowerResponse(
+                        self.settings.get_settings_clone(),
+                    ));
                 }
                 common::MatrixCommand::Display(id) => {
                     if self.message_screen.is_message_set() {
@@ -159,7 +185,11 @@ impl<'a> Matrix<'a> {
                         }
                     }
                 }
-                common::MatrixCommand::_CheckSmartScreen() => {}
+                common::MatrixCommand::CheckSmartScreen() => {
+                    if *self.settings.get_auto_power() {
+                        self.check_priority();
+                    }
+                }
                 common::MatrixCommand::GetSettings() => {
                     self.send_response(common::WebserverResponse::GetSettingsResponse(
                         self.settings.get_settings_clone(),
@@ -631,7 +661,7 @@ pub trait ScreenProvider {
 
     fn as_any(&mut self) -> &mut dyn Any;
 
-    fn has_priority(self: &Self, _team_id: u32) -> bool {
+    fn has_priority(self: &Self) -> bool {
         false
     }
 }

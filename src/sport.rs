@@ -88,7 +88,9 @@ impl AWSData {
             .filter(|(_, game)| current_leagues.contains(&game.get_common().sport_id)).map(|(i, _)| i)
             .partition(|i| favorite_teams.into_iter()
                 .any(|favorite_team| 
-                    self.games[*i].get_common().sport_id == favorite_team.screen_id && self.games[*i].get_common().involves_team(favorite_team.team_id) && self.games[*i].get_common().is_active_game()
+                    self.games[*i].get_common().sport_id == favorite_team.screen_id && 
+                    self.games[*i].get_common().involves_team(favorite_team.team_id) && 
+                    self.games[*i].get_common().should_focus()
                 ));
 
             if priority_games.len() > 0 {
@@ -418,7 +420,12 @@ impl matrix::ScreenProvider for AWSScreen
         self
     }
 
-    fn has_priority(self: &Self, _team_id: u32) -> bool {
-        false
+    fn has_priority(self: &Self) -> bool {
+        match &self.data {
+            ReceivedData::Valid(data) => {
+                data.games.iter().filter(|game| self.current_leagues.contains(&game.get_common().sport_id)).count() > data.filtered_games.len()
+            }
+            _ => false
+        }
     }
 }

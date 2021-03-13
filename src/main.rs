@@ -248,6 +248,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         settings,
         web_response_sender,
         shell_sender.clone(),
+        scheduler_sender.clone(),
     );
 
     let mut scheduler = scheduler::Scheduler::new(scheduler_receiver, matrix_sender.clone());
