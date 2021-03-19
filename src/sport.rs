@@ -115,7 +115,7 @@ impl AWSData {
             games_length => {
                 let should_rotate = match self.last_cycle_timestamp {
                     None => true,
-                    Some(last_cycle_timestamp) => now.duration_since(last_cycle_timestamp) > rotation_time
+                    Some(last_cycle_timestamp) => now.duration_since(last_cycle_timestamp) > rotation_time || self.active_index.is_none()
                 };
                 if should_rotate {
                     self.last_cycle_timestamp = Some(now);
