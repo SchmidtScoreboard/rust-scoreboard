@@ -3,16 +3,22 @@ from team_generator import get_app_color_shit, get_display_name
 from color import process_team_colors
 import os
 import json
+from dateutil.parser import parse
+import datetime
+import pytz
 from enum import Enum
 
 
 p = inflect.engine()
+
 
 class SportId(Enum):
     HOCKEY = 0
     BASEBALL = 1
     COLLEGE_BASKETBALL = 2
     BASKETBALL = 3
+    FOOTBALL = 4
+    COLLEGE_FOOTBALL = 5
 
 
 class Team:
@@ -105,6 +111,11 @@ class Common:
             competition = json["competitions"][0]
             home_team, away_team = competition["competitors"]
             status = Common.convert_status(competition["status"]["type"]["name"])
+            time = parse(competition["date"]).astimezone(pytz.utc)
+            now = datetime.datetime.now(tz=pytz.UTC)
+            delta = abs(now - time)
+            if delta > datetime.timedelta(hours=24):
+                return None
             if status is not None:
                 return Common.create_common(
                     screen_id.value,
@@ -122,30 +133,29 @@ class Common:
         except Exception as e:
             print(e)
             return None
-    
+
     def from_schedule_json(json, team_map, screen_id):
         try:
-            away_team= json["teams"]["away"]["team"]
-            home_team= json["teams"]["home"]["team"]
+            away_team = json["teams"]["away"]["team"]
+            home_team = json["teams"]["home"]["team"]
             return Common.create_common(
                 screen_id.value,
                 team_map[home_team["id"]],
                 team_map[away_team["id"]],
-                "", # status
-                "", # ordinal
+                "",  # status
+                "",  # ordinal
                 json["gameDate"],
                 json["gamePk"],
                 0,
-                0
+                0,
             )
         except Exception as e:
             print(e)
             return None
 
-
     def get_testing_games(game_type: str):
 
-        path = os.path.join("saved-games", f"{game_type}.json") 
+        path = os.path.join("saved-games", f"{game_type}.json")
         try:
             with open(path) as games_file:
                 data = json.load(games_file)

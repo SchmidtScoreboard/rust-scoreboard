@@ -40,6 +40,9 @@ impl ScoreboardSettings {
     pub fn get_power(self: &Self) -> &bool {
         &self.data.screen_on
     }
+    pub fn get_auto_power(self: &Self) -> &bool {
+        &self.data.auto_power
+    }
     pub fn get_setup_state(self: &Self) -> &SetupState {
         &self.data.setup_state
     }
@@ -64,6 +67,10 @@ impl ScoreboardSettings {
 
     pub fn set_power(self: &mut Self, screen_on: &bool) {
         self.data.screen_on = *screen_on;
+        self.write_settings();
+    }
+    pub fn set_auto_power(self: &mut Self, auto_power: &bool) {
+        self.data.auto_power= *auto_power;
         self.write_settings();
     }
 

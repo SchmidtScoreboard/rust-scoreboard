@@ -1,7 +1,7 @@
 use crate::common;
 use crate::matrix;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc, Duration};
 use chrono_tz::Tz;
 use rpi_led_matrix;
 use serde::{de::Error, Deserialize, Deserializer};
@@ -98,11 +98,19 @@ impl CommonGameData {
     }
 
     pub fn involves_team(self: &Self, team_id: u32) -> bool {
-        return self.home_team.id == team_id || self.away_team.id == team_id;
+        self.home_team.id == team_id || self.away_team.id == team_id
     }
 
     pub fn is_active_game(self: &Self) -> bool {
-        return self.status == GameStatus::ACTIVE || self.status == GameStatus::INTERMISSION;
+        self.status == GameStatus::ACTIVE || self.status == GameStatus::INTERMISSION
+    }
+
+    pub fn should_focus(self: &Self, ) -> bool {
+        let now = Utc::now();
+        let diff = now - self.start_time; // Get the duration between now and the start of the game. Positive == game started, Negative game to start
+        (self.status == GameStatus::END && diff < Duration::hours(4)) ||  // 
+        ( self.status == GameStatus::PREGAME && diff > -Duration::minutes(30)) ||
+        self.is_active_game()
     }
 }
 

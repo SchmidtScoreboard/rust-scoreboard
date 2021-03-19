@@ -13,13 +13,11 @@ class Fetcher:
                     return dates[0]["games"]
                 else:
                     return []
-            
 
     async def game_fetch(game_url: str):
         async with aiohttp.ClientSession() as session:
             async with session.get(game_url) as r:
                 return await r.json()
-
 
     def get_espn_url(sport: str, selection: str):
         return f"http://site.api.espn.com/apis/site/v2/sports/{sport}/{selection}/scoreboard"
