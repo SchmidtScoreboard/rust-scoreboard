@@ -29,29 +29,45 @@ pub enum ScreenId {
 
 impl ScreenId {
     pub fn get_base_id(self: &Self) -> &ScreenId {
-        match self{
-            ScreenId::Baseball | ScreenId::Basketball | ScreenId::Hockey | ScreenId::CollegeBasketball | ScreenId::CollegeFootball | ScreenId::Football => &ScreenId::Smart,
-            _ => self  
+        match self {
+            ScreenId::Baseball
+            | ScreenId::Basketball
+            | ScreenId::Hockey
+            | ScreenId::CollegeBasketball
+            | ScreenId::CollegeFootball
+            | ScreenId::Football => &ScreenId::Smart,
+            _ => self,
         }
     }
 
     pub fn get_refresh_texts(self: &Self) -> Vec<&'static str> {
-        let mut texts = vec!("Warming up!");
+        let mut texts = vec!["Warming up!"];
         match self {
-            ScreenId::Hockey=> texts.extend(vec!("Calling Toronto!", "Icing")),
-            ScreenId::Baseball => texts.extend(vec!("Pitching change!", "Batter up!")),
-            ScreenId::CollegeBasketball | ScreenId::Basketball => texts.extend(vec!("Taking a shot!")),
-            ScreenId::CollegeFootball | ScreenId::Football=> texts.extend(vec!("First down!", "Blue, 42...")),
+            ScreenId::Hockey => texts.extend(vec!["Calling Toronto!", "Icing"]),
+            ScreenId::Baseball => texts.extend(vec!["Pitching change!", "Batter up!"]),
+            ScreenId::CollegeBasketball | ScreenId::Basketball => {
+                texts.extend(vec!["Taking a shot!"])
+            }
+            ScreenId::CollegeFootball | ScreenId::Football => {
+                texts.extend(vec!["First down!", "Blue, 42..."])
+            }
             _ => {}
         };
         texts
     }
 }
 
+#[derive(Hash, Eq, PartialEq)]
+pub enum CommandSource {
+    Webserver(),
+    Button(),
+    Task(),
+}
+
 pub enum MatrixCommand {
     SetActiveScreen(ScreenId),
     SetPower {
-        from_webserver: bool,
+        source: CommandSource,
         power: Option<bool>,
     },
     AutoPower(bool),

@@ -3,6 +3,9 @@ from team_generator import get_app_color_shit, get_display_name
 from color import process_team_colors
 import os
 import json
+from dateutil.parser import parse
+import datetime
+import pytz
 from enum import Enum
 
 
@@ -108,6 +111,11 @@ class Common:
             competition = json["competitions"][0]
             home_team, away_team = competition["competitors"]
             status = Common.convert_status(competition["status"]["type"]["name"])
+            time = parse(competition["date"]).astimezone(pytz.utc)
+            now = datetime.datetime.now(tz=pytz.UTC)
+            delta = abs(now - time)
+            if delta > datetime.timedelta(hours=24):
+                return None
             if status is not None:
                 return Common.create_common(
                     screen_id.value,

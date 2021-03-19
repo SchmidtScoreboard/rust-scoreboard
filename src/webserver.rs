@@ -1,4 +1,6 @@
-use crate::common::{MatrixCommand, ScoreboardSettingsData, ScreenId, WebserverResponse};
+use crate::common::{
+    CommandSource, MatrixCommand, ScoreboardSettingsData, ScreenId, WebserverResponse,
+};
 use rocket::config::{Config, Environment};
 use rocket::response::{status, Content};
 use rocket::{get, http::ContentType, post, routes, State};
@@ -101,7 +103,7 @@ fn set_power(
     (*state)
         .sender
         .send(MatrixCommand::SetPower {
-            from_webserver: true,
+            source: CommandSource::Webserver(),
             power: Some(power_request.screen_on),
         })
         .unwrap();
@@ -120,8 +122,7 @@ fn auto_power(
     let state = state.lock().unwrap();
     (*state)
         .sender
-        .send(MatrixCommand::AutoPower(
-            auto_power_request.auto_power))
+        .send(MatrixCommand::AutoPower(auto_power_request.auto_power))
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
@@ -319,8 +320,8 @@ pub fn run_webserver(
         .mount(
             "/",
             routes![
-                index, configure, set_power, auto_power, set_sport, wifi, logs, show_sync, reboot, reset, sync,
-                connect, version
+                index, configure, set_power, auto_power, set_sport, wifi, logs, show_sync, reboot,
+                reset, sync, connect, version
             ],
         )
         .launch();

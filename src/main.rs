@@ -240,6 +240,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         rpi_led_matrix::LedMatrix::new(Some(options), Some(rt_options))
             .expect("Could not setup matrix");
 
+    let mut scheduler = scheduler::Scheduler::new(scheduler_receiver, matrix_sender.clone());
+    std::thread::spawn(move || {
+        scheduler.run();
+    });
+
+    if settings.get_settings().auto_power {
+        // Schedule check for 2 minutes after power on
+        scheduler_sender
+            .send(scheduler::DelayedCommand::new(
+                scheduler::Command::MatrixCommand(common::MatrixCommand::CheckSmartScreen()),
+                Some(Duration::from_secs(60 * 2)),
+            ))
+            .unwrap();
+    }
+
     let mut matrix = Matrix::new(
         led_matrix,
         message_screen,
@@ -251,10 +266,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         scheduler_sender.clone(),
     );
 
-    let mut scheduler = scheduler::Scheduler::new(scheduler_receiver, matrix_sender.clone());
-    std::thread::spawn(move || {
-        scheduler.run();
-    });
     let webserver_sender = matrix_sender.clone();
     std::thread::spawn(move || {
         webserver::run_webserver(webserver_sender, web_response_receiver, root_path);
