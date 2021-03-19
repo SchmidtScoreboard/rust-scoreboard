@@ -1,5 +1,7 @@
 from college_basketball import CollegeBasketball
 from basketball import Basketball
+from college_football import CollegeFootball
+from football import Football
 from hockey import Hockey
 from baseball import Baseball
 from all_sports import All
@@ -14,6 +16,7 @@ REFRESH_WINDOW = 60  # seconds
 
 def success_response(resp):
     return {"statusCode": 200, "body": json.dumps({"data": resp})}
+
 
 def wrap_games(games):
     return {"games": games}
@@ -35,6 +38,10 @@ def lambda_handler(event, context):
         result = wrap_games(loop.run_until_complete(Basketball.get_games(False)))
     elif sport == "hockey":
         result = wrap_games(loop.run_until_complete(Hockey.get_games(False)))
+    elif sport == "college_football":
+        result = wrap_games(loop.run_until_complete(CollegeFootball.get_games(False)))
+    elif sport == "football":
+        result = wrap_games(loop.run_until_complete(Football.get_games(False)))
     elif sport == "baseball":
         result = wrap_games(loop.run_until_complete(Baseball.get_games(False)))
     elif sport == "all":

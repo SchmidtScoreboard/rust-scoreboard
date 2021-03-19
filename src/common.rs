@@ -15,6 +15,8 @@ pub enum ScreenId {
     Baseball = 1,
     CollegeBasketball = 2,
     Basketball = 3,
+    Football = 4,
+    CollegeFootball = 5,
     Clock = 50,
     Reboot = 99,
     Refresh = 100,
@@ -27,36 +29,54 @@ pub enum ScreenId {
 
 impl ScreenId {
     pub fn get_base_id(self: &Self) -> &ScreenId {
-        match self{
-            ScreenId::Baseball | ScreenId::Basketball | ScreenId::Hockey | ScreenId::CollegeBasketball => &ScreenId::Smart,
-            _ => self  
+        match self {
+            ScreenId::Baseball
+            | ScreenId::Basketball
+            | ScreenId::Hockey
+            | ScreenId::CollegeBasketball
+            | ScreenId::CollegeFootball
+            | ScreenId::Football => &ScreenId::Smart,
+            _ => self,
         }
     }
 
     pub fn get_refresh_texts(self: &Self) -> Vec<&'static str> {
-        let mut texts = vec!("Warming up!");
+        let mut texts = vec!["Warming up!"];
         match self {
-            ScreenId::Hockey=> texts.extend(vec!("Calling Toronto!", "Icing")),
-            ScreenId::Baseball => texts.extend(vec!("Pitching change!", "Batter up!")),
-            ScreenId::CollegeBasketball | ScreenId::Basketball => texts.extend(vec!("Taking a shot!")),
+            ScreenId::Hockey => texts.extend(vec!["Calling Toronto!", "Icing"]),
+            ScreenId::Baseball => texts.extend(vec!["Pitching change!", "Batter up!"]),
+            ScreenId::CollegeBasketball | ScreenId::Basketball => {
+                texts.extend(vec!["Taking a shot!"])
+            }
+            ScreenId::CollegeFootball | ScreenId::Football => {
+                texts.extend(vec!["First down!", "Blue, 42..."])
+            }
             _ => {}
         };
         texts
     }
 }
 
+#[derive(Hash, Eq, PartialEq)]
+pub enum CommandSource {
+    Webserver(),
+    Button(),
+    Task(),
+}
+
 pub enum MatrixCommand {
     SetActiveScreen(ScreenId),
     SetPower {
-        from_webserver: bool,
+        source: CommandSource,
         power: Option<bool>,
     },
+    AutoPower(bool),
     Display(ScreenId),
     UpdateSettings(ScoreboardSettingsData),
 
     // Setup Commands
     GetSettings(), // Fetch the settings
-    _CheckSmartScreen(),
+    CheckSmartScreen(),
     Reboot(),
     Reset {
         from_webserver: bool,
@@ -77,6 +97,7 @@ pub enum MatrixCommand {
 pub enum WebserverResponse {
     UpdateSettingsResponse(ScoreboardSettingsData),
     SetPowerResponse(ScoreboardSettingsData),
+    SetAutoPowerResponse(ScoreboardSettingsData),
     SetActiveScreenResponse(ScoreboardSettingsData),
     GetSettingsResponse(ScoreboardSettingsData),
     RebootResponse(Option<ScoreboardSettingsData>),
@@ -186,6 +207,10 @@ fn default_rotation_time() -> u32 {
 fn default_brightness() -> u8 {
     100
 }
+
+fn default_auto_power() -> bool {
+    false
+}
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 pub struct ScoreboardSettingsData {
     pub timezone: String,
@@ -195,6 +220,8 @@ pub struct ScoreboardSettingsData {
     pub name: String,
     pub screens: Vec<ScreenSettings>,
     pub screen_on: bool,
+    #[serde(default = "default_auto_power")]
+    pub auto_power: bool,
     pub version: u32,
 
     #[serde(default)]

@@ -23,6 +23,7 @@ pub struct Matrix<'a> {
     settings: ScoreboardSettings, // The main scoreboard settings
     webserver_responder: mpsc::Sender<common::WebserverResponse>, // Send responses to the webserver
     shell_sender: mpsc::Sender<common::ShellCommand>, // Send commands to shell
+    scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
     message_screen: message::MessageScreen, // If this is set, display this message until it is unset
 }
 
@@ -35,6 +36,7 @@ impl<'a> Matrix<'a> {
         settings: ScoreboardSettings,
         webserver_responder: mpsc::Sender<common::WebserverResponse>,
         shell_sender: mpsc::Sender<common::ShellCommand>,
+        scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
@@ -43,13 +45,13 @@ impl<'a> Matrix<'a> {
             settings,
             webserver_responder,
             shell_sender,
+            scheduler_sender,
             message_screen,
         }
     }
 
     fn get_mut_screen(self: &mut Self, id: &common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
-        self
-            .screens_map
+        self.screens_map
             .get_mut(id)
             .expect(&format!("Could not find screen {:?}", id))
     }
@@ -103,6 +105,30 @@ impl<'a> Matrix<'a> {
         }
     }
 
+    fn check_priority(self: &mut Self) -> bool{
+        info!("Checking priority games");
+        let on = self.get_mut_active_screen().has_priority();
+        let command = common::MatrixCommand::SetPower {
+            source: common::CommandSource::Task(),
+            power: Some(on)
+        };
+        // Send the power on/off command
+        self.scheduler_sender
+            .send(scheduler::DelayedCommand::new(
+                scheduler::Command::MatrixCommand(command),
+                None,
+            ))
+            .unwrap();
+        // Delay command to check priority status
+        self.scheduler_sender
+            .send(scheduler::DelayedCommand::new(
+                scheduler::Command::MatrixCommand(common::MatrixCommand::CheckSmartScreen()),
+                Some(Duration::from_secs(60 * 30)),
+            ))
+            .unwrap();
+        on
+    }
+
     // This is the main loop of the entire code
     // Call this after everything else is set up
     pub fn run(self: &mut Self) {
@@ -117,19 +143,22 @@ impl<'a> Matrix<'a> {
                     self.deactivate_screen();
                     self.settings.set_active_screen(&id);
                     self.settings.set_power(&true);
+                    self.settings.set_auto_power(&false);
                     self.activate_screen();
                     self.send_response(common::WebserverResponse::SetActiveScreenResponse(
                         self.settings.get_settings_clone(),
                     ));
                 }
-                common::MatrixCommand::SetPower {
-                    from_webserver,
-                    power,
-                } => {
+                common::MatrixCommand::SetPower { source, power } => {
                     let on = match power {
                         Some(power) => power,
                         None => !self.settings.get_power(),
                     };
+                    if source != common::CommandSource::Task() {
+                        // If this command comes from either the button or webserver, disable auto
+                        // power
+                        self.settings.set_auto_power(&false);
+                    }
                     self.settings.set_power(&on);
                     if *self.settings.get_power() {
                         self.activate_screen();
@@ -139,11 +168,35 @@ impl<'a> Matrix<'a> {
                     canvas.clear();
                     canvas = self.led_matrix.swap(canvas);
                     canvas.clear();
-                    if from_webserver {
+                    if source == common::CommandSource::Webserver() {
                         self.send_response(common::WebserverResponse::SetPowerResponse(
                             self.settings.get_settings_clone(),
                         ));
                     }
+                }
+                common::MatrixCommand::AutoPower(auto_power) => {
+                    self.settings.set_auto_power(&auto_power);
+                    let on = {
+                        if auto_power {
+                            self.check_priority()
+                        } else {
+                            *self.settings.get_power()
+                        }
+                    };
+                    self.scheduler_sender
+                        .send(scheduler::DelayedCommand::new(
+                            scheduler::Command::MatrixCommand(
+                                common::MatrixCommand::CheckSmartScreen(),
+                            ),
+                            Some(Duration::from_secs(30 * 60)),
+                        ))
+                        .unwrap();
+                    let mut settings = self.settings.get_settings_clone();
+                    settings.screen_on = on;
+                    self.send_response(common::WebserverResponse::SetAutoPowerResponse(
+                        settings,
+                    ));
+
                 }
                 common::MatrixCommand::Display(id) => {
                     if self.message_screen.is_message_set() {
@@ -151,7 +204,9 @@ impl<'a> Matrix<'a> {
                         canvas = self.led_matrix.swap(canvas);
                         canvas.clear();
                     } else {
-                        if id == *self.settings.get_active_screen().get_base_id() && *self.settings.get_power() {
+                        if id == *self.settings.get_active_screen().get_base_id()
+                            && *self.settings.get_power()
+                        {
                             // If the id received matches the active id, display the image
                             self.get_mut_screen(&id).draw(&mut canvas);
                             canvas = self.led_matrix.swap(canvas);
@@ -159,7 +214,11 @@ impl<'a> Matrix<'a> {
                         }
                     }
                 }
-                common::MatrixCommand::_CheckSmartScreen() => {}
+                common::MatrixCommand::CheckSmartScreen() => {
+                    if *self.settings.get_auto_power() {
+                        self.check_priority();
+                    }
+                }
                 common::MatrixCommand::GetSettings() => {
                     self.send_response(common::WebserverResponse::GetSettingsResponse(
                         self.settings.get_settings_clone(),
@@ -176,12 +235,14 @@ impl<'a> Matrix<'a> {
                     if original_brightness != new_brightness {
                         // Restart the scoreboard
                         self.settings.set_power(&true);
+                        self.settings.set_auto_power(&false);
                         self.show_message("Rebooting...".to_string());
                         self.send_command(common::ShellCommand::Reboot { settings: None });
                     }
                 }
                 common::MatrixCommand::Reboot() => {
                     self.settings.set_power(&true);
+                    self.settings.set_auto_power(&false);
                     self.show_message("Rebooting...".to_string());
                     self.send_command(common::ShellCommand::Reboot {
                         settings: Some(self.settings.get_settings_clone()),
@@ -189,6 +250,7 @@ impl<'a> Matrix<'a> {
                 }
                 common::MatrixCommand::Reset { from_webserver } => {
                     self.settings.set_power(&true);
+                    self.settings.set_auto_power(&false);
                     // Reset scoreboard settings,  updating the screen to show the message
                     self.deactivate_screen();
                     self.settings.set_setup_state(&common::SetupState::Hotspot);
@@ -210,6 +272,7 @@ impl<'a> Matrix<'a> {
                 common::MatrixCommand::GotHotspotConnection() => {
                     // Change setup state
                     self.settings.set_power(&true);
+                    self.settings.set_auto_power(&false);
 
                     match self.settings.get_setup_state() {
                         common::SetupState::Hotspot | common::SetupState::WifiConnect => {
@@ -231,6 +294,7 @@ impl<'a> Matrix<'a> {
                 }
                 common::MatrixCommand::GotWifiDetails { ssid, password } => {
                     self.settings.set_power(&true);
+                    self.settings.set_auto_power(&false);
                     // Got wifi details, set the wpa supplicant file and restart
                     self.deactivate_screen();
                     self.settings
@@ -266,6 +330,7 @@ impl<'a> Matrix<'a> {
                 },
                 common::MatrixCommand::FinishedReset(result) => {
                     self.settings.set_power(&true);
+                    self.settings.set_auto_power(&false);
                     self.hide_message();
                     match result {
                         Ok(_) => {
@@ -284,6 +349,7 @@ impl<'a> Matrix<'a> {
                 } => {
                     // Got a sync command with optional showSync.
                     self.settings.set_power(&true);
+                    self.settings.set_auto_power(&false);
                     let current_setup_state = self.settings.get_setup_state();
                     if current_setup_state == &common::SetupState::Ready
                         || current_setup_state == &common::SetupState::Sync
@@ -324,25 +390,29 @@ impl<'a> Matrix<'a> {
 #[derive(Eq, PartialEq, Debug, Clone)]
 pub struct Dimensions {
     pub width: i32,
-    pub height: i32
+    pub height: i32,
 }
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 pub struct FontDimensions {
     pub width: i32,
     pub height: i32,
-    pub width_overrides: HashMap<char, i32>
+    pub width_overrides: HashMap<char, i32>,
 }
 
 impl FontDimensions {
     pub fn new(width: i32, height: i32, width_overrides: HashMap<char, i32>) -> FontDimensions {
-        FontDimensions { width , height, width_overrides}
+        FontDimensions {
+            width,
+            height,
+            width_overrides,
+        }
     }
 }
 
 impl Dimensions {
     pub fn new(width: i32, height: i32) -> Dimensions {
-        Dimensions {width, height}
+        Dimensions { width, height }
     }
 }
 
@@ -359,7 +429,13 @@ impl Font {
         let _create_dir_result = fs::create_dir(&target_dir);
         fs::write(&target_dir.join(file_name), bytes).expect("Failed to write file");
     }
-    pub fn new(root_path: &std::path::Path, font_file: &str, width: i32, height: i32, width_overrides: HashMap<char, i32>) -> Font {
+    pub fn new(
+        root_path: &std::path::Path,
+        font_file: &str,
+        width: i32,
+        height: i32,
+        width_overrides: HashMap<char, i32>,
+    ) -> Font {
         Font::dump_file(root_path, font_file);
         let full_path = root_path.join(format!("fonts/{}", font_file));
         Font {
@@ -369,15 +445,15 @@ impl Font {
         }
     }
 
-    pub fn get_text_dimensions(self: &Self, display_text: &str) -> Dimensions{
-        let width = display_text.chars().map(|c| {
-            match self.dimensions.width_overrides.get(&c) {
+    pub fn get_text_dimensions(self: &Self, display_text: &str) -> Dimensions {
+        let width = display_text
+            .chars()
+            .map(|c| match self.dimensions.width_overrides.get(&c) {
                 Some(w) => w,
-                None => &self.dimensions.width
-            }
-        } ).sum();
+                None => &self.dimensions.width,
+            })
+            .sum();
         Dimensions::new(width, self.dimensions.height)
-
     }
 }
 
@@ -393,19 +469,27 @@ pub struct FontBook {
 
 impl FontBook {
     pub fn new(root_path: &std::path::Path) -> FontBook {
-        let mut override4x6= HashMap::new();
-        let mut override5x8= HashMap::new();
+        let mut override4x6 = HashMap::new();
+        let mut override5x8 = HashMap::new();
 
-        override4x6.insert('N',5);
-        override5x8.insert('I',4);
-        override5x8.insert('T',4);
-        override5x8.insert('Y',6);
+        override4x6.insert('N', 5);
+        override5x8.insert('I', 4);
+        override5x8.insert('T', 4);
+        override5x8.insert('Y', 6);
         FontBook {
             font4x6: Font::new(
-                root_path, "4x6.bdf", 4, 5, override4x6 // True text height is 5
+                root_path,
+                "4x6.bdf",
+                4,
+                5,
+                override4x6, // True text height is 5
             ),
             font5x8: Font::new(
-                root_path, "5x8.bdf", 5, 6, override5x8 // True text height is 6
+                root_path,
+                "5x8.bdf",
+                5,
+                6,
+                override5x8, // True text height is 6
             ),
             font7x13: Font::new(root_path, "7x13.bdf", 7, 9, HashMap::new()), // True text height is 9
         }
@@ -631,7 +715,7 @@ pub trait ScreenProvider {
 
     fn as_any(&mut self) -> &mut dyn Any;
 
-    fn has_priority(self: &Self, _team_id: u32) -> bool {
+    fn has_priority(self: &Self) -> bool {
         false
     }
 }

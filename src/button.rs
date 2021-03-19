@@ -124,7 +124,7 @@ impl ButtonHandler {
         info!("SHORT PRESS");
         self.command_sender
             .send(common::MatrixCommand::SetPower {
-                from_webserver: false,
+                source: common::CommandSource::Button(),
                 power: None,
             })
             .unwrap();
