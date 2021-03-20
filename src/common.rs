@@ -76,7 +76,6 @@ pub enum MatrixCommand {
 
     // Setup Commands
     GetSettings(), // Fetch the settings
-    CheckSmartScreen(),
     Reboot(),
     Reset {
         from_webserver: bool,

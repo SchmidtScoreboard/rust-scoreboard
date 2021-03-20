@@ -14,7 +14,7 @@ use std::error::Error;
 use std::fs;
 use std::str;
 use std::sync::mpsc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix, // The actual matrix
@@ -25,6 +25,7 @@ pub struct Matrix<'a> {
     shell_sender: mpsc::Sender<common::ShellCommand>, // Send commands to shell
     scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
     message_screen: message::MessageScreen, // If this is set, display this message until it is unset
+    last_priority_check: Option<Instant>,
 }
 
 impl<'a> Matrix<'a> {
@@ -47,6 +48,7 @@ impl<'a> Matrix<'a> {
             shell_sender,
             scheduler_sender,
             message_screen,
+            last_priority_check: Some(Instant::now()),
         }
     }
 
@@ -105,28 +107,21 @@ impl<'a> Matrix<'a> {
         }
     }
 
-    fn check_priority(self: &mut Self) -> bool{
-        info!("Checking priority games");
-        let on = self.get_mut_active_screen().has_priority();
-        let command = common::MatrixCommand::SetPower {
-            source: common::CommandSource::Task(),
-            power: Some(on)
-        };
-        // Send the power on/off command
-        self.scheduler_sender
-            .send(scheduler::DelayedCommand::new(
-                scheduler::Command::MatrixCommand(command),
-                None,
-            ))
-            .unwrap();
-        // Delay command to check priority status
-        self.scheduler_sender
-            .send(scheduler::DelayedCommand::new(
-                scheduler::Command::MatrixCommand(common::MatrixCommand::CheckSmartScreen()),
-                Some(Duration::from_secs(60 * 30)),
-            ))
-            .unwrap();
-        on
+    // Returns what the power state of the system should be after priority check
+    fn check_priority(self: &mut Self) -> bool {
+        if self
+            .last_priority_check
+            .map(|last_priority_check| {
+                Instant::now().duration_since(last_priority_check) > Duration::from_secs(60)
+            })
+            .unwrap_or(true)
+        {
+            info!("Checking priority");
+            self.last_priority_check = Some(Instant::now());
+            self.get_mut_active_screen().has_priority()
+        } else {
+            *self.settings.get_power()
+        }
     }
 
     // This is the main loop of the entire code
@@ -183,20 +178,10 @@ impl<'a> Matrix<'a> {
                             *self.settings.get_power()
                         }
                     };
-                    self.scheduler_sender
-                        .send(scheduler::DelayedCommand::new(
-                            scheduler::Command::MatrixCommand(
-                                common::MatrixCommand::CheckSmartScreen(),
-                            ),
-                            Some(Duration::from_secs(30 * 60)),
-                        ))
-                        .unwrap();
+                    self.last_priority_check = None;
                     let mut settings = self.settings.get_settings_clone();
                     settings.screen_on = on;
-                    self.send_response(common::WebserverResponse::SetAutoPowerResponse(
-                        settings,
-                    ));
-
+                    self.send_response(common::WebserverResponse::SetAutoPowerResponse(settings));
                 }
                 common::MatrixCommand::Display(id) => {
                     if self.message_screen.is_message_set() {
@@ -212,11 +197,6 @@ impl<'a> Matrix<'a> {
                             canvas = self.led_matrix.swap(canvas);
                             canvas.clear();
                         }
-                    }
-                }
-                common::MatrixCommand::CheckSmartScreen() => {
-                    if *self.settings.get_auto_power() {
-                        self.check_priority();
                     }
                 }
                 common::MatrixCommand::GetSettings() => {
@@ -384,6 +364,23 @@ impl<'a> Matrix<'a> {
                     }
                 }
             };
+
+            if *self.settings.get_auto_power() {
+                let on = self.check_priority();
+                if on != *self.settings.get_power() {
+                    let command = common::MatrixCommand::SetPower {
+                        source: common::CommandSource::Task(),
+                        power: Some(on),
+                    };
+                    // Send the power on/off command
+                    self.scheduler_sender
+                        .send(scheduler::DelayedCommand::new(
+                            scheduler::Command::MatrixCommand(command),
+                            None,
+                        ))
+                        .unwrap();
+                }
+            }
         }
     }
 }

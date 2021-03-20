@@ -245,16 +245,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         scheduler.run();
     });
 
-    if settings.get_settings().auto_power {
-        // Schedule check for 2 minutes after power on
-        scheduler_sender
-            .send(scheduler::DelayedCommand::new(
-                scheduler::Command::MatrixCommand(common::MatrixCommand::CheckSmartScreen()),
-                Some(Duration::from_secs(60 * 2)),
-            ))
-            .unwrap();
-    }
-
     let mut matrix = Matrix::new(
         led_matrix,
         message_screen,
