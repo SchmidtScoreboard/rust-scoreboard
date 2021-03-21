@@ -110,19 +110,27 @@ class Common:
         try:
             competition = json["competitions"][0]
             home_team, away_team = competition["competitors"]
-            status = Common.convert_status(competition["status"]["type"]["name"])
+            espn_status = competition["status"]["type"]["name"]
+            status = Common.convert_status(espn_status)
             time = parse(competition["date"]).astimezone(pytz.utc)
             now = datetime.datetime.now(tz=pytz.UTC)
             delta = abs(now - time)
             if delta > datetime.timedelta(hours=24):
                 return None
+
+            ordinal = Common.to_ordinal(competition["status"]["period"])
+            if status == "INTERMISSION":
+                ordinal += " INT"
+
+            if espn_status == "STATUS_HALFTIME":
+                ordinal = "HALFTIME"
             if status is not None:
                 return Common.create_common(
                     screen_id.value,
                     team_func(home_team["id"], home_team, team_map),
                     team_func(away_team["id"], away_team, team_map),
                     status,
-                    Common.to_ordinal(competition["status"]["period"]),
+                    ordinal,
                     competition["date"],
                     int(competition["id"]),
                     int(home_team["score"]),
