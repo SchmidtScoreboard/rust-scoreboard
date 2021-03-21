@@ -1,7 +1,9 @@
 {
    "games":[
       {
+         "type": "Hockey",
          "common":{
+            "sport_id": 0,
             "home_team":{
                "id":"16",
                "location":"Chicago",
@@ -25,7 +27,7 @@
             "status":"ACTIVE",
             "ordinal":"3rd",
             "start_time":"2021-02-21T18:00Z",
-            "id":"401263373"
+            "id":401263373
          },
         "away_powerplay": true,
         "home_powerplay": false,

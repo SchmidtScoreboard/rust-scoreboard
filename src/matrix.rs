@@ -117,6 +117,7 @@ impl<'a> Matrix<'a> {
             .unwrap_or(true)
         {
             info!("Checking priority");
+            self.update_settings_on_active_screen(); // This is a bit of hack to force the sport screen to re-prioritize games
             self.last_priority_check = Some(Instant::now());
             self.get_mut_active_screen().has_priority()
         } else {

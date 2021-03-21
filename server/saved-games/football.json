@@ -1,0 +1,34 @@
+{
+   "games":[
+      {
+         "type": "Football",
+         "common":{
+            "sport_id": 4,
+            "home_team":{
+               "id":"3",
+               "location":"Chicago",
+               "name":"Chicago Bears",
+               "display_name":"Bears",
+               "abbreviation":"CHI",
+               "primary_color":"152644",
+               "secondary_color":"ffffff"
+            },
+            "away_team":{
+               "id":"9",
+               "location":"Green Bay",
+               "name":"Packers",
+               "display_name":"Packers",
+               "abbreviation":"GB",
+               "primary_color":"204E32",
+               "secondary_color":"ffb612"
+            },
+            "home_score":27,
+            "away_score":3,
+            "status":"ACTIVE",
+            "ordinal":"4th",
+            "start_time":"2021-02-21T18:00Z",
+            "id":401263373
+         }
+      }
+   ]
+}

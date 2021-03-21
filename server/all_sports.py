@@ -20,9 +20,9 @@ class All:
                 CollegeFootball.get_games(testing),
             ]
         )
-        print(game_sets)
+        # print(game_sets)
         flatten_list = [game for game_set in game_sets for game in game_set]
-        print(flatten_list)
+        # print(flatten_list)
 
         return flatten_list
 

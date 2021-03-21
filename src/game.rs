@@ -1,7 +1,7 @@
 use crate::common;
 use crate::matrix;
 
-use chrono::{DateTime, NaiveDateTime, Utc, Duration};
+use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use chrono_tz::Tz;
 use rpi_led_matrix;
 use serde::{de::Error, Deserialize, Deserializer};
@@ -105,12 +105,12 @@ impl CommonGameData {
         self.status == GameStatus::ACTIVE || self.status == GameStatus::INTERMISSION
     }
 
-    pub fn should_focus(self: &Self, ) -> bool {
+    pub fn should_focus(self: &Self) -> bool {
         let now = Utc::now();
         let diff = now - self.start_time; // Get the duration between now and the start of the game. Positive == game started, Negative game to start
-        (self.status == GameStatus::END && diff < Duration::hours(4)) ||  // 
-        ( self.status == GameStatus::PREGAME && diff > -Duration::minutes(30)) ||
-        self.is_active_game()
+        (self.status == GameStatus::END && diff < Duration::hours(4))
+            || (self.status == GameStatus::PREGAME && diff > -Duration::minutes(30))
+            || self.is_active_game()
     }
 }
 
@@ -125,12 +125,9 @@ where
     Ok(DateTime::<Utc>::from_utc(naive_time, Utc))
 }
 
-pub fn fetch_games(base_url: &str, endpoint: &str, query: &str, api_key: &str) -> ureq::Response {
+pub fn fetch_games(base_url: &str, endpoint: &str, api_key: &str) -> ureq::Response {
     let url = format!("{}{}", base_url, endpoint);
-    let resp = ureq::get(&url)
-        .set("X-API-KEY", api_key)
-        .send_json(ureq::json!({ "query": query }));
-    return resp;
+    ureq::get(&url).set("X-API-KEY", api_key).call()
 }
 
 fn draw_team_box(

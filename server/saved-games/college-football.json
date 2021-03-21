@@ -1,9 +1,9 @@
 {
    "games":[
       {
-         "type": "CollegeBasketball",
+         "type": "CollegeFootball",
          "common":{
-            "sport_id": 2,
+            "sport_id": 5,
             "home_team":{
                "id":"356",
                "location":"Illinois",
@@ -22,10 +22,10 @@
                "primary_color":"00274c",
                "secondary_color":"ffcb05"
             },
-            "home_score":84,
-            "away_score":72,
+            "home_score":17,
+            "away_score":7,
             "status":"ACTIVE",
-            "ordinal":"2nd",
+            "ordinal":"4th",
             "start_time":"2021-02-21T18:00Z",
             "id":401263373
          }
