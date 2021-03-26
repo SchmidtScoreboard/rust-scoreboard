@@ -132,235 +132,241 @@ impl<'a> Matrix<'a> {
         self.settings.set_power(&true);
         self.activate_screen();
         loop {
-            let command = self.receiver.recv().unwrap();
+            let command = self.receiver.recv_timeout(Duration::from_secs(60));
             // let command = command.unwrap(); // Get the actual command
-            match command {
-                common::MatrixCommand::SetActiveScreen(id) => {
-                    self.deactivate_screen();
-                    self.settings.set_active_screen(&id);
-                    self.settings.set_power(&true);
-                    self.settings.set_auto_power(&false);
-                    self.activate_screen();
-                    self.send_response(common::WebserverResponse::SetActiveScreenResponse(
-                        self.settings.get_settings_clone(),
-                    ));
-                }
-                common::MatrixCommand::SetPower { source, power } => {
-                    let on = match power {
-                        Some(power) => power,
-                        None => !self.settings.get_power(),
-                    };
-                    if source != common::CommandSource::Task() {
-                        // If this command comes from either the button or webserver, disable auto
-                        // power
-                        self.settings.set_auto_power(&false);
-                    }
-                    self.settings.set_power(&on);
-                    if *self.settings.get_power() {
-                        self.activate_screen();
-                    } else {
+            if let Ok(command) = command {
+                match command {
+                    common::MatrixCommand::SetActiveScreen(id) => {
                         self.deactivate_screen();
-                    }
-                    canvas.clear();
-                    canvas = self.led_matrix.swap(canvas);
-                    canvas.clear();
-                    if source == common::CommandSource::Webserver() {
-                        self.send_response(common::WebserverResponse::SetPowerResponse(
+                        self.settings.set_active_screen(&id);
+                        self.settings.set_power(&true);
+                        self.settings.set_auto_power(&false);
+                        self.activate_screen();
+                        self.send_response(common::WebserverResponse::SetActiveScreenResponse(
                             self.settings.get_settings_clone(),
                         ));
                     }
-                }
-                common::MatrixCommand::AutoPower(auto_power) => {
-                    self.settings.set_auto_power(&auto_power);
-                    let on = {
-                        if auto_power {
-                            self.check_priority()
-                        } else {
-                            *self.settings.get_power()
+                    common::MatrixCommand::SetPower { source, power } => {
+                        let on = match power {
+                            Some(power) => power,
+                            None => !self.settings.get_power(),
+                        };
+                        if source != common::CommandSource::Task() {
+                            // If this command comes from either the button or webserver, disable auto
+                            // power
+                            self.settings.set_auto_power(&false);
                         }
-                    };
-                    self.last_priority_check = None;
-                    let mut settings = self.settings.get_settings_clone();
-                    settings.screen_on = on;
-                    self.send_response(common::WebserverResponse::SetAutoPowerResponse(settings));
-                }
-                common::MatrixCommand::Display(id) => {
-                    if self.message_screen.is_message_set() {
-                        self.message_screen.draw(&mut canvas);
+                        self.settings.set_power(&on);
+                        if *self.settings.get_power() {
+                            self.activate_screen();
+                        } else {
+                            self.deactivate_screen();
+                        }
+                        canvas.clear();
                         canvas = self.led_matrix.swap(canvas);
                         canvas.clear();
-                    } else {
-                        if id == *self.settings.get_active_screen().get_base_id()
-                            && *self.settings.get_power()
-                        {
-                            // If the id received matches the active id, display the image
-                            self.get_mut_screen(&id).draw(&mut canvas);
-                            canvas = self.led_matrix.swap(canvas);
-                            canvas.clear();
+                        if source == common::CommandSource::Webserver() {
+                            self.send_response(common::WebserverResponse::SetPowerResponse(
+                                self.settings.get_settings_clone(),
+                            ));
                         }
                     }
-                }
-                common::MatrixCommand::GetSettings() => {
-                    self.send_response(common::WebserverResponse::GetSettingsResponse(
-                        self.settings.get_settings_clone(),
-                    ));
-                }
-                common::MatrixCommand::UpdateSettings(settings) => {
-                    let original_brightness = self.settings.get_brightness();
-                    self.settings.update_settings(settings);
-                    let new_brightness = self.settings.get_brightness();
-                    self.update_settings_on_active_screen();
-                    self.send_response(common::WebserverResponse::UpdateSettingsResponse(
-                        self.settings.get_settings_clone(),
-                    ));
-                    if original_brightness != new_brightness {
-                        // Restart the scoreboard
+                    common::MatrixCommand::AutoPower(auto_power) => {
+                        self.settings.set_auto_power(&auto_power);
+                        let on = {
+                            if auto_power {
+                                self.check_priority()
+                            } else {
+                                *self.settings.get_power()
+                            }
+                        };
+                        self.last_priority_check = None;
+                        let mut settings = self.settings.get_settings_clone();
+                        settings.screen_on = on;
+                        self.send_response(common::WebserverResponse::SetAutoPowerResponse(
+                            settings,
+                        ));
+                    }
+                    common::MatrixCommand::Display(id) => {
+                        if self.message_screen.is_message_set() {
+                            self.message_screen.draw(&mut canvas);
+                            canvas = self.led_matrix.swap(canvas);
+                            canvas.clear();
+                        } else {
+                            if id == *self.settings.get_active_screen().get_base_id()
+                                && *self.settings.get_power()
+                            {
+                                // If the id received matches the active id, display the image
+                                self.get_mut_screen(&id).draw(&mut canvas);
+                                canvas = self.led_matrix.swap(canvas);
+                                canvas.clear();
+                            }
+                        }
+                    }
+                    common::MatrixCommand::GetSettings() => {
+                        self.send_response(common::WebserverResponse::GetSettingsResponse(
+                            self.settings.get_settings_clone(),
+                        ));
+                    }
+                    common::MatrixCommand::UpdateSettings(settings) => {
+                        let original_brightness = self.settings.get_brightness();
+                        self.settings.update_settings(settings);
+                        let new_brightness = self.settings.get_brightness();
+                        self.update_settings_on_active_screen();
+                        self.send_response(common::WebserverResponse::UpdateSettingsResponse(
+                            self.settings.get_settings_clone(),
+                        ));
+                        if original_brightness != new_brightness {
+                            // Restart the scoreboard
+                            self.settings.set_power(&true);
+                            self.settings.set_auto_power(&false);
+                            self.show_message("Rebooting...".to_string());
+                            self.send_command(common::ShellCommand::Reboot { settings: None });
+                        }
+                    }
+                    common::MatrixCommand::Reboot() => {
                         self.settings.set_power(&true);
                         self.settings.set_auto_power(&false);
                         self.show_message("Rebooting...".to_string());
-                        self.send_command(common::ShellCommand::Reboot { settings: None });
+                        self.send_command(common::ShellCommand::Reboot {
+                            settings: Some(self.settings.get_settings_clone()),
+                        });
                     }
-                }
-                common::MatrixCommand::Reboot() => {
-                    self.settings.set_power(&true);
-                    self.settings.set_auto_power(&false);
-                    self.show_message("Rebooting...".to_string());
-                    self.send_command(common::ShellCommand::Reboot {
-                        settings: Some(self.settings.get_settings_clone()),
-                    });
-                }
-                common::MatrixCommand::Reset { from_webserver } => {
-                    self.settings.set_power(&true);
-                    self.settings.set_auto_power(&false);
-                    // Reset scoreboard settings,  updating the screen to show the message
-                    self.deactivate_screen();
-                    self.settings.set_setup_state(&common::SetupState::Hotspot);
-                    self.settings.set_active_screen(&common::ScreenId::Setup);
-                    self.activate_screen();
-                    self.update_settings_on_active_screen();
-
-                    self.show_message("Resetting...".to_string());
-
-                    self.send_command(common::ShellCommand::Reset {
-                        from_matrix: true,
-                        from_webserver: if from_webserver {
-                            Some(self.settings.get_settings_clone())
-                        } else {
-                            None
-                        },
-                    });
-                }
-                common::MatrixCommand::GotHotspotConnection() => {
-                    // Change setup state
-                    self.settings.set_power(&true);
-                    self.settings.set_auto_power(&false);
-
-                    match self.settings.get_setup_state() {
-                        common::SetupState::Hotspot | common::SetupState::WifiConnect => {
-                            self.settings
-                                .set_setup_state(&common::SetupState::WifiConnect);
-                            self.update_settings_on_active_screen();
-                            self.send_response(
-                                common::WebserverResponse::GotHotspotConnectionResponse(Some(
-                                    self.settings.get_settings_clone(),
-                                )),
-                            );
-                        }
-                        _ => {
-                            self.send_response(
-                                common::WebserverResponse::GotHotspotConnectionResponse(None),
-                            );
-                        }
-                    }
-                }
-                common::MatrixCommand::GotWifiDetails { ssid, password } => {
-                    self.settings.set_power(&true);
-                    self.settings.set_auto_power(&false);
-                    // Got wifi details, set the wpa supplicant file and restart
-                    self.deactivate_screen();
-                    self.settings
-                        .set_setup_state(&common::SetupState::WifiConnect);
-                    self.settings.set_active_screen(&common::ScreenId::Setup);
-                    self.activate_screen();
-                    let setup = self.get_setup_screen();
-                    setup.attempting_connection();
-
-                    self.send_command(common::ShellCommand::SetupWifi {
-                        ssid,
-                        password,
-                        settings: self.settings.get_settings_clone(),
-                    });
-                    // Send the response immediately
-                    self.send_response(common::WebserverResponse::GotWifiDetailsResponse(Some(
-                        self.settings.get_settings_clone(),
-                    )));
-                }
-                common::MatrixCommand::FinishedWifiConnection(result) => match result {
-                    Ok(_) => {
-                        self.get_setup_screen()
-                            .set_sync_code(common::get_sync_code());
-                        self.settings.set_setup_state(&common::SetupState::Sync);
+                    common::MatrixCommand::Reset { from_webserver } => {
+                        self.settings.set_power(&true);
+                        self.settings.set_auto_power(&false);
+                        // Reset scoreboard settings,  updating the screen to show the message
+                        self.deactivate_screen();
+                        self.settings.set_setup_state(&common::SetupState::Hotspot);
+                        self.settings.set_active_screen(&common::ScreenId::Setup);
+                        self.activate_screen();
                         self.update_settings_on_active_screen();
+
+                        self.show_message("Resetting...".to_string());
+
+                        self.send_command(common::ShellCommand::Reset {
+                            from_matrix: true,
+                            from_webserver: if from_webserver {
+                                Some(self.settings.get_settings_clone())
+                            } else {
+                                None
+                            },
+                        });
                     }
-                    Err(e) => {
-                        error!("Error setting up wifi {:?} ", e);
+                    common::MatrixCommand::GotHotspotConnection() => {
+                        // Change setup state
+                        self.settings.set_power(&true);
+                        self.settings.set_auto_power(&false);
+
+                        match self.settings.get_setup_state() {
+                            common::SetupState::Hotspot | common::SetupState::WifiConnect => {
+                                self.settings
+                                    .set_setup_state(&common::SetupState::WifiConnect);
+                                self.update_settings_on_active_screen();
+                                self.send_response(
+                                    common::WebserverResponse::GotHotspotConnectionResponse(Some(
+                                        self.settings.get_settings_clone(),
+                                    )),
+                                );
+                            }
+                            _ => {
+                                self.send_response(
+                                    common::WebserverResponse::GotHotspotConnectionResponse(None),
+                                );
+                            }
+                        }
+                    }
+                    common::MatrixCommand::GotWifiDetails { ssid, password } => {
+                        self.settings.set_power(&true);
+                        self.settings.set_auto_power(&false);
+                        // Got wifi details, set the wpa supplicant file and restart
+                        self.deactivate_screen();
+                        self.settings
+                            .set_setup_state(&common::SetupState::WifiConnect);
+                        self.settings.set_active_screen(&common::ScreenId::Setup);
+                        self.activate_screen();
                         let setup = self.get_setup_screen();
-                        setup.failed_connection();
-                        // TODO display an error on the wifi details screen
+                        setup.attempting_connection();
+
+                        self.send_command(common::ShellCommand::SetupWifi {
+                            ssid,
+                            password,
+                            settings: self.settings.get_settings_clone(),
+                        });
+                        // Send the response immediately
+                        self.send_response(common::WebserverResponse::GotWifiDetailsResponse(
+                            Some(self.settings.get_settings_clone()),
+                        ));
                     }
-                },
-                common::MatrixCommand::FinishedReset(result) => {
-                    self.settings.set_power(&true);
-                    self.settings.set_auto_power(&false);
-                    self.hide_message();
-                    match result {
+                    common::MatrixCommand::FinishedWifiConnection(result) => match result {
                         Ok(_) => {
-                            self.settings.set_setup_state(&common::SetupState::Hotspot);
+                            self.get_setup_screen()
+                                .set_sync_code(common::get_sync_code());
+                            self.settings.set_setup_state(&common::SetupState::Sync);
                             self.update_settings_on_active_screen();
                         }
                         Err(e) => {
                             error!("Error setting up wifi {:?} ", e);
+                            let setup = self.get_setup_screen();
+                            setup.failed_connection();
                             // TODO display an error on the wifi details screen
                         }
+                    },
+                    common::MatrixCommand::FinishedReset(result) => {
+                        self.settings.set_power(&true);
+                        self.settings.set_auto_power(&false);
+                        self.hide_message();
+                        match result {
+                            Ok(_) => {
+                                self.settings.set_setup_state(&common::SetupState::Hotspot);
+                                self.update_settings_on_active_screen();
+                            }
+                            Err(e) => {
+                                error!("Error setting up wifi {:?} ", e);
+                                // TODO display an error on the wifi details screen
+                            }
+                        }
                     }
-                }
-                common::MatrixCommand::SyncCommand {
-                    from_webserver,
-                    show_sync,
-                } => {
-                    // Got a sync command with optional showSync.
-                    self.settings.set_power(&true);
-                    self.settings.set_auto_power(&false);
-                    let current_setup_state = self.settings.get_setup_state();
-                    if current_setup_state == &common::SetupState::Ready
-                        || current_setup_state == &common::SetupState::Sync
-                    {
-                        self.deactivate_screen();
-                        let show_sync = match show_sync {
-                            Some(show_sync) => show_sync,
-                            None => self.settings.get_setup_state() != &common::SetupState::Sync,
-                        };
-                        if show_sync {
-                            debug!("Showing sync screen");
-                            self.settings.set_setup_state(&common::SetupState::Sync);
-                            self.settings.set_active_screen(&common::ScreenId::Setup);
+                    common::MatrixCommand::SyncCommand {
+                        from_webserver,
+                        show_sync,
+                    } => {
+                        // Got a sync command with optional showSync.
+                        self.settings.set_power(&true);
+                        self.settings.set_auto_power(&false);
+                        let current_setup_state = self.settings.get_setup_state();
+                        if current_setup_state == &common::SetupState::Ready
+                            || current_setup_state == &common::SetupState::Sync
+                        {
+                            self.deactivate_screen();
+                            let show_sync = match show_sync {
+                                Some(show_sync) => show_sync,
+                                None => {
+                                    self.settings.get_setup_state() != &common::SetupState::Sync
+                                }
+                            };
+                            if show_sync {
+                                debug!("Showing sync screen");
+                                self.settings.set_setup_state(&common::SetupState::Sync);
+                                self.settings.set_active_screen(&common::ScreenId::Setup);
+                            } else {
+                                debug!("Showing hockey screen");
+                                self.settings.set_setup_state(&common::SetupState::Ready);
+                                self.settings.set_active_screen(&common::ScreenId::Hockey);
+                            }
+                            self.update_settings_on_active_screen();
+                            self.activate_screen();
+                            if from_webserver {
+                                self.send_response(common::WebserverResponse::SyncCommandResponse(
+                                    Some(self.settings.get_settings_clone()),
+                                ));
+                            }
                         } else {
-                            debug!("Showing hockey screen");
-                            self.settings.set_setup_state(&common::SetupState::Ready);
-                            self.settings.set_active_screen(&common::ScreenId::Hockey);
-                        }
-                        self.update_settings_on_active_screen();
-                        self.activate_screen();
-                        if from_webserver {
-                            self.send_response(common::WebserverResponse::SyncCommandResponse(
-                                Some(self.settings.get_settings_clone()),
-                            ));
-                        }
-                    } else {
-                        if from_webserver {
-                            self.send_response(common::WebserverResponse::SyncCommandResponse(
-                                None,
-                            ));
+                            if from_webserver {
+                                self.send_response(common::WebserverResponse::SyncCommandResponse(
+                                    None,
+                                ));
+                            }
                         }
                     }
                 }
@@ -713,7 +719,7 @@ pub trait ScreenProvider {
 
     fn as_any(&mut self) -> &mut dyn Any;
 
-    fn has_priority(self: &Self) -> bool {
+    fn has_priority(self: &mut Self) -> bool {
         false
     }
 }

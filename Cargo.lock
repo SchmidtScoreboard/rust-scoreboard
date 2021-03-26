@@ -1688,7 +1688,7 @@ dependencies = [
 
 [[package]]
 name = "scoreboard"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "chrono",
  "chrono-tz",

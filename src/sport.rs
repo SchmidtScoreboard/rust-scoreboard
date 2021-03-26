@@ -274,6 +274,32 @@ impl AWSScreen {
             false,
         );
     }
+    fn process(self: &mut Self) {
+        if let Ok(data_or_error) = self.data_pipe_receiver.try_recv() {
+            match data_or_error {
+                Ok(mut new_data) => match &mut self.data {
+                    ReceivedData::Valid(current_data) => {
+                        current_data.update(new_data, &self.current_leagues, &self.favorite_teams);
+                        current_data.try_rotate(self.rotation_time);
+                    }
+                    _ => {
+                        new_data.filter_games(&self.current_leagues, &self.favorite_teams);
+                        self.data = ReceivedData::Valid(new_data);
+                    }
+                },
+                Err(e) => {
+                    info!("{}", e);
+                    self.data = ReceivedData::Error
+                }
+            }
+            self.flavor_text = None; // Clear the flavor text
+        }
+
+        // if we need to change the displayed image, do that now
+        if let ReceivedData::Valid(current_data) = &mut self.data {
+            current_data.try_rotate(self.rotation_time);
+        }
+    }
 
     fn run_refresh_thread(
         base_url: String,
@@ -372,31 +398,7 @@ impl matrix::ScreenProvider for AWSScreen {
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         // Check if there is any new data. If there is, copy it in
-        if let Ok(data_or_error) = self.data_pipe_receiver.try_recv() {
-            match data_or_error {
-                Ok(mut new_data) => match &mut self.data {
-                    ReceivedData::Valid(current_data) => {
-                        current_data.update(new_data, &self.current_leagues, &self.favorite_teams);
-                        current_data.try_rotate(self.rotation_time);
-                    }
-                    _ => {
-                        new_data.filter_games(&self.current_leagues, &self.favorite_teams);
-                        self.data = ReceivedData::Valid(new_data);
-                    }
-                },
-                Err(e) => {
-                    info!("{}", e);
-                    self.data = ReceivedData::Error
-                }
-            }
-            self.flavor_text = None; // Clear the flavor text
-        }
-
-        // if we need to change the displayed image, do that now
-        if let ReceivedData::Valid(current_data) = &mut self.data {
-            current_data.try_rotate(self.rotation_time);
-        }
-
+        self.process();
         let now = Instant::now();
         // Actually draw the data
         match &self.data {
@@ -445,7 +447,8 @@ impl matrix::ScreenProvider for AWSScreen {
         self
     }
 
-    fn has_priority(self: &Self) -> bool {
+    fn has_priority(self: &mut Self) -> bool {
+        self.process(); // Ensure we fetch any updated games
         match &self.data {
             ReceivedData::Valid(data) => {
                 data.games
