@@ -52,8 +52,6 @@ impl matrix::ScreenProvider for MessageScreen {
         }
     }
 
-    fn update_settings(self: &mut Self, _settings: common::ScoreboardSettingsData) {}
-
     fn get_screen_id(self: &Self) -> common::ScreenId {
         common::ScreenId::Message
     }

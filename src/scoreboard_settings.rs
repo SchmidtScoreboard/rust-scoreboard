@@ -1,23 +1,22 @@
 use crate::common::{ScoreboardSettingsData, ScreenId, SetupState};
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Arc;
+use std::time::Duration;
+use chrono_tz::Tz;
 
 #[derive(PartialEq, Debug)]
 pub struct ScoreboardSettings {
-    data: ScoreboardSettingsData,
+    data: Arc<ScoreboardSettingsData>,
     pub file_path: PathBuf,
 }
 
 impl ScoreboardSettings {
-    pub fn new(data: ScoreboardSettingsData, file_path: PathBuf) -> ScoreboardSettings {
+    pub fn new(data: Arc<ScoreboardSettingsData>, file_path: PathBuf) -> ScoreboardSettings {
         ScoreboardSettings { data, file_path }
     }
 
-    pub fn get_settings(self: &Self) -> &ScoreboardSettingsData {
-        &self.data
-    }
-
-    pub fn get_settings_clone(self: &Self) -> ScoreboardSettingsData {
+    pub fn get_settings(self: &Self) -> Arc<ScoreboardSettingsData> {
         self.data.clone()
     }
 
@@ -30,7 +29,7 @@ impl ScoreboardSettings {
     }
 
     pub fn update_settings(self: &mut Self, new_settings: ScoreboardSettingsData) {
-        self.data = new_settings;
+        self.data = Arc::from(new_settings);
         self.write_settings();
     }
 
@@ -47,12 +46,14 @@ impl ScoreboardSettings {
         &self.data.setup_state
     }
 
-    pub fn get_rotation_time(self: &Self) -> u32 {
+    pub fn get_rotation_time(self: &Self) -> Duration {
         self.data.rotation_time
     }
 
-    pub fn set_rotation_time(self: &mut Self, rotation_time: u32) {
-        self.data.rotation_time = rotation_time;
+    pub fn set_rotation_time(self: &mut Self, rotation_time: Duration) {
+        let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
+        copy.rotation_time = rotation_time;
+        self.data = Arc::from(copy);
         self.write_settings();
     }
 
@@ -61,27 +62,41 @@ impl ScoreboardSettings {
     }
 
     pub fn set_active_screen(self: &mut Self, id: &ScreenId) {
-        self.data.active_screen = *id;
+        let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
+        copy.active_screen = *id;
+        self.data = Arc::from(copy);
         self.write_settings();
     }
 
     pub fn set_power(self: &mut Self, screen_on: &bool) {
-        self.data.screen_on = *screen_on;
+        let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
+        copy.screen_on = *screen_on;
+        self.data = Arc::from(copy);
         self.write_settings();
     }
     pub fn set_auto_power(self: &mut Self, auto_power: &bool) {
-        self.data.auto_power= *auto_power;
+        let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
+        copy.auto_power = *auto_power;
+        self.data = Arc::from(copy);
         self.write_settings();
     }
 
     pub fn set_setup_state(self: &mut Self, setup_state: &SetupState) {
-        self.data.setup_state = *setup_state;
+        let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
+        copy.setup_state = *setup_state;
+        self.data = Arc::from(copy);
         self.write_settings();
     }
 
     pub fn set_version(self: &mut Self, version: u32) {
-        self.data.version = version;
+        let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
+        copy.version = version;
+        self.data = Arc::from(copy);
         self.write_settings();
+    }
+
+    pub fn get_timezone(self: &Self) -> &Tz{
+        &self.data.timezone
     }
 }
 

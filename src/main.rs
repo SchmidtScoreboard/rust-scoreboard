@@ -4,11 +4,10 @@ mod animation;
 mod aws_screen;
 mod baseball;
 mod basketball;
-mod football;
 mod button;
 mod clock;
 mod common;
-mod sport;
+mod football;
 mod game;
 mod hockey;
 mod matrix;
@@ -18,6 +17,7 @@ mod scheduler;
 mod scoreboard_settings;
 mod setup_screen;
 mod shell_executor;
+mod sport;
 mod updater;
 mod webserver;
 #[macro_use]
@@ -27,17 +27,17 @@ extern crate rust_embed;
 extern crate log;
 
 use animation::AnimationTestScreen;
-use sport::AWSScreen;
 use clap;
 use common::ScreenId;
 use matrix::{Matrix, ScreenProvider};
 use rpi_led_matrix;
 use self_update;
+use sport::AWSScreen;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc};
 use std::thread::sleep;
 use std::time::Duration;
 use updater::Updater;
@@ -127,6 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &settings_path
         )))
         .expect("Could not parse scoreboard settings from json");
+    let settings_data = Arc::from(settings_data);
 
     let (matrix_sender, matrix_receiver) = mpsc::channel();
     let (scheduler_sender, scheduler_receiver) = mpsc::channel();
@@ -168,8 +169,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
             .unwrap();
     } else {
-        if settings.get_rotation_time() == 0 {
-            settings.set_rotation_time(10);
+        if settings.get_rotation_time() == Duration::from_secs(0) {
+            settings.set_rotation_time(Duration::from_secs(10));
         }
         shell_sender
             .send(common::ShellCommand::SetHotspot(false))
@@ -184,10 +185,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sports: AWSScreen = AWSScreen::new(
         scheduler_sender.clone(),
         v2_url.clone(),
-        settings.get_settings().rotation_time,
-        settings.get_settings().favorite_teams.clone(),
         api_key.clone(),
-        settings.get_settings().timezone.clone(),
+        settings.get_settings(),
         matrix::FontBook::new(&root_path),
         matrix::PixelBook::new(&root_path),
     );
@@ -196,7 +195,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Clock
     let clock = clock::Clock::new(
         scheduler_sender.clone(),
-        settings.get_settings().timezone.clone(),
+        settings.get_settings(),
         matrix::FontBook::new(&root_path),
     );
     map.insert(ScreenId::Clock, Box::new(clock));
@@ -245,6 +244,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         scheduler.run();
     });
 
+    let daily_reboot : bool = env::var("DAILY_REBOOT").map(|reboot_value| reboot_value.parse().unwrap_or(true)).unwrap_or(true);
+    let reboot_time : u8 = std::cmp::min(env::var("REBOOT_TIME").map(|reboot_time| reboot_time.parse::<u8>().unwrap_or(3)).unwrap_or(3), 23);
+    let daily_reboot = match daily_reboot {
+        true => Some(reboot_time),
+        false => None
+    };
+
     let mut matrix = Matrix::new(
         led_matrix,
         message_screen,
@@ -254,6 +260,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         web_response_sender,
         shell_sender.clone(),
         scheduler_sender.clone(),
+        daily_reboot
     );
 
     let webserver_sender = matrix_sender.clone();

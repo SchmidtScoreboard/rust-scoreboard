@@ -7,7 +7,7 @@ use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
-
+use chrono_tz::Tz;
 #[derive(Deserialize, Debug, Clone)]
 pub struct FootballGame {
     pub common: game::CommonGameData,
@@ -58,37 +58,41 @@ impl PartialEq for CollegeFootballGame {
 
 impl Eq for CollegeFootballGame {}
 
-fn football_draw(common: &game::CommonGameData, canvas: &mut rpi_led_matrix::LedCanvas, font_book: &matrix::FontBook, timezone: &str) {
-        let font = &font_book.font4x6;
-        game::draw_scoreboard(canvas, &font, &common, 2);
+fn football_draw(
+    common: &game::CommonGameData,
+    canvas: &mut rpi_led_matrix::LedCanvas,
+    font_book: &matrix::FontBook,
+    timezone: &Tz,
+) {
+    let font = &font_book.font4x6;
+    game::draw_scoreboard(canvas, &font, &common, 2);
 
-        // Draw the current period
-        let white = common::new_color(255, 255, 255);
-        let yellow = common::new_color(255, 255, 0);
+    // Draw the current period
+    let white = common::new_color(255, 255, 255);
+    let yellow = common::new_color(255, 255, 0);
 
+    canvas.draw_text(
+        &font.led_font,
+        &common.get_ordinal_text(timezone),
+        5,
+        23 + font.dimensions.height,
+        &white,
+        0,
+        false,
+    );
+
+    // Draw FINAL
+    if common.status == game::GameStatus::END {
         canvas.draw_text(
             &font.led_font,
-            &common.get_ordinal_text(timezone),
-            5,
+            "FINAL",
+            36 + font.dimensions.width,
             23 + font.dimensions.height,
-            &white,
+            &yellow,
             0,
             false,
         );
-
-        // Draw FINAL
-        if common.status == game::GameStatus::END {
-            canvas.draw_text(
-                &font.led_font,
-                "FINAL",
-                36 + font.dimensions.width,
-                23 + font.dimensions.height,
-                &yellow,
-                0,
-                false,
-            );
-        }
-
+    }
 }
 
 impl aws_screen::AWSScreenType for FootballGame {
@@ -97,7 +101,7 @@ impl aws_screen::AWSScreenType for FootballGame {
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         _pixels_book: &matrix::PixelBook,
-        timezone: &str,
+        timezone: &Tz,
     ) {
         football_draw(&self.common, canvas, font_book, timezone);
     }
@@ -109,7 +113,7 @@ impl aws_screen::AWSScreenType for CollegeFootballGame {
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         _pixels_book: &matrix::PixelBook,
-        timezone: &str,
+        timezone: &Tz,
     ) {
         football_draw(&self.common, canvas, font_book, timezone);
     }

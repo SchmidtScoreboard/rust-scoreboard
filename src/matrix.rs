@@ -13,7 +13,8 @@ use std::convert::TryInto;
 use std::error::Error;
 use std::fs;
 use std::str;
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc};
+use chrono::{Utc, Timelike};
 use std::time::{Duration, Instant};
 
 pub struct Matrix<'a> {
@@ -26,6 +27,7 @@ pub struct Matrix<'a> {
     scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
     message_screen: message::MessageScreen, // If this is set, display this message until it is unset
     last_priority_check: Option<Instant>,
+    daily_reboot: Option<u8> // The time to schedule a daily reboot, if any
 }
 
 impl<'a> Matrix<'a> {
@@ -38,6 +40,7 @@ impl<'a> Matrix<'a> {
         webserver_responder: mpsc::Sender<common::WebserverResponse>,
         shell_sender: mpsc::Sender<common::ShellCommand>,
         scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
+        daily_reboot: Option<u8>
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
@@ -49,6 +52,7 @@ impl<'a> Matrix<'a> {
             scheduler_sender,
             message_screen,
             last_priority_check: Some(Instant::now()),
+            daily_reboot 
         }
     }
 
@@ -70,9 +74,9 @@ impl<'a> Matrix<'a> {
     }
 
     fn update_settings_on_active_screen(self: &mut Self) {
-        let settings_copy = self.settings.get_settings_clone();
+        let settings = self.settings.get_settings();
         let screen = self.get_mut_active_screen();
-        screen.update_settings(settings_copy);
+        screen.update_settings(settings);
     }
     fn deactivate_screen(self: &mut Self) {
         let screen = self.get_mut_active_screen();
@@ -125,10 +129,32 @@ impl<'a> Matrix<'a> {
         }
     }
 
+    fn schedule_nightly_reboot(self: &mut Self, reboot_time: u8){
+        let timezone = self.settings.get_timezone();
+        let now = Utc::now().with_timezone(timezone);
+        // Keep it simple--schedule this at 3AM local time tomorrow. If it is 1AM, don't worry about setting it to 3AM on the current day
+        let tomorrow = now + chrono::Duration::days(1);
+        let tomorrow_target = tomorrow.with_hour(reboot_time.into()).unwrap().with_minute(0).unwrap();
+        let time_until_tomorrow_target= tomorrow_target- now;
+        info!("Setting up delayed command to reboot the scoreboard to hour {:?}, delaying for {:?}", reboot_time, time_until_tomorrow_target);
+        self.scheduler_sender
+            .send(scheduler::DelayedCommand::new(
+                scheduler::Command::MatrixCommand(common::MatrixCommand::Reboot()),
+                Some(time_until_tomorrow_target.to_std().unwrap()),
+            ))
+            .unwrap();
+
+    }
+
     // This is the main loop of the entire code
     // Call this after everything else is set up
     pub fn run(self: &mut Self) {
         let mut canvas = self.led_matrix.offscreen_canvas();
+        if let Some(reboot_time) = self.daily_reboot {
+            self.schedule_nightly_reboot(reboot_time);
+        } else {
+            info!("Skipping setting nightly reboot");
+        }
         self.settings.set_power(&true);
         self.activate_screen();
         loop {
@@ -143,7 +169,7 @@ impl<'a> Matrix<'a> {
                         self.settings.set_auto_power(&false);
                         self.activate_screen();
                         self.send_response(common::WebserverResponse::SetActiveScreenResponse(
-                            self.settings.get_settings_clone(),
+                            self.settings.get_settings(),
                         ));
                     }
                     common::MatrixCommand::SetPower { source, power } => {
@@ -167,7 +193,7 @@ impl<'a> Matrix<'a> {
                         canvas.clear();
                         if source == common::CommandSource::Webserver() {
                             self.send_response(common::WebserverResponse::SetPowerResponse(
-                                self.settings.get_settings_clone(),
+                                self.settings.get_settings(),
                             ));
                         }
                     }
@@ -181,10 +207,11 @@ impl<'a> Matrix<'a> {
                             }
                         };
                         self.last_priority_check = None;
-                        let mut settings = self.settings.get_settings_clone();
+
+                        let mut settings = self.settings.get_settings().as_ref().clone();
                         settings.screen_on = on;
                         self.send_response(common::WebserverResponse::SetAutoPowerResponse(
-                            settings,
+                            Arc::from(settings),
                         ));
                     }
                     common::MatrixCommand::Display(id) => {
@@ -205,7 +232,7 @@ impl<'a> Matrix<'a> {
                     }
                     common::MatrixCommand::GetSettings() => {
                         self.send_response(common::WebserverResponse::GetSettingsResponse(
-                            self.settings.get_settings_clone(),
+                            self.settings.get_settings(),
                         ));
                     }
                     common::MatrixCommand::UpdateSettings(settings) => {
@@ -214,7 +241,7 @@ impl<'a> Matrix<'a> {
                         let new_brightness = self.settings.get_brightness();
                         self.update_settings_on_active_screen();
                         self.send_response(common::WebserverResponse::UpdateSettingsResponse(
-                            self.settings.get_settings_clone(),
+                            self.settings.get_settings(),
                         ));
                         if original_brightness != new_brightness {
                             // Restart the scoreboard
@@ -229,7 +256,7 @@ impl<'a> Matrix<'a> {
                         self.settings.set_auto_power(&false);
                         self.show_message("Rebooting...".to_string());
                         self.send_command(common::ShellCommand::Reboot {
-                            settings: Some(self.settings.get_settings_clone()),
+                            settings: Some(self.settings.get_settings()),
                         });
                     }
                     common::MatrixCommand::Reset { from_webserver } => {
@@ -247,7 +274,7 @@ impl<'a> Matrix<'a> {
                         self.send_command(common::ShellCommand::Reset {
                             from_matrix: true,
                             from_webserver: if from_webserver {
-                                Some(self.settings.get_settings_clone())
+                                Some(self.settings.get_settings())
                             } else {
                                 None
                             },
@@ -265,7 +292,7 @@ impl<'a> Matrix<'a> {
                                 self.update_settings_on_active_screen();
                                 self.send_response(
                                     common::WebserverResponse::GotHotspotConnectionResponse(Some(
-                                        self.settings.get_settings_clone(),
+                                        self.settings.get_settings(),
                                     )),
                                 );
                             }
@@ -291,11 +318,11 @@ impl<'a> Matrix<'a> {
                         self.send_command(common::ShellCommand::SetupWifi {
                             ssid,
                             password,
-                            settings: self.settings.get_settings_clone(),
+                            settings: self.settings.get_settings(),
                         });
                         // Send the response immediately
                         self.send_response(common::WebserverResponse::GotWifiDetailsResponse(
-                            Some(self.settings.get_settings_clone()),
+                            Some(self.settings.get_settings()),
                         ));
                     }
                     common::MatrixCommand::FinishedWifiConnection(result) => match result {
@@ -358,7 +385,7 @@ impl<'a> Matrix<'a> {
                             self.activate_screen();
                             if from_webserver {
                                 self.send_response(common::WebserverResponse::SyncCommandResponse(
-                                    Some(self.settings.get_settings_clone()),
+                                    Some(self.settings.get_settings()),
                                 ));
                             }
                         } else {
@@ -700,7 +727,7 @@ pub trait ScreenProvider {
 
     // Handle recieving new scoreboard settings
     // This may change timezone and any other screen specific features
-    fn update_settings(self: &mut Self, settings: ScoreboardSettingsData);
+    fn update_settings(self: &mut Self, _settings: Arc<ScoreboardSettingsData>) {}
 
     fn get_screen_id(self: &Self) -> common::ScreenId;
 

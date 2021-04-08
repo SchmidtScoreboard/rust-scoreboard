@@ -13,7 +13,7 @@ use crate::rpi_led_matrix;
 use crate::scheduler;
 use std::any::Any;
 use std::collections::HashSet;
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc};
 
 use rand::seq::SliceRandom;
 use serde::Deserialize;
@@ -159,11 +159,9 @@ enum ReceivedData {
 }
 pub struct AWSScreen {
     sender: mpsc::Sender<scheduler::DelayedCommand>,
-    favorite_teams: Vec<common::FavoriteTeam>,
     current_leagues: HashSet<common::ScreenId>,
-    rotation_time: Duration,
-    timezone: String,
     data: ReceivedData,
+    settings: Arc<common::ScoreboardSettingsData>,
     data_pipe_receiver: mpsc::Receiver<Result<AWSData, String>>,
     refresh_control_sender: mpsc::Sender<RefreshThreadState>,
     loading_animation: animation::WavesAnimation,
@@ -181,10 +179,8 @@ impl AWSScreen {
     pub fn new(
         sender: mpsc::Sender<scheduler::DelayedCommand>,
         base_url: String,
-        rotation_time_secs: u32,
-        favorite_teams: Vec<common::FavoriteTeam>,
         api_key: String,
-        timezone: String,
+        settings: Arc<common::ScoreboardSettingsData>,
         fonts: matrix::FontBook,
         pixels: matrix::PixelBook,
     ) -> AWSScreen {
@@ -202,11 +198,9 @@ impl AWSScreen {
         });
         AWSScreen {
             sender,
-            favorite_teams,
             current_leagues: HashSet::new(),
-            rotation_time: Duration::from_secs(rotation_time_secs.into()),
-            timezone,
             data: ReceivedData::None,
+            settings,
             data_pipe_receiver,
             refresh_control_sender: refresh_control_sender,
             loading_animation: animation::WavesAnimation::new(64),
@@ -279,11 +273,15 @@ impl AWSScreen {
             match data_or_error {
                 Ok(mut new_data) => match &mut self.data {
                     ReceivedData::Valid(current_data) => {
-                        current_data.update(new_data, &self.current_leagues, &self.favorite_teams);
-                        current_data.try_rotate(self.rotation_time);
+                        current_data.update(
+                            new_data,
+                            &self.current_leagues,
+                            &self.settings.favorite_teams,
+                        );
+                        current_data.try_rotate(self.settings.rotation_time);
                     }
                     _ => {
-                        new_data.filter_games(&self.current_leagues, &self.favorite_teams);
+                        new_data.filter_games(&self.current_leagues, &self.settings.favorite_teams);
                         self.data = ReceivedData::Valid(new_data);
                     }
                 },
@@ -297,7 +295,7 @@ impl AWSScreen {
 
         // if we need to change the displayed image, do that now
         if let ReceivedData::Valid(current_data) = &mut self.data {
-            current_data.try_rotate(self.rotation_time);
+            current_data.try_rotate(self.settings.rotation_time);
         }
     }
 
@@ -373,11 +371,9 @@ impl matrix::ScreenProvider for AWSScreen {
             .unwrap();
     }
 
-    fn update_settings(self: &mut Self, settings: common::ScoreboardSettingsData) {
-        self.timezone = settings.timezone.parse().expect("Failed to parse timezone");
-        self.favorite_teams = settings.favorite_teams.clone();
-        self.rotation_time = Duration::from_secs(settings.rotation_time.into());
-        self.current_leagues = match settings.active_screen {
+    fn update_settings(self: &mut Self, settings: Arc<common::ScoreboardSettingsData>) {
+        self.settings = settings;
+        self.current_leagues = match self.settings.active_screen {
             common::ScreenId::Smart => (vec![
                 common::ScreenId::Hockey,
                 common::ScreenId::Baseball,
@@ -388,11 +384,11 @@ impl matrix::ScreenProvider for AWSScreen {
             ])
             .into_iter()
             .collect(),
-            _ => (vec![settings.active_screen]).into_iter().collect(),
+            _ => (vec![self.settings.active_screen]).into_iter().collect(),
         };
         if let ReceivedData::Valid(data) = &mut self.data {
-            data.filter_games(&self.current_leagues, &self.favorite_teams);
-            data.try_rotate(self.rotation_time);
+            data.filter_games(&self.current_leagues, &self.settings.favorite_teams);
+            data.try_rotate(self.settings.rotation_time);
         }
     }
 
@@ -412,7 +408,7 @@ impl matrix::ScreenProvider for AWSScreen {
                                 canvas,
                                 &self.fonts,
                                 &self.pixels,
-                                &self.timezone,
+                                &self.settings.timezone,
                             );
                         }
                         None => {
@@ -457,7 +453,8 @@ impl matrix::ScreenProvider for AWSScreen {
                     .count()
                     > data.filtered_games.len()
             }
-            _ => false,
+            ReceivedData::Error => true,
+            _ => false
         }
     }
 }
