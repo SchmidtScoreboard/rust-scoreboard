@@ -1,11 +1,14 @@
 use rpi_led_matrix;
 use std::process::Command;
 
-use serde::{Deserialize, Serialize};
+use chrono_tz::Tz;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_repr::*;
 use std::error::Error;
 use std::io;
 use std::net::Ipv4Addr;
+use std::sync::Arc;
+use std::time::Duration;
 use ureq;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]
@@ -94,30 +97,30 @@ pub enum MatrixCommand {
 }
 
 pub enum WebserverResponse {
-    UpdateSettingsResponse(ScoreboardSettingsData),
-    SetPowerResponse(ScoreboardSettingsData),
-    SetAutoPowerResponse(ScoreboardSettingsData),
-    SetActiveScreenResponse(ScoreboardSettingsData),
-    GetSettingsResponse(ScoreboardSettingsData),
-    RebootResponse(Option<ScoreboardSettingsData>),
-    ResetResponse(Option<ScoreboardSettingsData>),
-    GotHotspotConnectionResponse(Option<ScoreboardSettingsData>),
-    GotWifiDetailsResponse(Option<ScoreboardSettingsData>),
-    SyncCommandResponse(Option<ScoreboardSettingsData>),
+    UpdateSettingsResponse(Arc<ScoreboardSettingsData>),
+    SetPowerResponse(Arc<ScoreboardSettingsData>),
+    SetAutoPowerResponse(Arc<ScoreboardSettingsData>),
+    SetActiveScreenResponse(Arc<ScoreboardSettingsData>),
+    GetSettingsResponse(Arc<ScoreboardSettingsData>),
+    RebootResponse(Option<Arc<ScoreboardSettingsData>>),
+    ResetResponse(Option<Arc<ScoreboardSettingsData>>),
+    GotHotspotConnectionResponse(Option<Arc<ScoreboardSettingsData>>),
+    GotWifiDetailsResponse(Option<Arc<ScoreboardSettingsData>>),
+    SyncCommandResponse(Option<Arc<ScoreboardSettingsData>>),
 }
 
 pub enum ShellCommand {
     Reboot {
-        settings: Option<ScoreboardSettingsData>, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
+        settings: Option<Arc<ScoreboardSettingsData>>, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
     },
     Reset {
         from_matrix: bool,
-        from_webserver: Option<ScoreboardSettingsData>, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
+        from_webserver: Option<Arc<ScoreboardSettingsData>>, // If there is a scoreboard settings, it's from the webserver and needs to be forwarded
     },
     SetupWifi {
         ssid: String,
         password: String,
-        settings: ScoreboardSettingsData,
+        settings: Arc<ScoreboardSettingsData>,
     },
     SetHotspot(bool),
 }
@@ -199,8 +202,8 @@ pub struct FavoriteTeam {
     pub team_id: u32,
 }
 
-fn default_rotation_time() -> u32 {
-    10
+fn default_rotation_time() -> Duration {
+    Duration::from_secs(0)
 }
 
 fn default_brightness() -> u8 {
@@ -210,9 +213,47 @@ fn default_brightness() -> u8 {
 fn default_auto_power() -> bool {
     false
 }
+
+/// Serialize a `Duration` into a `u64` representing the seconds
+pub fn serialize_duration<S>(duration: &Duration, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_u64(duration.as_secs())
+}
+
+/// From a `u64`, deserialize into a `Duration` with the `u64` in seconds
+pub fn deserialize_duration<'de, D>(deserializer: D) -> Result<Duration, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let duration = u64::deserialize(deserializer)?;
+    Ok(Duration::from_secs(duration))
+}
+
+pub fn serialize_timezone<S>(timezone: &Tz, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&timezone.to_string())
+}
+
+pub fn deserialize_timezone<'de, D>(deserializer: D) -> Result<Tz, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: &str = Deserialize::deserialize(deserializer)?;
+    let tz: Tz = s.parse().map_err(serde::de::Error::custom)?;
+    Ok(tz)
+}
+
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 pub struct ScoreboardSettingsData {
-    pub timezone: String,
+    #[serde(
+        deserialize_with = "deserialize_timezone",
+        serialize_with = "serialize_timezone"
+    )]
+    pub timezone: Tz,
     pub setup_state: SetupState,
     pub active_screen: ScreenId,
     pub mac_address: String,
@@ -225,8 +266,12 @@ pub struct ScoreboardSettingsData {
 
     #[serde(default)]
     pub favorite_teams: Vec<FavoriteTeam>,
-    #[serde(default = "default_rotation_time")]
-    pub rotation_time: u32,
+    #[serde(
+        default = "default_rotation_time",
+        deserialize_with = "deserialize_duration",
+        serialize_with = "serialize_duration"
+    )]
+    pub rotation_time: Duration,
 
     #[serde(default = "default_brightness")]
     pub brightness: u8,

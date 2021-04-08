@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
-use std::sync::mpsc;
 use std::sync::Mutex;
+use std::sync::{mpsc, Arc};
 
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 struct PowerRequest {
@@ -58,7 +58,7 @@ impl ServerState {
 #[get("/")]
 fn index(
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
 
     let state = state.lock().unwrap();
@@ -79,7 +79,7 @@ fn version() -> Result<String, status::NotFound<String>> {
 fn configure(
     new_settings: Json<ScoreboardSettingsData>,
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
@@ -97,7 +97,7 @@ fn configure(
 fn set_power(
     power_request: Json<PowerRequest>,
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
@@ -117,7 +117,7 @@ fn set_power(
 fn auto_power(
     auto_power_request: Json<AutoPowerRequest>,
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
@@ -135,7 +135,7 @@ fn auto_power(
 fn set_sport(
     sport_request: Json<SportRequest>,
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
@@ -155,7 +155,7 @@ fn set_sport(
 fn wifi(
     wifi_request: Json<WifiRequest>,
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
@@ -201,7 +201,7 @@ fn logs(state: State<Mutex<ServerState>>) -> Result<String, std::io::Error> {
 #[post("/showSync")]
 fn show_sync(
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
@@ -223,7 +223,7 @@ fn show_sync(
 #[post("/reboot")]
 fn reboot(
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state).sender.send(MatrixCommand::Reboot()).unwrap();
@@ -239,7 +239,7 @@ fn reboot(
 #[post("/reset")]
 fn reset(
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
@@ -261,7 +261,7 @@ fn reset(
 #[post("/sync")]
 fn sync(
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)
@@ -283,7 +283,7 @@ fn sync(
 #[post("/connect")]
 fn connect(
     state: State<Mutex<ServerState>>,
-) -> Result<Content<Json<ScoreboardSettingsData>>, status::NotFound<String>> {
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
     (*state)

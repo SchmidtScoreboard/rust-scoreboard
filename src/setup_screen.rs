@@ -5,7 +5,7 @@ use crate::scheduler;
 
 use rpi_led_matrix;
 use std::any::Any;
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc};
 use std::time::Duration;
 
 enum WifiScreenSubState {
@@ -170,7 +170,7 @@ impl matrix::ScreenProvider for SetupScreen {
         }
         self.send_draw_command(Some(Duration::from_millis(16)));
     }
-    fn update_settings(self: &mut Self, settings: common::ScoreboardSettingsData) {
+    fn update_settings(self: &mut Self, settings: Arc<common::ScoreboardSettingsData>) {
         self.state = settings.setup_state;
     }
     fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {

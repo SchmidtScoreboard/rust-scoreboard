@@ -3,10 +3,10 @@ use crate::common;
 use crate::game;
 use crate::matrix;
 
+use chrono_tz::Tz;
 use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
-
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct BaseballGame {
@@ -42,7 +42,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         pixels_book: &matrix::PixelBook,
-        timezone: &str,
+        timezone: &Tz,
     ) {
         let font = &font_book.font4x6;
         game::draw_scoreboard(canvas, &font, &self.common, 1);

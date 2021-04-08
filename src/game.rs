@@ -88,10 +88,12 @@ impl PartialEq for CommonGameData {
 impl Eq for CommonGameData {}
 
 impl CommonGameData {
-    pub fn get_ordinal_text(self: &Self, timezone: &str) -> String {
+    pub fn get_ordinal_text(self: &Self, timezone: &Tz) -> String {
         if self.status == GameStatus::PREGAME {
-            let tz: Tz = timezone.parse().expect("Failed to parse timezone");
-            format!("{}", self.start_time.with_timezone(&tz).format("%-I:%M %p"))
+            format!(
+                "{}",
+                self.start_time.with_timezone(timezone).format("%-I:%M %p")
+            )
         } else {
             self.ordinal.clone()
         }

@@ -164,7 +164,6 @@ impl matrix::ScreenProvider for AnimationTestScreen {
         self.waves_anim.draw(canvas);
         self.send_draw_command(Some(Duration::from_millis(20)));
     }
-    fn update_settings(self: &mut Self, _settings: common::ScoreboardSettingsData) {}
 
     fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
         self.sender.clone()

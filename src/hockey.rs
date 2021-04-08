@@ -3,10 +3,10 @@ use crate::common;
 use crate::game;
 use crate::matrix;
 
+use chrono_tz::Tz;
 use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
-
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct HockeyGame {
@@ -43,7 +43,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         _pixels_book: &matrix::PixelBook,
-        timezone: &str,
+        timezone: &Tz,
     ) {
         let font = &font_book.font5x8;
         game::draw_scoreboard(canvas, &font, &self.common, 2);
@@ -75,20 +75,22 @@ impl aws_screen::AWSScreenType for HockeyGame {
                 false,
             );
         } else {
-            let mut powerplay_message: Option<String> = None;
-            if self.away_powerplay {
-                powerplay_message = Some(self.common.away_team.abbreviation.clone());
-            }
-            if self.home_powerplay {
-                powerplay_message = Some(self.common.home_team.abbreviation.clone());
-            }
-            if self.away_players > 1
-                && self.away_players < 5
-                && self.home_players > 1
-                && self.home_players < 5
-            {
-                powerplay_message = Some(format!("{}-{}", self.away_players, self.home_players));
-            }
+            let powerplay_message: Option<&str> = {
+                if self.away_powerplay {
+                    Some(&self.common.away_team.abbreviation);
+                }
+                if self.home_powerplay {
+                    Some(&self.common.home_team.abbreviation);
+                }
+                if self.away_players > 1
+                    && self.away_players < 5
+                    && self.home_players > 1
+                    && self.home_players < 5
+                {
+                    Some(format!("{}-{}", self.away_players, self.home_players));
+                }
+                None
+            };
 
             if let Some(message) = powerplay_message {
                 let text_dimensions = font.get_text_dimensions(&message);
