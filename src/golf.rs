@@ -42,6 +42,21 @@ impl PartialEq for Golf {
 
 impl Eq for Golf {}
 
+fn draw_player(
+    player: &Player, 
+    y_offset: &mut i32, 
+    score_width: i32,
+    canvas: &mut rpi_led_matrix::LedCanvas, 
+    font: &matrix::Font,
+    name_color: &rpi_led_matrix::LedColor,
+    score_color: &rpi_led_matrix::LedColor) {
+        let baseline = *y_offset + font.dimensions.height;
+        canvas.draw_text(&font.led_font, &player.score, 1, baseline, score_color, 0, false);
+        canvas.draw_text(&font.led_font, &player.display_name.to_ascii_uppercase(), score_width, baseline, name_color, 0, false);
+
+        *y_offset = *y_offset + font.dimensions.height + 1;
+}
+
 impl aws_screen::AWSScreenType for Golf {
     fn draw_screen(
         self: &Self,
@@ -51,17 +66,25 @@ impl aws_screen::AWSScreenType for Golf {
         timezone: &Tz,
     ) {
         let font = &font_book.font4x6; // Use the smallest font to fit the most info
-        let green = common::new_color(0, 255, 0);
+        let green = common::new_color(52, 162, 35);
+        let white = common::new_color(255, 255, 255);
+
+        let num_players = 4;
+        let score_width = self.players.iter().take(num_players).map(|player| font.get_text_dimensions(&player.score).width).max().unwrap() + 2;
 
         canvas.draw_text(
             &font.led_font,
-            &self.name.to_ascii_uppercase(),
-            5,
-            font.dimensions.height,
+            &self.name,
+            32 - (font.get_text_dimensions(&self.name).width / 2),
+            font.dimensions.height + 1,
             &green,
             0,
             false);
-        
+
+        let mut player_offset = font.dimensions.height + 2;
+        self.players.iter().take(num_players).enumerate().for_each(|(i, player)| {
+            draw_player(player, &mut player_offset, score_width, canvas, font, &white, &green);
+        });
         
     }
 }

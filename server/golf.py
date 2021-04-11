@@ -35,7 +35,7 @@ class Golf:
         if words[0].isdigit():
             words = words[1:]
 
-        name = ' '.join(words)
+        name = "THE " + ' '.join(words)
         
         return {
             "type": "Golf", 
