@@ -28,7 +28,7 @@ class All:
     async def get_games_v2(testing: bool):
         game_sets = await asyncio.gather(
             *[
-                Golf.get_games(testing)
+                Golf.get_games(testing),
                 CollegeBasketball.get_games(testing),
                 Basketball.get_games(testing),
                 Hockey.get_games(testing),
