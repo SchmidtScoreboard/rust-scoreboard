@@ -28,13 +28,13 @@ class All:
     async def get_games_v2(testing: bool):
         game_sets = await asyncio.gather(
             *[
+                Golf.get_games(testing)
                 CollegeBasketball.get_games(testing),
                 Basketball.get_games(testing),
                 Hockey.get_games(testing),
                 Baseball.get_games(testing),
                 Football.get_games(testing),
                 CollegeFootball.get_games(testing),
-                Golf.get_games(testing)
             ]
         )
         flatten_list = [game for game_set in game_sets for game in game_set]
