@@ -50,18 +50,20 @@ class Golf:
             tee_time = parse(tee_time).astimezone(pytz.utc)
             if earliest_tee_time is None or tee_time < earliest_tee_time:
                 earliest_tee_time = tee_time
-        
+
+        empty_team = Team.create_team("", "", "", "", "", "", "")
+
         if status is not None:
             return Common.create_common(
                 SportId.GOLF.value,
-                None,
-                None,
+                empty_team,
+                empty_team,
                 status,
                 ordinal,
-                earliest_tee_time,
+                str(earliest_tee_time),
                 game_id,
-                None,
-                None
+                0,
+                0 
             )
         else:
             return None
