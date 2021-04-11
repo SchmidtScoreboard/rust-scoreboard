@@ -64,7 +64,7 @@ class Golf:
                 status,
                 ordinal,
                 str(tee_time_display),
-                game_id,
+                int(game_id),
                 0,
                 0 
             )
