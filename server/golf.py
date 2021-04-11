@@ -25,12 +25,21 @@ class Golf:
 
         top_20 = [Golf.create_player(player) for player in players if int(player["status"]["position"]["id"]) < 20 ]
 
+        name = game["shortName"].upper()
+        words = name.split()
+        if words[-1] in ["TOURNAMENT", "CHAMPIONSHIP"]:
+            words = words[:-1]
+        
+        if words[0].isdigit():
+            words = words[1:]
+
+        name = ' '.join(words)
         
         return {
             "type": "Golf", 
             "common": common,
             "players": top_20,
-            "name":  game["shortName"]
+            "name":  name
             }
     
     def create_golf_common(game):
