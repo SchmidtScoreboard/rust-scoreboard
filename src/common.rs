@@ -20,6 +20,7 @@ pub enum ScreenId {
     Basketball = 3,
     Football = 4,
     CollegeFootball = 5,
+    Golf = 6,
     Clock = 50,
     Reboot = 99,
     Refresh = 100,
@@ -39,7 +40,8 @@ impl ScreenId {
             | ScreenId::Hockey
             | ScreenId::CollegeBasketball
             | ScreenId::CollegeFootball
-            | ScreenId::Football => &ScreenId::Smart,
+            | ScreenId::Football
+            | ScreenId::Golf  => &ScreenId::Smart,
             _ => self,
         }
     }
@@ -54,6 +56,9 @@ impl ScreenId {
             }
             ScreenId::CollegeFootball | ScreenId::Football => {
                 texts.extend(vec!["First down!", "Blue, 42..."])
+            }
+            ScreenId::Golf => {
+                texts.extend(vec!["Fore!"])
             }
             _ => {}
         };

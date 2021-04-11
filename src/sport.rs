@@ -5,6 +5,7 @@ use crate::basketball::{BasketballGame, CollegeBasketballGame};
 use crate::common;
 use crate::football::{CollegeFootballGame, FootballGame};
 use crate::hockey::HockeyGame;
+use crate::golf::Golf;
 
 use crate::animation;
 use crate::game;
@@ -30,6 +31,7 @@ enum SportData {
     Basketball(BasketballGame),
     CollegeFootball(CollegeFootballGame),
     Football(FootballGame),
+    Golf(Golf),
 }
 
 impl SportData {
@@ -41,6 +43,7 @@ impl SportData {
             SportData::Basketball(basketball) => &basketball.common,
             SportData::CollegeFootball(football) => &football.common,
             SportData::Football(football) => &football.common,
+            SportData::Golf(golf) => &golf.common,
         }
     }
 
@@ -51,7 +54,7 @@ impl SportData {
             SportData::CollegeBasketball(college_basketball) => college_basketball,
             SportData::Basketball(basketball) => basketball,
             SportData::CollegeFootball(college_football) => college_football,
-            SportData::Football(football) => football,
+            SportData::Golf(golf) => golf,
         }
     }
 }

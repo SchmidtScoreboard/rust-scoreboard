@@ -45,7 +45,9 @@ def lambda_handler(event, context):
     elif sport == "baseball":
         result = wrap_games(loop.run_until_complete(Baseball.get_games(False)))
     elif sport == "all":
-        result = wrap_games(loop.run_until_complete(All.get_games(False)))
+        result = wrap_games(loop.run_until_complete(All.get_games_v1(False)))
+    elif sport == "all_v2":
+        result = wrap_games(loop.run_until_complete(All.get_games_v2(False)))
     else:
         result = None
 

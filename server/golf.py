@@ -41,6 +41,7 @@ class Golf:
         game_id = game["id"]
 
         earliest_tee_time = None
+
         # Find start time by looking at players
         for player in competition["competitors"]:
             tee_time = player["status"].get("teeTime")

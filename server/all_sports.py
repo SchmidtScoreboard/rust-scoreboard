@@ -3,13 +3,14 @@ from basketball import Basketball
 from hockey import Hockey
 from baseball import Baseball
 from football import Football
+from golf import Golf
 from college_football import CollegeFootball
 import asyncio
 import time
 
 
 class All:
-    async def get_games(testing: bool):
+    async def get_games_v1(testing: bool):
         game_sets = await asyncio.gather(
             *[
                 CollegeBasketball.get_games(testing),
@@ -20,16 +21,30 @@ class All:
                 CollegeFootball.get_games(testing),
             ]
         )
-        # print(game_sets)
         flatten_list = [game for game_set in game_sets for game in game_set]
-        # print(flatten_list)
+
+        return flatten_list
+
+    async def get_games_v2(testing: bool):
+        game_sets = await asyncio.gather(
+            *[
+                CollegeBasketball.get_games(testing),
+                Basketball.get_games(testing),
+                Hockey.get_games(testing),
+                Baseball.get_games(testing),
+                Football.get_games(testing),
+                CollegeFootball.get_games(testing),
+                Golf.get_games(testing)
+            ]
+        )
+        flatten_list = [game for game_set in game_sets for game in game_set]
 
         return flatten_list
 
 
 async def main():
     print("Fetching games")
-    print(await All.get_games(False))
+    print(await All.get_games_v2(False))
 
 
 if __name__ == "__main__":

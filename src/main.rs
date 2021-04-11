@@ -10,6 +10,7 @@ mod common;
 mod football;
 mod flappy;
 mod game;
+mod golf;
 mod hockey;
 mod matrix;
 mod message;

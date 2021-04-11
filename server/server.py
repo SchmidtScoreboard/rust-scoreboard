@@ -35,7 +35,11 @@ def college_football():
 
 @app.route("/all")
 def all():
-    return {"data": {"games": loop.run_until_complete(All.get_games(testing))}}
+    return {"data": {"games": loop.run_until_complete(All.get_games_v1(testing))}}
+
+@app.route("/all_v2")
+def all_v2():
+    return {"data": {"games": loop.run_until_complete(All.get_games_v2(testing))}}
 
 
 @app.route("/basketball")
