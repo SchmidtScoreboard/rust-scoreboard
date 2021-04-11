@@ -54,6 +54,7 @@ impl SportData {
             SportData::CollegeBasketball(college_basketball) => college_basketball,
             SportData::Basketball(basketball) => basketball,
             SportData::CollegeFootball(college_football) => college_football,
+            SportData::Football(football) => football,
             SportData::Golf(golf) => golf,
         }
     }

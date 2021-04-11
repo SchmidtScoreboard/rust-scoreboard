@@ -193,8 +193,9 @@ impl matrix::ScreenProvider for Flappy {
         let white = common::new_color(255, 255, 255);
 
         // Draw player
-        let player = self.assets.small_arrow;
-        matrix::draw_pixels(canvas, &player, self.player_position as (i32, i32));
+        let player = &self.assets.small_arrow;
+        let (player_x, player_y) = self.player_position;
+        matrix::draw_pixels(canvas, &player, (player_x as i32, player_y as i32));
 
         // Draw the barriers
         let mut barrier_x = self.first_barrier_distance as i32;
@@ -204,7 +205,7 @@ impl matrix::ScreenProvider for Flappy {
                     matrix::draw_rectangle(
                         canvas, 
                         (barrier_x, SCREEN_HEIGHT), 
-                        (barrier_x + BARRIER_WIDTH, SCREEN_HEIGHT - barrier.height.into()), 
+                        (barrier_x + BARRIER_WIDTH, SCREEN_HEIGHT - (barrier.height as i32)), 
                         &white),
                 BarrierKind::BOTTOM => 
                     matrix::draw_rectangle(
@@ -213,7 +214,7 @@ impl matrix::ScreenProvider for Flappy {
                         (barrier_x + BARRIER_WIDTH, 0), 
                         &white)  
             }
-            barrier_x = barrier_x + barrier.next_distance.into();
+            barrier_x = barrier_x + (barrier.next_distance as i32);
             
         });
 

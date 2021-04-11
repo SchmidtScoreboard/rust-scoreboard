@@ -53,7 +53,7 @@ class Golf:
         
         if status is not None:
             return Common.create_common(
-                SportId.GOLF,
+                SportId.GOLF.value,
                 None,
                 None,
                 status,
