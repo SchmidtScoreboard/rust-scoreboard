@@ -25,11 +25,13 @@ class Golf:
 
         top_20 = [Golf.create_player(player) for player in players if int(player["status"]["position"]["id"]) < 20 ]
 
+        top_20.sort(key = lambda player: player["position"])
+
         name = game["shortName"].upper()
         words = name.split()
         if words[-1] in ["TOURNAMENT", "CHAMPIONSHIP"]:
             words = words[:-1]
-        
+       
         if words[0].isdigit():
             words = words[1:]
 
