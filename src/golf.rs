@@ -61,6 +61,5 @@ impl aws_screen::AWSScreenType for Golf {
             &green,
             0,
             false);
-
     }
 }

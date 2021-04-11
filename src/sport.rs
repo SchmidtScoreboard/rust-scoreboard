@@ -316,7 +316,7 @@ impl AWSScreen {
         loop {
             if !skip_flag {
                 info!("Fetching games from {}", &base_url);
-                let resp = game::fetch_games(&base_url, "all", &api_key);
+                let resp = game::fetch_games(&base_url, "all_v2", &api_key);
                 if resp.error() {
                     error!("There was an error fetching games for endpoint",);
                     data_sender.send(Err("Network Error".to_owned())).unwrap();
@@ -387,6 +387,7 @@ impl matrix::ScreenProvider for AWSScreen {
                 common::ScreenId::Basketball,
                 common::ScreenId::CollegeBasketball,
                 common::ScreenId::Football,
+                common::ScreenId::Golf,
             ])
             .into_iter()
             .collect(),

@@ -51,7 +51,7 @@ class Golf:
             if earliest_tee_time is None or tee_time < earliest_tee_time:
                 earliest_tee_time = tee_time
 
-        empty_team = Team.create_team("", "", "", "", "", "", "")
+        empty_team = Team.create_team("0", "", "", "", "", "000000", "000000")
 
         if status is not None:
             return Common.create_common(
