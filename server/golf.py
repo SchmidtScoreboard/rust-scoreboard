@@ -40,7 +40,7 @@ class Golf:
         return {
             "type": "Golf", 
             "common": common,
-            "players": top_20,
+            "players": top_5,
             "name":  name
             }
     
