@@ -51,8 +51,10 @@ fn draw_player(
     name_color: &rpi_led_matrix::LedColor,
     score_color: &rpi_led_matrix::LedColor) {
         let baseline = *y_offset + font.dimensions.height;
-        canvas.draw_text(&font.led_font, &player.score, 1, baseline, score_color, 0, false);
-        canvas.draw_text(&font.led_font, &player.display_name.to_ascii_uppercase(), score_width, baseline, name_color, 0, false);
+        let score_width = font.get_text_dimensions(&player.score).width;
+
+        canvas.draw_text(&font.led_font, &player.score, 64 - score_width - 1, baseline, score_color, 0, false);
+        canvas.draw_text(&font.led_font, &player.display_name.to_ascii_uppercase(), 2, baseline, name_color, 0, false);
 
         *y_offset = *y_offset + font.dimensions.height + 1;
 }

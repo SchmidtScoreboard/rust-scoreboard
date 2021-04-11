@@ -23,9 +23,9 @@ class Golf:
         competition = game["competitions"][0]
         players = competition["competitors"]
 
-        top_20 = [Golf.create_player(player) for player in players if int(player["status"]["position"]["id"]) < 20 ]
+        top_5 = [Golf.create_player(player) for player in players if int(player["status"]["position"]["id"]) < 5 ]
 
-        top_20.sort(key = lambda player: player["position"])
+        top_5.sort(key = lambda player: player["position"])
 
         name = game["shortName"].upper()
         words = name.split()
