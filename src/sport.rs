@@ -19,6 +19,8 @@ use rand::seq::SliceRandom;
 use serde::Deserialize;
 use std::time::{Duration, Instant};
 
+const DORMANT_REFRESH_TIME: Duration = Duration::from_secs(60 * 5); // 5 minutes
+const ACTIVE_REFRESH_TIME: Duration = Duration::from_secs(60); // 1 minute
 #[derive(Deserialize, Debug)]
 #[serde(tag = "type")]
 enum SportData {
@@ -305,7 +307,7 @@ impl AWSScreen {
         api_key: String,
         data_sender: mpsc::Sender<Result<AWSData, String>>,
     ) {
-        let mut wait_time = Duration::from_secs(60 * 60); // Default to an hour
+        let mut wait_time = DORMANT_REFRESH_TIME; 
         let mut skip_flag = false;
         loop {
             if !skip_flag {
@@ -344,10 +346,10 @@ impl AWSScreen {
             if let Ok(state) = refresh_control_receiver.recv_timeout(wait_time) {
                 match state {
                     RefreshThreadState::ACTIVE => {
-                        wait_time = Duration::from_secs(60);
+                        wait_time = ACTIVE_REFRESH_TIME;
                     }
                     RefreshThreadState::HIBERNATING => {
-                        wait_time = Duration::from_secs(60 * 60);
+                        wait_time = DORMANT_REFRESH_TIME;
                         skip_flag = true;
                     }
                 }
@@ -435,8 +437,8 @@ impl matrix::ScreenProvider for AWSScreen {
         common::ScreenId::Smart
     }
 
-    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
-        self.sender.clone()
+    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+        &self.sender
     }
 
     fn as_any(&mut self) -> &mut dyn Any {

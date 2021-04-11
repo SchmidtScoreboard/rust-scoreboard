@@ -85,7 +85,7 @@ class Baseball:
 
         balls = 0
         strikes = 0
-        outs = 0;
+        outs = 0
         if game["status"] == "ACTIVE":
             balls = linescore["balls"]
             outs= linescore["outs"]

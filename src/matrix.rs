@@ -139,7 +139,7 @@ impl<'a> Matrix<'a> {
         info!("Setting up delayed command to reboot the scoreboard to hour {:?}, delaying for {:?}", reboot_time, time_until_tomorrow_target);
         self.scheduler_sender
             .send(scheduler::DelayedCommand::new(
-                scheduler::Command::MatrixCommand(common::MatrixCommand::Reboot()),
+                scheduler::Command::MatrixCommand(common::MatrixCommand::Reboot{is_nightly_reboot: true}),
                 Some(time_until_tomorrow_target.to_std().unwrap()),
             ))
             .unwrap();
@@ -155,7 +155,16 @@ impl<'a> Matrix<'a> {
         } else {
             info!("Skipping setting nightly reboot");
         }
-        self.settings.set_power(&true);
+        match *self.settings.get_startup_power() {
+            Some(startup_power) => self.settings.set_power(&startup_power),
+            None => self.settings.set_power(&true)
+        }
+        if let Some(startup_auto_power) = *self.settings.get_startup_auto_power() {
+            self.settings.set_auto_power(&startup_auto_power);
+        }
+
+        self.settings.set_startup_settings(None, None); // clear startup settings
+
         self.activate_screen();
         loop {
             let command = self.receiver.recv_timeout(Duration::from_secs(60));
@@ -245,13 +254,19 @@ impl<'a> Matrix<'a> {
                         ));
                         if original_brightness != new_brightness {
                             // Restart the scoreboard
+                            self.settings.set_startup_settings(Some(true), Some(*self.settings.get_auto_power()));
                             self.settings.set_power(&true);
                             self.settings.set_auto_power(&false);
                             self.show_message("Rebooting...".to_string());
                             self.send_command(common::ShellCommand::Reboot { settings: None });
                         }
                     }
-                    common::MatrixCommand::Reboot() => {
+                    common::MatrixCommand::Reboot{ is_nightly_reboot } => {
+                        let startup_power = match is_nightly_reboot {
+                            true => *self.settings.get_power(),
+                            false => true
+                        };
+                        self.settings.set_startup_settings(Some(startup_power), Some(*self.settings.get_auto_power()));
                         self.settings.set_power(&true);
                         self.settings.set_auto_power(&false);
                         self.show_message("Rebooting...".to_string());
@@ -731,7 +746,7 @@ pub trait ScreenProvider {
 
     fn get_screen_id(self: &Self) -> common::ScreenId;
 
-    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand>;
+    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand>;
 
     fn send_draw_command(self: &Self, duration: Option<Duration>) {
         let id = self.get_screen_id();

@@ -25,6 +25,7 @@ pub enum ScreenId {
     Refresh = 100,
     Setup = 101,
     Error = 104,
+    Flappy = 420,
     Animation = 1000,
     Message = 1001,
     Smart = 10000,
@@ -79,7 +80,9 @@ pub enum MatrixCommand {
 
     // Setup Commands
     GetSettings(), // Fetch the settings
-    Reboot(),
+    Reboot{
+        is_nightly_reboot: bool
+    },
     Reset {
         from_webserver: bool,
     }, // Reset the scoreboard to factory settings (Long Press)
@@ -214,6 +217,10 @@ fn default_auto_power() -> bool {
     false
 }
 
+pub fn default_startup_setting() -> Option<bool> {
+    None
+}
+
 /// Serialize a `Duration` into a `u64` representing the seconds
 pub fn serialize_duration<S>(duration: &Duration, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -275,4 +282,30 @@ pub struct ScoreboardSettingsData {
 
     #[serde(default = "default_brightness")]
     pub brightness: u8,
+
+    #[serde(default = "default_startup_setting")]
+    pub startup_power: Option<bool>,
+    #[serde(default = "default_startup_setting")]
+    pub startup_auto_power: Option<bool>
+}
+
+impl ScoreboardSettingsData {
+    pub fn update_settings(self: &Self, other: ScoreboardSettingsData) -> ScoreboardSettingsData{
+        ScoreboardSettingsData {
+            timezone: other.timezone,
+            setup_state: other.setup_state,
+            active_screen: other.active_screen,
+            mac_address: other.mac_address,
+            name: other.name,
+            screens: other.screens,
+            screen_on: other.screen_on,
+            auto_power: other.auto_power,
+            version: other.version,
+            favorite_teams: other.favorite_teams,
+            rotation_time: other.rotation_time,
+            brightness: other.brightness,
+            startup_power: self.startup_power,
+            startup_auto_power: self.startup_auto_power
+        } 
+    }
 }

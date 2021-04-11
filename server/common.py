@@ -19,6 +19,7 @@ class SportId(Enum):
     BASKETBALL = 3
     FOOTBALL = 4
     COLLEGE_FOOTBALL = 5
+    GOLF = 6
 
 
 class Team:
@@ -96,6 +97,7 @@ class Common:
             "STATUS_END_PERIOD": "INTERMISSION",
             "STATUS_HALFTIME": "INTERMISSION",
             "STATUS_POSTPONED": None,
+            "STATUS_PLAY_COMPLETE": "END"
         }
 
         if status not in status_map:

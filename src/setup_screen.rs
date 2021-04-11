@@ -173,8 +173,8 @@ impl matrix::ScreenProvider for SetupScreen {
     fn update_settings(self: &mut Self, settings: Arc<common::ScoreboardSettingsData>) {
         self.state = settings.setup_state;
     }
-    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
-        self.sender.clone()
+    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+        &self.sender
     }
     fn get_screen_id(self: &Self) -> common::ScreenId {
         common::ScreenId::Setup

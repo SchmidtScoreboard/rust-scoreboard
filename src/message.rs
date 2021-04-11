@@ -56,8 +56,8 @@ impl matrix::ScreenProvider for MessageScreen {
         common::ScreenId::Message
     }
 
-    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
-        self.sender.clone()
+    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+        &self.sender
     }
 
     fn as_any(&mut self) -> &mut dyn Any {

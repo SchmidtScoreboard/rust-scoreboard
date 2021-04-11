@@ -165,8 +165,8 @@ impl matrix::ScreenProvider for AnimationTestScreen {
         self.send_draw_command(Some(Duration::from_millis(20)));
     }
 
-    fn get_sender(self: &Self) -> mpsc::Sender<scheduler::DelayedCommand> {
-        self.sender.clone()
+    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+        &self.sender
     }
     fn get_screen_id(self: &Self) -> common::ScreenId {
         common::ScreenId::Animation

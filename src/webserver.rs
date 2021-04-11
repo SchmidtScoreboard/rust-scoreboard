@@ -226,7 +226,7 @@ fn reboot(
 ) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
-    (*state).sender.send(MatrixCommand::Reboot()).unwrap();
+    (*state).sender.send(MatrixCommand::Reboot{is_nightly_reboot: false}).unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::RebootResponse(settings) => match settings {

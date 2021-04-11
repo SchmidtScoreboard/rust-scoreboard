@@ -8,6 +8,7 @@ mod button;
 mod clock;
 mod common;
 mod football;
+mod flappy;
 mod game;
 mod hockey;
 mod matrix;

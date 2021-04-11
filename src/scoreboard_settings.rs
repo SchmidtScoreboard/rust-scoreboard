@@ -29,7 +29,7 @@ impl ScoreboardSettings {
     }
 
     pub fn update_settings(self: &mut Self, new_settings: ScoreboardSettingsData) {
-        self.data = Arc::from(new_settings);
+        self.data = Arc::from(self.data.update_settings(new_settings));
         self.write_settings();
     }
 
@@ -48,6 +48,12 @@ impl ScoreboardSettings {
 
     pub fn get_rotation_time(self: &Self) -> Duration {
         self.data.rotation_time
+    }
+    pub fn get_startup_power(self: &Self) -> &Option<bool>{
+        &self.data.startup_power
+    }
+    pub fn get_startup_auto_power(self: &Self) -> &Option<bool>{
+        &self.data.startup_auto_power
     }
 
     pub fn set_rotation_time(self: &mut Self, rotation_time: Duration) {
@@ -77,6 +83,13 @@ impl ScoreboardSettings {
     pub fn set_auto_power(self: &mut Self, auto_power: &bool) {
         let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
         copy.auto_power = *auto_power;
+        self.data = Arc::from(copy);
+        self.write_settings();
+    }
+    pub fn set_startup_settings(self: &mut Self, startup_power: Option<bool>, startup_auto_power: Option<bool>) {
+        let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
+        copy.startup_power = startup_power;
+        copy.startup_auto_power = startup_auto_power;
         self.data = Arc::from(copy);
         self.write_settings();
     }

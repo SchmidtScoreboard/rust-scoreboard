@@ -19,12 +19,15 @@ class Fetcher:
             async with session.get(game_url) as r:
                 return await r.json()
 
-    def get_espn_url(sport: str, selection: str):
-        return f"http://site.api.espn.com/apis/site/v2/sports/{sport}/{selection}/scoreboard"
+    def get_espn_url(sport: str, selection: str, suffix: str):
+        if selection is None:
+            return f"http://site.api.espn.com/apis/site/v2/sports/{sport}/{suffix}"
+        else:
+            return f"http://site.api.espn.com/apis/site/v2/sports/{sport}/{selection}/{suffix}"
 
-    async def espn_fetch(sport: str, selection: str):
+    async def espn_fetch(sport: str, selection: str, suffix: str = "scoreboard"):
         async with aiohttp.ClientSession() as session:
-            async with session.get(Fetcher.get_espn_url(sport, selection)) as r:
+            async with session.get(Fetcher.get_espn_url(sport, selection, suffix)) as r:
                 json = await r.json()
                 events = json["events"]
                 return events
