@@ -40,19 +40,22 @@ class Golf:
         ordinal = Common.to_ordinal(competition["status"]["period"])
         game_id = game["id"]
 
-        earliest_tee_time = None
+        earliest_tee_time = (None, None)
+        
 
         # Find start time by looking at players
         for player in competition["competitors"]:
             tee_time = player["status"].get("teeTime")
             if tee_time is None:
                 continue
-            tee_time = parse(tee_time).astimezone(pytz.utc)
-            if earliest_tee_time is None or tee_time < earliest_tee_time:
-                earliest_tee_time = tee_time
+            tee_time_value = parse(tee_time).astimezone(pytz.utc)
+            earliest_tee_time_value, _ = earliest_tee_time
+            if earliest_tee_time_value is None or tee_time_value < earliest_tee_time_value:
+                earliest_tee_time = (tee_time_value, tee_time)
 
         empty_team = Team.create_team("0", "", "", "", "", "000000", "000000")
 
+        _, tee_time_display= earliest_tee_time
         if status is not None:
             return Common.create_common(
                 SportId.GOLF.value,
@@ -60,7 +63,7 @@ class Golf:
                 empty_team,
                 status,
                 ordinal,
-                str(earliest_tee_time),
+                str(tee_time_display),
                 game_id,
                 0,
                 0 
