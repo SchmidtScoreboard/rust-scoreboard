@@ -15,6 +15,9 @@ class Golf:
             "score": player["score"]["displayValue"], # +7, -8 etc
         }
 
+    def is_better_score(a, b):
+        return int(a) < int(b)
+
     def create_game(common, game):
         if common is None:
             return None
@@ -26,6 +29,16 @@ class Golf:
         top_5 = [Golf.create_player(player) for player in players if int(player["status"]["position"]["id"]) < 5 ]
 
         top_5.sort(key = lambda player: player["position"])
+        
+        # Normalize score because sometimes scores are fucking dumb
+        position_to_score = {}
+        for player in top_5:
+            score = position_to_score.get(player["position"])
+            if score is None or Golf.is_better_score(player["score"], score):
+                position_to_score[player["position"]] = player["score"]
+        print(position_to_score )
+        for player in top_5:
+            player["score"] = position_to_score[player["position"]]
 
         name = game["shortName"].upper()
         words = name.split()

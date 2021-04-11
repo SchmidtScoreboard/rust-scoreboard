@@ -37,6 +37,11 @@ impl PartialEq for HockeyGame {
 
 impl Eq for HockeyGame {}
 
+impl game::Sport for HockeyGame{
+    fn get_common(self: &Self) -> &game::CommonGameData {
+         &self.common
+    }
+}
 impl aws_screen::AWSScreenType for HockeyGame {
     fn draw_screen(
         self: &Self,

@@ -53,10 +53,19 @@ fn draw_player(
         let baseline = *y_offset + font.dimensions.height;
         let score_width = font.get_text_dimensions(&player.score).width;
 
-        canvas.draw_text(&font.led_font, &player.score, 64 - score_width - 1, baseline, score_color, 0, false);
-        canvas.draw_text(&font.led_font, &player.display_name.to_ascii_uppercase(), 2, baseline, name_color, 0, false);
+        canvas.draw_text(&font.led_font, &player.score, 64 - score_width, baseline, score_color, 0, false);
+        canvas.draw_text(&font.led_font, &player.display_name.to_ascii_uppercase(), 1, baseline, name_color, 0, false);
 
         *y_offset = *y_offset + font.dimensions.height + 1;
+}
+impl game::Sport for Golf {
+    fn get_common(self: &Self) -> &game::CommonGameData {
+         &self.common
+    }
+
+    fn involves_team(self: &Self, target_team: u32) -> bool {
+        true
+    }
 }
 
 impl aws_screen::AWSScreenType for Golf {
@@ -83,7 +92,7 @@ impl aws_screen::AWSScreenType for Golf {
             0,
             false);
 
-        let mut player_offset = font.dimensions.height + 2;
+        let mut player_offset = font.dimensions.height + 3;
         self.players.iter().take(num_players).enumerate().for_each(|(i, player)| {
             draw_player(player, &mut player_offset, score_width, canvas, font, &white, &green);
         });

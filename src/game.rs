@@ -1,5 +1,6 @@
 use crate::common;
 use crate::matrix;
+use crate::aws_screen;
 
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use chrono_tz::Tz;
@@ -200,6 +201,26 @@ pub fn draw_scoreboard(
         box_height,
         spacing,
     );
+}
+
+pub trait Sport : aws_screen::AWSScreenType {
+    fn get_common(self: &Self) -> &CommonGameData;
+
+    fn involves_team(self: &Self, target_team: u32 ) -> bool {
+        let common = self.get_common();
+        common.involves_team(target_team)
+    }
+
+    fn should_focus(self: &Self) -> bool {
+        let common = self.get_common();
+        common.should_focus()
+    }
+
+    fn get_screen_id(self: &Self) -> common::ScreenId {
+        let common = self.get_common();
+        common.sport_id 
+    }
+
 }
 #[cfg(test)]
 mod tests {

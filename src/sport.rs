@@ -34,20 +34,10 @@ enum SportData {
     Golf(Golf),
 }
 
-impl SportData {
-    fn get_common(self: &Self) -> &game::CommonGameData {
-        match self {
-            SportData::Hockey(hockey) => &hockey.common,
-            SportData::Baseball(baseball) => &baseball.common,
-            SportData::CollegeBasketball(college_basketball) => &college_basketball.common,
-            SportData::Basketball(basketball) => &basketball.common,
-            SportData::CollegeFootball(football) => &football.common,
-            SportData::Football(football) => &football.common,
-            SportData::Golf(golf) => &golf.common,
-        }
-    }
 
-    fn get_aws_screen(self: &Self) -> &dyn AWSScreenType {
+impl SportData {
+
+    fn get_inner(self: &Self) -> &(dyn game::Sport) {
         match self {
             SportData::Hockey(hockey) => hockey,
             SportData::Baseball(baseball) => baseball,
@@ -100,15 +90,15 @@ impl AWSData {
                 .games
                 .iter()
                 .enumerate()
-                .filter(|(_, game)| current_leagues.contains(&game.get_common().sport_id))
+                .filter(|(_, game)| current_leagues.contains(&game.get_inner().get_screen_id()))
                 .map(|(i, _)| i)
                 .partition(|i| {
                     favorite_teams.into_iter().any(|favorite_team| {
-                        self.games[*i].get_common().sport_id == favorite_team.screen_id
+                        self.games[*i].get_inner().get_screen_id() == favorite_team.screen_id
                             && self.games[*i]
-                                .get_common()
+                                .get_inner()
                                 .involves_team(favorite_team.team_id)
-                            && self.games[*i].get_common().should_focus()
+                            && self.games[*i].get_inner().should_focus()
                     })
                 });
 
@@ -411,7 +401,7 @@ impl matrix::ScreenProvider for AWSScreen {
                 {
                     match current_data.get_active_game() {
                         Some(active_game) => {
-                            active_game.get_aws_screen().draw_screen(
+                            active_game.get_inner().draw_screen(
                                 canvas,
                                 &self.fonts,
                                 &self.pixels,
@@ -456,7 +446,7 @@ impl matrix::ScreenProvider for AWSScreen {
             ReceivedData::Valid(data) => {
                 data.games
                     .iter()
-                    .filter(|game| self.current_leagues.contains(&game.get_common().sport_id))
+                    .filter(|game| self.current_leagues.contains(&game.get_inner().get_screen_id()))
                     .count()
                     > data.filtered_games.len()
             }

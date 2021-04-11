@@ -107,6 +107,12 @@ impl aws_screen::AWSScreenType for FootballGame {
     }
 }
 
+impl game::Sport for FootballGame {
+    fn get_common(self: &Self) -> &game::CommonGameData {
+         &self.common
+    }
+}
+
 impl aws_screen::AWSScreenType for CollegeFootballGame {
     fn draw_screen(
         self: &Self,
@@ -116,5 +122,10 @@ impl aws_screen::AWSScreenType for CollegeFootballGame {
         timezone: &Tz,
     ) {
         football_draw(&self.common, canvas, font_book, timezone);
+    }
+}
+impl game::Sport for CollegeFootballGame {
+    fn get_common(self: &Self) -> &game::CommonGameData {
+         &self.common
     }
 }
