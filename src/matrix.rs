@@ -259,7 +259,7 @@ impl<'a> Matrix<'a> {
                         }
                     }
                     common::MatrixCommand::GameAction() => {
-                        let mut flappy = self.get_flappy();
+                        let flappy = self.get_flappy();
                         flappy.touch();
                         self.send_response(common::WebserverResponse::GameActionResponse(
                             self.settings.get_settings(),
@@ -590,6 +590,7 @@ pub struct PixelBook {
     pub phone_frame: Pixels,
     pub green_check: Pixels,
     pub red_x: Pixels,
+    pub play_button: Pixels,
 }
 
 impl PixelBook {
@@ -607,6 +608,7 @@ impl PixelBook {
             green_check: Pixels::from_file(root_path, "check.png")
                 .expect("Could not load green check"),
             red_x: Pixels::from_file(root_path, "red-x.png").expect("Could not load red X"),
+            play_button: Pixels::from_file(root_path, "play_button.png").expect("Could not load play button"),
         }
     }
 }

@@ -253,7 +253,7 @@ impl AWSScreen {
         let white = common::new_color(255, 255, 255);
         canvas.draw_text(
             &font.led_font,
-            "No games today",
+            "No events today",
             1,
             1 + font.dimensions.height,
             &white,

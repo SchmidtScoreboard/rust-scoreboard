@@ -6,60 +6,52 @@ from dateutil.parser import parse
 import datetime
 import pytz
 
-class Golf:
 
+class Golf:
     def create_player(player):
         return {
-            "display_name":  player["athlete"]["displayName"].split()[-1], # Get last name
+            "display_name": player["athlete"]["displayName"].split()[
+                -1
+            ],  # Get last name
             "position": int(player["status"]["position"]["id"]),
-            "score": player["statistics"][0]["displayValue"], # +7, -8 etc
+            "score": player["statistics"][0]["displayValue"],  # +7, -8 etc
         }
 
     def is_better_score(a, b):
-        def normalize(string): 
+        def normalize(string):
             if string == "E":
                 return "0"
+
         return int(normalize(a)) < int(normalize(b))
 
     def create_game(common, game):
         if common is None:
             return None
 
-        
         competition = game["competitions"][0]
         players = competition["competitors"]
 
-        top_5 = [Golf.create_player(player) for player in players if int(player["status"]["position"]["id"]) < 5 ]
+        top_5 = [
+            Golf.create_player(player)
+            for player in players
+            if int(player["status"]["position"]["id"]) < 5
+        ]
 
-        top_5.sort(key = lambda player: player["position"])
-        
-        # Normalize score because sometimes scores are fucking dumb
-        # position_to_score = {}
-        # for player in top_5:
-        #     score = position_to_score.get(player["position"])
-        #     if score is None or Golf.is_better_score(player["score"], score):
-        #         position_to_score[player["position"]] = player["score"]
-        # print(position_to_score )
-        # for player in top_5:
-        #     player["score"] = position_to_score[player["position"]]
+        top_5.sort(key=lambda player: player["position"])
 
         name = game["shortName"].upper()
         words = name.split()
         if words[-1] in ["TOURNAMENT", "CHAMPIONSHIP"]:
             words = words[:-1]
-       
+
         if words[0].isdigit():
             words = words[1:]
 
-        name = "THE " + ' '.join(words)
-        
-        return {
-            "type": "Golf", 
-            "common": common,
-            "players": top_5,
-            "name":  name
-            }
-    
+        if words[0] == "MASTERS":
+            name = "THE " + " ".join(words)
+
+        return {"type": "Golf", "common": common, "players": top_5, "name": name}
+
     def create_golf_common(game):
         competition = game["competitions"][0]
         espn_status = competition["status"]["type"]["name"]
@@ -68,7 +60,6 @@ class Golf:
         game_id = game["id"]
 
         earliest_tee_time = (None, None)
-        
 
         # Find start time by looking at players
         for player in competition["competitors"]:
@@ -77,12 +68,20 @@ class Golf:
                 continue
             tee_time_value = parse(tee_time).astimezone(pytz.utc)
             earliest_tee_time_value, _ = earliest_tee_time
-            if earliest_tee_time_value is None or tee_time_value < earliest_tee_time_value:
+            if (
+                earliest_tee_time_value is None
+                or tee_time_value < earliest_tee_time_value
+            ):
                 earliest_tee_time = (tee_time_value, tee_time)
 
         empty_team = Team.create_team("0", "", "", "", "", "000000", "000000")
 
-        _, tee_time_display= earliest_tee_time
+        time, tee_time_display = earliest_tee_time
+        now = datetime.datetime.now(tz=pytz.UTC)
+        delta = abs(now - time)
+        if delta > datetime.timedelta(hours=24):
+            return None
+
         if status is not None:
             return Common.create_common(
                 SportId.GOLF.value,
@@ -93,7 +92,7 @@ class Golf:
                 str(tee_time_display),
                 int(game_id),
                 0,
-                0 
+                0,
             )
         else:
             return None
@@ -109,9 +108,11 @@ class Golf:
             ]
             return [g for g in games if g]
 
+
 async def main():
     print("Fetching games")
     print(await Golf.get_games(False))
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
@@ -119,5 +120,3 @@ if __name__ == "__main__":
         loop.run_until_complete(main())
         time.sleep(60)
     loop.close()
-
-

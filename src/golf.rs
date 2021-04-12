@@ -79,7 +79,7 @@ impl game::Sport for Golf {
         &self.common
     }
 
-    fn involves_team(self: &Self, target_team: u32) -> bool {
+    fn involves_team(self: &Self, _target_team: u32) -> bool {
         true
     }
 }
@@ -95,9 +95,6 @@ impl aws_screen::AWSScreenType for Golf {
         let font = &font_book.font4x6; // Use the smallest font to fit the most info
         let green = common::new_color(52, 162, 35);
         let white = common::new_color(255, 255, 255);
-
-        let num_players = 4;
-
         canvas.draw_text(
             &font.led_font,
             &self.name,
@@ -108,9 +105,23 @@ impl aws_screen::AWSScreenType for Golf {
             false,
         );
 
-        let mut player_offset = font.dimensions.height + 3;
-        self.players.iter().take(num_players).for_each(|player| {
-            draw_player(player, &mut player_offset, canvas, font, &white, &green);
-        });
+        match self.common.status {
+            game::GameStatus::PREGAME => {
+                // Draw the start time here
+                let big_font = &font_book.font5x8;
+                let text = format!("Starts {}", self.common.start_time.with_timezone(timezone).format("%-I:%M %p"));
+                let dimensions = big_font.get_text_dimensions(&text);
+                canvas.draw_text(&big_font.led_font, &text, 32 - dimensions.width / 2, 16 + dimensions.height / 2, &white, 0, false);
+            },
+            game::GameStatus::INTERMISSION | game::GameStatus::END | game::GameStatus::ACTIVE => {
+                let num_players = 4;
+                let mut player_offset = font.dimensions.height + 3;
+                self.players.iter().take(num_players).for_each(|player| {
+                    draw_player(player, &mut player_offset, canvas, font, &white, &green);
+                });
+
+            }
+
+        }
     }
 }

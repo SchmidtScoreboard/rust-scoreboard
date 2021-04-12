@@ -13,14 +13,14 @@ use std::iter::FromIterator;
 use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
 
-const GRAVITY: f64 = 3.0;
+const GRAVITY: f64 = 15.0;
 const PLAYER_START_POSITION: (f64, f64) = (8.0, 16.0);
 const FIRST_BARRIER_START: f64 = 32.0;
 const SCREEN_SPEED: f64 = 16.0; // pixels/second
 const SCREEN_WIDTH: i32 = 64;
 const SCREEN_HEIGHT: i32 = 32;
 const BARRIER_WIDTH: i32 = 3;
-const MOMENTUM_ADD: f64 = 3.0;
+const MOMENTUM_ADD: f64 = -10.0;
 
 struct Stats {
     rng: rand::rngs::ThreadRng,
@@ -88,8 +88,8 @@ struct Barriers {
 impl Barriers {
     fn new() -> Barriers {
         let mut kind_stats = Stats::new(50.0, 50.0);
-        let mut distance_stats = Stats::new(20.0, 5.0);
-        let mut height_stats = Stats::new(12.0, 6.0);
+        let mut distance_stats = Stats::new(25.0, 5.0);
+        let mut height_stats = Stats::new(10.0, 6.0);
         let barriers = (1..10)
             .map(|_| Barrier::generate(&mut kind_stats, &mut distance_stats, &mut height_stats));
         Barriers {
@@ -131,7 +131,8 @@ pub struct Flappy {
     barriers: Barriers,
     last_update: Option<Instant>,
     state: FlappyState,
-    score: u32,
+    score: f64,
+    player: matrix::Pixels,
 }
 
 impl Flappy {
@@ -141,30 +142,44 @@ impl Flappy {
         fonts: matrix::FontBook,
         assets: matrix::PixelBook,
     ) -> Flappy {
+        let player = (&assets.empty_squar).replace_color(
+            &common::new_color(255, 255, 255),
+            &common::new_color(8, 146, 208),
+        );
         Flappy {
             sender,
             settings,
             fonts,
             assets,
             player_position: PLAYER_START_POSITION,
-            player_vertical_velocity: 0.0,
+            player_vertical_velocity: MOMENTUM_ADD,
             first_barrier_distance: FIRST_BARRIER_START,
             barriers: Barriers::new(),
             last_update: None,
             state: FlappyState::Ready(),
-            score: 0,
+            score: 0.0,
+            player,
         }
+    }
+
+    pub fn reset(self: &mut Self) {
+        self.state = FlappyState::Playing();
+        self.score = 0.0;
+        self.player_vertical_velocity = MOMENTUM_ADD;
+        self.player_position = PLAYER_START_POSITION;
+        self.first_barrier_distance = FIRST_BARRIER_START;
+        self.barriers = Barriers::new();
+        self.last_update = None;
     }
 }
 
-fn check_rectangle_intersection(a: &((f64, f64), (f64, f64)), b: &((f64, f64), (f64, f64))) -> bool {
-    if a.0.0 >= b.1.0 || b.0.0 >= a.1.0 {
-        false
-    } else if a.0.1 >= b.1.1 || b.0.1 >= a.1.1 {
-        false
-    } else {
-        true
-    }
+fn check_rectangle_intersection(
+    a: &((f64, f64), (f64, f64)),
+    b: &((f64, f64), (f64, f64)),
+) -> bool {
+    let ((ax1, ay1), (ax2, ay2)) = a;
+    let ((bx1, by1), (bx2, by2)) = b;
+    ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1
 }
 
 impl Flappy {
@@ -172,20 +187,22 @@ impl Flappy {
         info!("Flappy received touch!");
         match self.state {
             FlappyState::Ready() => {
-                self.state = FlappyState::Playing();
-                self.score = 0;
+                self.reset();
             }
             FlappyState::Playing() => {
-                self.player_vertical_velocity = self.player_vertical_velocity + MOMENTUM_ADD;
+                let new_velocity = self.player_vertical_velocity + MOMENTUM_ADD;
+                self.player_vertical_velocity = if new_velocity < MOMENTUM_ADD {
+                    new_velocity
+                } else {
+                    MOMENTUM_ADD
+                };
                 // Fuckin maybe?
             }
             FlappyState::GameOver() => {
-                self.state = FlappyState::Playing();
-                self.score = 0;
+                self.reset();
             }
         }
     }
-
 
     fn update_frame(self: &mut Self) -> bool {
         let now = Instant::now();
@@ -203,7 +220,7 @@ impl Flappy {
                     self.first_barrier_distance + barrier.next_distance as f64;
                 self.barriers.pop_first_barrier();
             }
-            self.score = self.score + barrier_movement as u32;
+            self.score = self.score + barrier_movement / 10.0;
 
             //Calcualte new velocity and position for Flappy
             let new_velocity = self.player_vertical_velocity + delta * GRAVITY;
@@ -216,32 +233,79 @@ impl Flappy {
             );
 
             let mut barrier_pos = self.first_barrier_distance;
-            let player_bounding_box = (self.player_position, (self.player_position.0 + 2.0, self.player_position.1 + 2.0));
+            let player_dimensions = self.player.size();
+            let player_bounding_box = (
+                self.player_position,
+                (
+                    self.player_position.0 + player_dimensions.width as f64,
+                    self.player_position.1 + player_dimensions.height as f64,
+                ),
+            );
             // Check if touching a barrier
             for barrier in &self.barriers.barriers {
-                if barrier_pos + BARRIER_WIDTH as f64 > self.player_position.0 {
-                    break;
-                }
                 // casting nightmare incoming
                 let barrier_box = match barrier.kind {
-                    BarrierKind::TOP => ((barrier_pos, 0.0), (barrier_pos + BARRIER_WIDTH as f64, barrier.height as f64)),
-                    BarrierKind::BOTTOM => ((barrier_pos, (SCREEN_HEIGHT - (barrier.height as i32)) as f64), (barrier_pos + BARRIER_WIDTH as f64, SCREEN_HEIGHT as f64))
+                    BarrierKind::TOP => (
+                        (barrier_pos, 0.0),
+                        (barrier_pos + BARRIER_WIDTH as f64, barrier.height as f64),
+                    ),
+                    BarrierKind::BOTTOM => (
+                        (
+                            barrier_pos,
+                            (SCREEN_HEIGHT - (barrier.height as i32)) as f64,
+                        ),
+                        (barrier_pos + BARRIER_WIDTH as f64, SCREEN_HEIGHT as f64),
+                    ),
                 };
 
                 if check_rectangle_intersection(&player_bounding_box, &barrier_box) {
+                    info!("INTERSECTION");
                     return false;
                 }
                 barrier_pos = barrier_pos + barrier.next_distance as f64;
             }
 
             // Check if touching top or bottom
-            if self.player_position.1 < 0.0 || self.player_position.1 > SCREEN_HEIGHT.into() {
+            if self.player_position.1 < 0.0
+                || self.player_position.1 + self.player.size().height as f64 > SCREEN_HEIGHT.into()
+            {
                 return false;
             }
-
         }
         self.last_update = Some(now);
         true
+    }
+    fn draw_play_message(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, baseline: i32) {
+        let white = common::new_color(255, 255, 255);
+        let font = &self.fonts.font4x6;
+        let tap_text = "Tap ";
+        let play_button = &self.assets.play_button;
+        let play_text = " to play";
+        let tap_dimensions = font.get_text_dimensions(&tap_text);
+        let play_dimensions = font.get_text_dimensions(&play_text);
+
+        let total_width = tap_dimensions.width + play_button.size().width + play_dimensions.width;
+
+        let start = SCREEN_WIDTH / 2 - total_width / 2;
+
+        canvas.draw_text(&font.led_font, &tap_text, start, baseline, &white, 0, false);
+        matrix::draw_pixels(
+            canvas,
+            play_button,
+            (
+                start + tap_dimensions.width,
+                baseline - play_button.size().height + 1,
+            ),
+        );
+        canvas.draw_text(
+            &font.led_font,
+            &play_text,
+            start + tap_dimensions.width + play_button.size().width,
+            baseline,
+            &white,
+            0,
+            false,
+        );
     }
 }
 
@@ -257,15 +321,30 @@ impl matrix::ScreenProvider for Flappy {
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
         match self.state {
-            FlappyState::Ready() | 
+            FlappyState::Ready() => {
+                let big_font = &self.fonts.font7x13;
+                let text = "FLAPPY";
+                let dimensions = big_font.get_text_dimensions(&text);
+                let white = common::new_color(255, 255, 255);
+                canvas.draw_text(
+                    &big_font.led_font,
+                    &text,
+                    SCREEN_WIDTH / 2 - (dimensions.width / 2),
+                    SCREEN_HEIGHT / 2 + (dimensions.height / 2),
+                    &white,
+                    0,
+                    false,
+                );
+                self.draw_play_message(canvas, SCREEN_HEIGHT - 4);
+            }
             FlappyState::Playing() => {
                 if !self.update_frame() {
                     self.state = FlappyState::GameOver();
                 } else {
                     let white = common::new_color(255, 255, 255);
-                    let blue = common::new_color(0, 0, 255);
+                    let blue = common::new_color(8, 146, 208);
                     // Draw player
-                    let player = self.assets.small_arrow.replace_color(&white, &blue);
+                    let player = &self.player;
                     let (player_x, player_y) = self.player_position;
                     matrix::draw_pixels(canvas, &player, (player_x as i32, player_y as i32));
 
@@ -288,16 +367,50 @@ impl matrix::ScreenProvider for Flappy {
                         }
                         barrier_x = barrier_x + (barrier.next_distance as i32);
                     });
+                    // Draw the score
+                    let font = &self.fonts.font4x6;
+                    let text = format!("{}", self.score as u32);
+                    let dimensions = font.get_text_dimensions(&text);
+                    canvas.draw_text(
+                        &font.led_font,
+                        &text,
+                        SCREEN_WIDTH - dimensions.width - 2,
+                        dimensions.height + 2,
+                        &blue,
+                        0,
+                        false,
+                    );
                 }
-            },
-            FlappyState::GameOver() => {
-                let font = &self.fonts.font7x13;
-                let text = "GAME OVER";
-                let dimensions = font.get_text_dimensions(&text);
-                let white = common::new_color(255, 255, 255);
-                canvas.draw_text(&font.led_font, &text, SCREEN_WIDTH / 2 - (dimensions.width / 2), SCREEN_HEIGHT / 2 - (dimensions.height / 2), &white, 0, false);
             }
+            FlappyState::GameOver() => {
+                let big_font = &self.fonts.font7x13;
+                let text = "GAME OVER";
+                let dimensions = big_font.get_text_dimensions(&text);
+                let white = common::new_color(255, 255, 255);
+                canvas.draw_text(
+                    &big_font.led_font,
+                    &text,
+                    SCREEN_WIDTH / 2 - (dimensions.width / 2),
+                    dimensions.height + 1,
+                    &white,
+                    0,
+                    false,
+                );
 
+                let font = &self.fonts.font5x8;
+                let text = format!("Score: {}", self.score as u32);
+                let dimensions = font.get_text_dimensions(&text);
+                canvas.draw_text(
+                    &font.led_font,
+                    &text,
+                    SCREEN_WIDTH / 2 - (dimensions.width / 2),
+                    SCREEN_HEIGHT / 2 + (dimensions.height / 2),
+                    &white,
+                    0,
+                    false,
+                );
+                self.draw_play_message(canvas, SCREEN_HEIGHT - 3);
+            }
         }
 
         self.send_draw_command(Some(Duration::from_millis(20)));

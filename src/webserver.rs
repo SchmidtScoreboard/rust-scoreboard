@@ -96,9 +96,9 @@ fn configure(
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
-#[post("/gameAction", format = "json", data = "<game_action>")]
+#[post("/gameAction", format = "json", data = "<_game_action>")]
 fn game_action(
-    game_action: Json<GameAction>,
+    _game_action: Json<GameAction>,
     state: State<Mutex<ServerState>>,
 ) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();

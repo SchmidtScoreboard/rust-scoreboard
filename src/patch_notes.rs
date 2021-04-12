@@ -15,6 +15,7 @@ impl Patch {
 
 pub fn get_patches() -> Vec<Patch> {
     vec![
+        Patch::create("2.1.0", "Golf + Flappy Bird!"),
         Patch::create("2.0.2", "Nightly reboot + update"),
         Patch::create("2.0.1", "Fix to smart power mode"),
         Patch::create("2.0.0", "Smart switch mode. Also variable width fonts for more readable text. Also, football modes"),
