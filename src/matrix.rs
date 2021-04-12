@@ -1,10 +1,12 @@
 use crate::animation;
 use crate::common;
 use crate::common::ScoreboardSettingsData;
+use crate::flappy;
 use crate::message;
 use crate::scheduler;
 use crate::scoreboard_settings::ScoreboardSettings;
 use crate::setup_screen;
+use chrono::{Timelike, Utc};
 use png;
 use rpi_led_matrix;
 use std::any::Any;
@@ -14,7 +16,6 @@ use std::error::Error;
 use std::fs;
 use std::str;
 use std::sync::{mpsc, Arc};
-use chrono::{Utc, Timelike};
 use std::time::{Duration, Instant};
 
 pub struct Matrix<'a> {
@@ -27,7 +28,7 @@ pub struct Matrix<'a> {
     scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
     message_screen: message::MessageScreen, // If this is set, display this message until it is unset
     last_priority_check: Option<Instant>,
-    daily_reboot: Option<u8> // The time to schedule a daily reboot, if any
+    daily_reboot: Option<u8>, // The time to schedule a daily reboot, if any
 }
 
 impl<'a> Matrix<'a> {
@@ -40,7 +41,7 @@ impl<'a> Matrix<'a> {
         webserver_responder: mpsc::Sender<common::WebserverResponse>,
         shell_sender: mpsc::Sender<common::ShellCommand>,
         scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
-        daily_reboot: Option<u8>
+        daily_reboot: Option<u8>,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
@@ -52,7 +53,7 @@ impl<'a> Matrix<'a> {
             scheduler_sender,
             message_screen,
             last_priority_check: Some(Instant::now()),
-            daily_reboot 
+            daily_reboot,
         }
     }
 
@@ -110,6 +111,16 @@ impl<'a> Matrix<'a> {
             None => panic!("Found screen is NOT the setup screen"),
         }
     }
+    fn get_flappy(self: &mut Self) -> &mut flappy::Flappy {
+        match self
+            .get_mut_screen(&common::ScreenId::Flappy)
+            .as_any()
+            .downcast_mut::<flappy::Flappy>()
+        {
+            Some(flappy) => flappy,
+            None => panic!("Found screen is NOT flappy"),
+        }
+    }
 
     // Returns what the power state of the system should be after priority check
     fn check_priority(self: &mut Self) -> bool {
@@ -129,21 +140,29 @@ impl<'a> Matrix<'a> {
         }
     }
 
-    fn schedule_nightly_reboot(self: &mut Self, reboot_time: u8){
+    fn schedule_nightly_reboot(self: &mut Self, reboot_time: u8) {
         let timezone = self.settings.get_timezone();
         let now = Utc::now().with_timezone(timezone);
         // Keep it simple--schedule this at 3AM local time tomorrow. If it is 1AM, don't worry about setting it to 3AM on the current day
         let tomorrow = now + chrono::Duration::days(1);
-        let tomorrow_target = tomorrow.with_hour(reboot_time.into()).unwrap().with_minute(0).unwrap();
-        let time_until_tomorrow_target= tomorrow_target- now;
-        info!("Setting up delayed command to reboot the scoreboard to hour {:?}, delaying for {:?}", reboot_time, time_until_tomorrow_target);
+        let tomorrow_target = tomorrow
+            .with_hour(reboot_time.into())
+            .unwrap()
+            .with_minute(0)
+            .unwrap();
+        let time_until_tomorrow_target = tomorrow_target - now;
+        info!(
+            "Setting up delayed command to reboot the scoreboard to hour {:?}, delaying for {:?}",
+            reboot_time, time_until_tomorrow_target
+        );
         self.scheduler_sender
             .send(scheduler::DelayedCommand::new(
-                scheduler::Command::MatrixCommand(common::MatrixCommand::Reboot{is_nightly_reboot: true}),
+                scheduler::Command::MatrixCommand(common::MatrixCommand::Reboot {
+                    is_nightly_reboot: true,
+                }),
                 Some(time_until_tomorrow_target.to_std().unwrap()),
             ))
             .unwrap();
-
     }
 
     // This is the main loop of the entire code
@@ -157,7 +176,7 @@ impl<'a> Matrix<'a> {
         }
         match *self.settings.get_startup_power() {
             Some(startup_power) => self.settings.set_power(&startup_power),
-            None => self.settings.set_power(&true)
+            None => self.settings.set_power(&true),
         }
         if let Some(startup_auto_power) = *self.settings.get_startup_auto_power() {
             self.settings.set_auto_power(&startup_auto_power);
@@ -239,6 +258,13 @@ impl<'a> Matrix<'a> {
                             }
                         }
                     }
+                    common::MatrixCommand::GameAction() => {
+                        let mut flappy = self.get_flappy();
+                        flappy.touch();
+                        self.send_response(common::WebserverResponse::GameActionResponse(
+                            self.settings.get_settings(),
+                        ));
+                    }
                     common::MatrixCommand::GetSettings() => {
                         self.send_response(common::WebserverResponse::GetSettingsResponse(
                             self.settings.get_settings(),
@@ -254,19 +280,25 @@ impl<'a> Matrix<'a> {
                         ));
                         if original_brightness != new_brightness {
                             // Restart the scoreboard
-                            self.settings.set_startup_settings(Some(true), Some(*self.settings.get_auto_power()));
+                            self.settings.set_startup_settings(
+                                Some(true),
+                                Some(*self.settings.get_auto_power()),
+                            );
                             self.settings.set_power(&true);
                             self.settings.set_auto_power(&false);
                             self.show_message("Rebooting...".to_string());
                             self.send_command(common::ShellCommand::Reboot { settings: None });
                         }
                     }
-                    common::MatrixCommand::Reboot{ is_nightly_reboot } => {
+                    common::MatrixCommand::Reboot { is_nightly_reboot } => {
                         let startup_power = match is_nightly_reboot {
                             true => *self.settings.get_power(),
-                            false => true
+                            false => true,
                         };
-                        self.settings.set_startup_settings(Some(startup_power), Some(*self.settings.get_auto_power()));
+                        self.settings.set_startup_settings(
+                            Some(startup_power),
+                            Some(*self.settings.get_auto_power()),
+                        );
                         self.settings.set_power(&true);
                         self.settings.set_auto_power(&false);
                         self.show_message("Rebooting...".to_string());
@@ -627,6 +659,33 @@ impl Pixels {
             row.reverse();
         });
         Pixels { data: copy }
+    }
+
+    pub fn replace_color(
+        self: &Self,
+        old_color: &rpi_led_matrix::LedColor,
+        new_color: &rpi_led_matrix::LedColor,
+    ) -> Pixels {
+        Pixels {
+            data: self
+                .data
+                .iter()
+                .map(|row| {
+                    row.iter()
+                        .map(|value| {
+                            if value.red == old_color.red
+                                && value.green == old_color.green
+                                && value.blue == old_color.blue
+                            {
+                                *new_color
+                            } else {
+                                *value
+                            }
+                        })
+                        .collect()
+                })
+                .collect(),
+        }
     }
 }
 // Common drawing things

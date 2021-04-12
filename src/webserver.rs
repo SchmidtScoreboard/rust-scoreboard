@@ -13,6 +13,10 @@ use std::sync::Mutex;
 use std::sync::{mpsc, Arc};
 
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
+struct GameAction{
+}
+
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 struct PowerRequest {
     screen_on: bool,
 }
@@ -89,6 +93,23 @@ fn configure(
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::UpdateSettingsResponse(settings) => Ok(Content(content, Json(settings))),
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
+}
+#[post("/gameAction", format = "json", data = "<game_action>")]
+fn game_action(
+    game_action: Json<GameAction>,
+    state: State<Mutex<ServerState>>,
+) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
+    let state = state.lock().unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::GameAction())
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::GameActionResponse(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -321,7 +342,7 @@ pub fn run_webserver(
             "/",
             routes![
                 index, configure, set_power, auto_power, set_sport, wifi, logs, show_sync, reboot,
-                reset, sync, connect, version
+                reset, sync, connect, version, game_action
             ],
         )
         .launch();

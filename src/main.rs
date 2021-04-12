@@ -211,6 +211,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     map.insert(ScreenId::Setup, Box::new(setup_screen));
 
+    // Flappy Bird Game Screen 
+    let flappy= flappy::Flappy::new(
+        scheduler_sender.clone(),
+        settings.get_settings(),
+        matrix::FontBook::new(&root_path),
+        matrix::PixelBook::new(&root_path),
+    );
+    map.insert(ScreenId::Flappy, Box::new(flappy));
     // Animation Test
     let animation = AnimationTestScreen::new(scheduler_sender.clone());
     map.insert(ScreenId::Animation, Box::new(animation));

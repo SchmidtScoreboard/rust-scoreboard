@@ -1,11 +1,10 @@
 // Draw a sport
-use crate::aws_screen::AWSScreenType;
 use crate::baseball::BaseballGame;
 use crate::basketball::{BasketballGame, CollegeBasketballGame};
 use crate::common;
 use crate::football::{CollegeFootballGame, FootballGame};
-use crate::hockey::HockeyGame;
 use crate::golf::Golf;
+use crate::hockey::HockeyGame;
 
 use crate::animation;
 use crate::game;
@@ -34,9 +33,7 @@ enum SportData {
     Golf(Golf),
 }
 
-
 impl SportData {
-
     fn get_inner(self: &Self) -> &(dyn game::Sport) {
         match self {
             SportData::Hockey(hockey) => hockey,
@@ -301,7 +298,7 @@ impl AWSScreen {
         api_key: String,
         data_sender: mpsc::Sender<Result<AWSData, String>>,
     ) {
-        let mut wait_time = DORMANT_REFRESH_TIME; 
+        let mut wait_time = DORMANT_REFRESH_TIME;
         let mut skip_flag = false;
         loop {
             if !skip_flag {
@@ -446,12 +443,15 @@ impl matrix::ScreenProvider for AWSScreen {
             ReceivedData::Valid(data) => {
                 data.games
                     .iter()
-                    .filter(|game| self.current_leagues.contains(&game.get_inner().get_screen_id()))
+                    .filter(|game| {
+                        self.current_leagues
+                            .contains(&game.get_inner().get_screen_id())
+                    })
                     .count()
                     > data.filtered_games.len()
             }
             ReceivedData::Error => true,
-            _ => false
+            _ => false,
         }
     }
 }

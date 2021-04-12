@@ -12,14 +12,14 @@ use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 pub struct Player {
     display_name: String,
     position: u32,
-    score: String
+    score: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Golf {
     pub common: game::CommonGameData,
     pub name: String,
-    pub players: Vec<Player>
+    pub players: Vec<Player>,
 }
 
 impl Ord for Golf {
@@ -43,24 +43,40 @@ impl PartialEq for Golf {
 impl Eq for Golf {}
 
 fn draw_player(
-    player: &Player, 
-    y_offset: &mut i32, 
-    score_width: i32,
-    canvas: &mut rpi_led_matrix::LedCanvas, 
+    player: &Player,
+    y_offset: &mut i32,
+    canvas: &mut rpi_led_matrix::LedCanvas,
     font: &matrix::Font,
     name_color: &rpi_led_matrix::LedColor,
-    score_color: &rpi_led_matrix::LedColor) {
-        let baseline = *y_offset + font.dimensions.height;
-        let score_width = font.get_text_dimensions(&player.score).width;
+    score_color: &rpi_led_matrix::LedColor,
+) {
+    let baseline = *y_offset + font.dimensions.height;
+    let score_width = font.get_text_dimensions(&player.score).width;
 
-        canvas.draw_text(&font.led_font, &player.score, 64 - score_width, baseline, score_color, 0, false);
-        canvas.draw_text(&font.led_font, &player.display_name.to_ascii_uppercase(), 1, baseline, name_color, 0, false);
+    canvas.draw_text(
+        &font.led_font,
+        &player.score,
+        64 - score_width,
+        baseline,
+        score_color,
+        0,
+        false,
+    );
+    canvas.draw_text(
+        &font.led_font,
+        &player.display_name.to_ascii_uppercase(),
+        1,
+        baseline,
+        name_color,
+        0,
+        false,
+    );
 
-        *y_offset = *y_offset + font.dimensions.height + 1;
+    *y_offset = *y_offset + font.dimensions.height + 1;
 }
 impl game::Sport for Golf {
     fn get_common(self: &Self) -> &game::CommonGameData {
-         &self.common
+        &self.common
     }
 
     fn involves_team(self: &Self, target_team: u32) -> bool {
@@ -81,7 +97,6 @@ impl aws_screen::AWSScreenType for Golf {
         let white = common::new_color(255, 255, 255);
 
         let num_players = 4;
-        let score_width = self.players.iter().take(num_players).map(|player| font.get_text_dimensions(&player.score).width).max().unwrap() + 2;
 
         canvas.draw_text(
             &font.led_font,
@@ -90,12 +105,12 @@ impl aws_screen::AWSScreenType for Golf {
             font.dimensions.height + 1,
             &green,
             0,
-            false);
+            false,
+        );
 
         let mut player_offset = font.dimensions.height + 3;
-        self.players.iter().take(num_players).enumerate().for_each(|(i, player)| {
-            draw_player(player, &mut player_offset, score_width, canvas, font, &white, &green);
+        self.players.iter().take(num_players).for_each(|player| {
+            draw_player(player, &mut player_offset, canvas, font, &white, &green);
         });
-        
     }
 }

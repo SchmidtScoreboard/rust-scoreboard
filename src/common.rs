@@ -98,6 +98,7 @@ pub enum MatrixCommand {
     }, // User sent wifi details
     FinishedWifiConnection(io::Result<()>), // True if successful, false otherwise
     FinishedReset(io::Result<()>),
+    GameAction(),
     SyncCommand {
         from_webserver: bool,
         show_sync: Option<bool>,
@@ -115,6 +116,7 @@ pub enum WebserverResponse {
     GotHotspotConnectionResponse(Option<Arc<ScoreboardSettingsData>>),
     GotWifiDetailsResponse(Option<Arc<ScoreboardSettingsData>>),
     SyncCommandResponse(Option<Arc<ScoreboardSettingsData>>),
+    GameActionResponse(Arc<ScoreboardSettingsData>),
 }
 
 pub enum ShellCommand {
