@@ -5,7 +5,7 @@ use crate::scheduler;
 
 use rand;
 use rand::distributions::Distribution;
-use rand_distr::Normal;
+use rand_distr::Uniform;
 use rpi_led_matrix;
 use std::any::Any;
 use std::collections::VecDeque;
@@ -24,7 +24,7 @@ const MOMENTUM_ADD: f64 = -10.0;
 
 struct Stats {
     rng: rand::rngs::ThreadRng,
-    distribution: Normal<f64>,
+    distribution: Uniform<f64>,
 }
 
 #[derive(Debug)]
@@ -34,10 +34,10 @@ enum BarrierKind {
 }
 
 impl Stats {
-    fn new(mean: f64, stddev: f64) -> Stats {
+    fn new(low: f64, high: f64) -> Stats {
         Stats {
             rng: rand::thread_rng(),
-            distribution: Normal::new(mean, stddev).unwrap(),
+            distribution: Uniform::new(low, high),
         }
     }
 
@@ -87,9 +87,9 @@ struct Barriers {
 
 impl Barriers {
     fn new() -> Barriers {
-        let mut kind_stats = Stats::new(50.0, 50.0);
-        let mut distance_stats = Stats::new(25.0, 5.0);
-        let mut height_stats = Stats::new(10.0, 6.0);
+        let mut kind_stats = Stats::new(0.0, 100.0);
+        let mut distance_stats = Stats::new(5.0, 15.0);
+        let mut height_stats = Stats::new(10.0, 15.0);
         let barriers = (1..10)
             .map(|_| Barrier::generate(&mut kind_stats, &mut distance_stats, &mut height_stats));
         Barriers {
@@ -142,7 +142,7 @@ impl Flappy {
         fonts: matrix::FontBook,
         assets: matrix::PixelBook,
     ) -> Flappy {
-        let player = (&assets.empty_squar).replace_color(
+        let player = (&assets.empty_square).replace_color(
             &common::new_color(255, 255, 255),
             &common::new_color(8, 146, 208),
         );
@@ -315,34 +315,38 @@ impl matrix::ScreenProvider for Flappy {
         self.send_draw_command(None);
     }
 
+    fn deactivate(self: &mut Self) {
+        info!("Deactiving Flappy");
+        self.state = FlappyState::Ready();
+    }
+
     fn update_settings(self: &mut Self, settings: Arc<ScoreboardSettingsData>) {
         self.settings = settings;
     }
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+        let white = common::new_color(255, 255, 255);
+        let blue = common::new_color(8, 146, 208);
         match self.state {
             FlappyState::Ready() => {
                 let big_font = &self.fonts.font7x13;
                 let text = "FLAPPY";
                 let dimensions = big_font.get_text_dimensions(&text);
-                let white = common::new_color(255, 255, 255);
                 canvas.draw_text(
                     &big_font.led_font,
                     &text,
                     SCREEN_WIDTH / 2 - (dimensions.width / 2),
-                    SCREEN_HEIGHT / 2 + (dimensions.height / 2),
-                    &white,
+                    dimensions.height + 7,
+                    &blue,
                     0,
                     false,
                 );
-                self.draw_play_message(canvas, SCREEN_HEIGHT - 4);
+                self.draw_play_message(canvas, SCREEN_HEIGHT - 3);
             }
             FlappyState::Playing() => {
                 if !self.update_frame() {
                     self.state = FlappyState::GameOver();
                 } else {
-                    let white = common::new_color(255, 255, 255);
-                    let blue = common::new_color(8, 146, 208);
                     // Draw player
                     let player = &self.player;
                     let (player_x, player_y) = self.player_position;
@@ -386,7 +390,6 @@ impl matrix::ScreenProvider for Flappy {
                 let big_font = &self.fonts.font7x13;
                 let text = "GAME OVER";
                 let dimensions = big_font.get_text_dimensions(&text);
-                let white = common::new_color(255, 255, 255);
                 canvas.draw_text(
                     &big_font.led_font,
                     &text,
@@ -398,14 +401,28 @@ impl matrix::ScreenProvider for Flappy {
                 );
 
                 let font = &self.fonts.font5x8;
-                let text = format!("Score: {}", self.score as u32);
-                let dimensions = font.get_text_dimensions(&text);
+                let score_text = "Score: ";
+                let number_text = format!("{}", self.score as u32);
+                let score_dimensions = font.get_text_dimensions(&score_text);
+                let number_dimensions = font.get_text_dimensions(&number_text);
+                let baseline = SCREEN_HEIGHT / 2 + score_dimensions.height / 2;
+                let start =
+                    SCREEN_WIDTH / 2 - (score_dimensions.width + number_dimensions.width) / 2;
                 canvas.draw_text(
                     &font.led_font,
-                    &text,
-                    SCREEN_WIDTH / 2 - (dimensions.width / 2),
-                    SCREEN_HEIGHT / 2 + (dimensions.height / 2),
+                    &score_text,
+                    start,
+                    baseline,
                     &white,
+                    0,
+                    false,
+                );
+                canvas.draw_text(
+                    &font.led_font,
+                    &number_text,
+                    start + score_dimensions.width,
+                    baseline,
+                    &blue,
                     0,
                     false,
                 );

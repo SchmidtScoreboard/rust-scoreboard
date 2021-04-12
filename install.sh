@@ -55,7 +55,7 @@ function ctrl_c() {
         ssh pi@$pi_ip 'sudo pkill scoreboard'
 }
 
-ssh pi@$pi_ip 'sudo systemctl stop scoreboard.service; sudo pkill scoreboard-rust'
+ssh pi@$pi_ip 'sudo systemctl stop scoreboard.service; sudo pkill scoreboard'
 if [[ $release -eq 0 ]] ; then
     echo "Sending release build"
     rsync -avzhe ssh target/$TARGET/release/scoreboard pi@$pi_ip:/var/lib/scoreboard/

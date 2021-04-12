@@ -254,8 +254,8 @@ impl AWSScreen {
         canvas.draw_text(
             &font.led_font,
             "No events today",
-            1,
-            1 + font.dimensions.height,
+            2,
+            2 + font.dimensions.height,
             &white,
             0,
             false,
