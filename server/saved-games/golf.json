@@ -1,0 +1,44 @@
+{
+   "games":[
+      {
+         "type": "Golf",
+         "common":{
+            "sport_id": 6,
+            "home_team":{
+               "id":"0",
+               "location":"",
+               "name":"",
+               "display_name":"",
+               "abbreviation":"",
+               "primary_color":"000000",
+               "secondary_color":"000000"
+            },
+            "away_team":{
+               "id":"0",
+               "location":"",
+               "name":"",
+               "display_name":"",
+               "abbreviation":"",
+               "primary_color":"000000",
+               "secondary_color":"000000"
+            },
+            "home_score":0,
+            "away_score":0,
+            "status":"ACTIVE",
+            "ordinal":"",
+            "start_time":"2021-02-21T18:00Z",
+            "id":401263373
+         },
+         "name": "THE MASTERS",
+         "players": [
+            {
+            "display_name": "Schmidt",
+            "score": "+15",
+            "position": 0
+            }
+
+         ]
+
+      }
+   ]
+}

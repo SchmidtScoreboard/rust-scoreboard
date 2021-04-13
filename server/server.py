@@ -6,6 +6,7 @@ from baseball import Baseball
 from college_football import CollegeFootball
 from football import Football
 from all_sports import All
+from golf import Golf
 import asyncio
 import argparse
 
@@ -60,6 +61,9 @@ def hockey():
 @app.route("/mlb")
 def baseball():
     return {"data": {"games": loop.run_until_complete(Baseball.get_games(testing))}}
+@app.route("/golf")
+def golf():
+    return {"data": {"games": loop.run_until_complete(Golf.get_games(testing))}}
 
 
 if __name__ == "__main__":

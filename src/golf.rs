@@ -109,19 +109,31 @@ impl aws_screen::AWSScreenType for Golf {
             game::GameStatus::PREGAME => {
                 // Draw the start time here
                 let big_font = &font_book.font5x8;
-                let text = format!("Starts {}", self.common.start_time.with_timezone(timezone).format("%-I:%M %p"));
+                let text = format!(
+                    "{}",
+                    self.common
+                        .start_time
+                        .with_timezone(timezone)
+                        .format("%-I:%M %p")
+                );
                 let dimensions = big_font.get_text_dimensions(&text);
-                canvas.draw_text(&big_font.led_font, &text, 32 - dimensions.width / 2, 16 + dimensions.height / 2, &white, 0, false);
-            },
+                canvas.draw_text(
+                    &big_font.led_font,
+                    &text,
+                    32 - dimensions.width / 2,
+                    16 + dimensions.height / 2,
+                    &white,
+                    0,
+                    false,
+                );
+            }
             game::GameStatus::INTERMISSION | game::GameStatus::END | game::GameStatus::ACTIVE => {
                 let num_players = 4;
                 let mut player_offset = font.dimensions.height + 3;
                 self.players.iter().take(num_players).for_each(|player| {
                     draw_player(player, &mut player_offset, canvas, font, &white, &green);
                 });
-
             }
-
         }
     }
 }

@@ -3,13 +3,13 @@ use std::thread;
 use std::time::Duration;
 
 pub struct Updater {
-    update_available: bool,
+    _update_available: bool,
 }
 
 impl Updater {
     pub fn new() -> Updater {
         Updater {
-            update_available: false,
+            _update_available: false,
         }
     }
 
@@ -42,7 +42,7 @@ impl Updater {
             start_version
         );
         if start_version != status.version() {
-            self.update_available = true;
+            self._update_available = true;
         }
         Ok(())
     }

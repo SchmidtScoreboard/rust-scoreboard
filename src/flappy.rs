@@ -122,7 +122,7 @@ enum FlappyState {
 
 pub struct Flappy {
     sender: mpsc::Sender<scheduler::DelayedCommand>,
-    settings: Arc<common::ScoreboardSettingsData>,
+    _settings: Arc<common::ScoreboardSettingsData>,
     fonts: matrix::FontBook,
     assets: matrix::PixelBook,
     player_position: (f64, f64),
@@ -138,7 +138,7 @@ pub struct Flappy {
 impl Flappy {
     pub fn new(
         sender: mpsc::Sender<scheduler::DelayedCommand>,
-        settings: Arc<common::ScoreboardSettingsData>,
+        _settings: Arc<common::ScoreboardSettingsData>,
         fonts: matrix::FontBook,
         assets: matrix::PixelBook,
     ) -> Flappy {
@@ -148,7 +148,7 @@ impl Flappy {
         );
         Flappy {
             sender,
-            settings,
+            _settings,
             fonts,
             assets,
             player_position: PLAYER_START_POSITION,
@@ -321,7 +321,7 @@ impl matrix::ScreenProvider for Flappy {
     }
 
     fn update_settings(self: &mut Self, settings: Arc<ScoreboardSettingsData>) {
-        self.settings = settings;
+        self._settings = settings;
     }
 
     fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
