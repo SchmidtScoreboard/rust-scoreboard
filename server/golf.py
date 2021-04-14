@@ -9,12 +9,17 @@ import pytz
 
 class Golf:
     def create_player(player):
+        stats = player["statistics"]
+        if len(stats) == 0:
+            score = "E"
+        else:
+            score = stats[0]["displayValue"]
         return {
             "display_name": player["athlete"]["displayName"].split()[
                 -1
             ],  # Get last name
             "position": int(player["status"]["position"]["id"]),
-            "score": player["statistics"][0]["displayValue"],  # +7, -8 etc
+            "score": score,
         }
 
     def is_better_score(a, b):
@@ -36,8 +41,8 @@ class Golf:
             for player in players
             if int(player["status"]["position"]["id"]) < 5
         ]
-
         top_5.sort(key=lambda player: player["position"])
+        top_5 = top_5[:5]
 
         name = game["shortName"].upper()
         words = name.split()
