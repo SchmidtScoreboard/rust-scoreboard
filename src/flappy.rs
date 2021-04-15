@@ -13,24 +13,19 @@ use std::iter::FromIterator;
 use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
 
-const GRAVITY: f64 = 15.0;
+const GRAVITY: f64 = 70.0;
 const PLAYER_START_POSITION: (f64, f64) = (8.0, 16.0);
 const FIRST_BARRIER_START: f64 = 32.0;
 const SCREEN_SPEED: f64 = 16.0; // pixels/second
 const SCREEN_WIDTH: i32 = 64;
 const SCREEN_HEIGHT: i32 = 32;
 const BARRIER_WIDTH: i32 = 3;
-const MOMENTUM_ADD: f64 = -10.0;
+const MOMENTUM_ADD: f64 = -15.0;
+const BARRIER_OPENING: i32 = 5;
 
 struct Stats {
     rng: rand::rngs::ThreadRng,
     distribution: Uniform<f64>,
-}
-
-#[derive(Debug)]
-enum BarrierKind {
-    TOP,
-    BOTTOM,
 }
 
 impl Stats {
@@ -48,31 +43,17 @@ impl Stats {
     fn sample_int(self: &mut Self) -> u8 {
         self.sample_float() as u8
     }
-
-    fn sample_barrier_kind(self: &mut Self) -> BarrierKind {
-        match self.sample_int() % 2 {
-            1 => BarrierKind::TOP,
-            0 => BarrierKind::BOTTOM,
-            _ => panic!("Congrats, you broke math."),
-        }
-    }
 }
 
 #[derive(Debug)]
 struct Barrier {
-    kind: BarrierKind,
     next_distance: u8,
     height: u8,
 }
 
 impl Barrier {
-    fn generate(
-        kind_stats: &mut Stats,
-        distance_stats: &mut Stats,
-        height_stats: &mut Stats,
-    ) -> Barrier {
+    fn generate(distance_stats: &mut Stats, height_stats: &mut Stats) -> Barrier {
         Barrier {
-            kind: kind_stats.sample_barrier_kind(),
             next_distance: distance_stats.sample_int(),
             height: height_stats.sample_int(),
         }
@@ -80,21 +61,17 @@ impl Barrier {
 }
 struct Barriers {
     barriers: VecDeque<Barrier>,
-    kind_stats: Stats,
     distance_stats: Stats,
     height_stats: Stats,
 }
 
 impl Barriers {
     fn new() -> Barriers {
-        let mut kind_stats = Stats::new(0.0, 100.0);
-        let mut distance_stats = Stats::new(5.0, 15.0);
-        let mut height_stats = Stats::new(10.0, 15.0);
-        let barriers = (1..10)
-            .map(|_| Barrier::generate(&mut kind_stats, &mut distance_stats, &mut height_stats));
+        let mut distance_stats = Stats::new(10.0, 25.0);
+        let mut height_stats = Stats::new(5.0, 27.0);
+        let barriers = (1..10).map(|_| Barrier::generate(&mut distance_stats, &mut height_stats));
         Barriers {
             barriers: VecDeque::from_iter(barriers),
-            kind_stats,
             distance_stats,
             height_stats,
         }
@@ -107,7 +84,6 @@ impl Barriers {
     fn pop_first_barrier(self: &mut Self) {
         self.barriers.pop_front().unwrap();
         self.barriers.push_back(Barrier::generate(
-            &mut self.kind_stats,
             &mut self.distance_stats,
             &mut self.height_stats,
         ));
@@ -244,22 +220,29 @@ impl Flappy {
             // Check if touching a barrier
             for barrier in &self.barriers.barriers {
                 // casting nightmare incoming
-                let barrier_box = match barrier.kind {
-                    BarrierKind::TOP => (
-                        (barrier_pos, 0.0),
-                        (barrier_pos + BARRIER_WIDTH as f64, barrier.height as f64),
+                let barrier_box = (
+                    (barrier_pos, 0.0),
+                    (
+                        barrier_pos + BARRIER_WIDTH as f64,
+                        barrier.height as f64 - BARRIER_OPENING as f64,
                     ),
-                    BarrierKind::BOTTOM => (
-                        (
-                            barrier_pos,
-                            (SCREEN_HEIGHT - (barrier.height as i32)) as f64,
-                        ),
-                        (barrier_pos + BARRIER_WIDTH as f64, SCREEN_HEIGHT as f64),
-                    ),
-                };
+                );
 
                 if check_rectangle_intersection(&player_bounding_box, &barrier_box) {
-                    info!("INTERSECTION");
+                    info!("INTERSECTION TOP");
+                    return false;
+                }
+
+                let barrier_box = (
+                    (
+                        barrier_pos,
+                        (barrier.height as i32 + BARRIER_OPENING) as f64,
+                    ),
+                    (barrier_pos + BARRIER_WIDTH as f64, SCREEN_HEIGHT as f64),
+                );
+
+                if check_rectangle_intersection(&player_bounding_box, &barrier_box) {
+                    info!("INTERSECTION BOTTOM");
                     return false;
                 }
                 barrier_pos = barrier_pos + barrier.next_distance as f64;
@@ -355,20 +338,21 @@ impl matrix::ScreenProvider for Flappy {
                     // Draw the barriers
                     let mut barrier_x = self.first_barrier_distance as i32;
                     self.barriers.barriers.iter().for_each(|barrier| {
-                        match barrier.kind {
-                            BarrierKind::TOP => matrix::draw_rectangle(
-                                canvas,
-                                (barrier_x, 0),
-                                (barrier_x + BARRIER_WIDTH, barrier.height as i32),
-                                &white,
+                        matrix::draw_rectangle(
+                            canvas,
+                            (barrier_x, 0),
+                            (
+                                barrier_x + BARRIER_WIDTH,
+                                barrier.height as i32 - BARRIER_OPENING,
                             ),
-                            BarrierKind::BOTTOM => matrix::draw_rectangle(
-                                canvas,
-                                (barrier_x, SCREEN_HEIGHT - (barrier.height as i32)),
-                                (barrier_x + BARRIER_WIDTH, SCREEN_HEIGHT),
-                                &white,
-                            ),
-                        }
+                            &white,
+                        );
+                        matrix::draw_rectangle(
+                            canvas,
+                            (barrier_x, barrier.height as i32 + BARRIER_OPENING),
+                            (barrier_x + BARRIER_WIDTH, SCREEN_HEIGHT),
+                            &white,
+                        );
                         barrier_x = barrier_x + (barrier.next_distance as i32);
                     });
                     // Draw the score

@@ -39,7 +39,7 @@ class Golf:
         top_5 = [
             Golf.create_player(player)
             for player in players
-            if int(player["status"]["position"]["id"]) < 5
+            if 0 < int(player["status"]["position"]["id"]) < 5 
         ]
         top_5.sort(key=lambda player: player["position"])
         top_5 = top_5[:5]
