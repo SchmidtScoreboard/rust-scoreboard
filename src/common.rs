@@ -294,6 +294,10 @@ pub struct ScoreboardSettingsData {
     pub startup_power: Option<bool>,
     #[serde(default = "default_startup_setting")]
     pub startup_auto_power: Option<bool>
+
+    
+
+
 }
 
 impl ScoreboardSettingsData {

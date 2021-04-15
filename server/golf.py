@@ -10,14 +10,18 @@ import pytz
 class Golf:
     def create_player(player):
         stats = player["statistics"]
+        full_name = player["athlete"]["displayName"].upper().split()
+        last_name = full_name[-1]
+        full_name = full_name[:-1]
+        while last_name in ["JR.", "JR", "SR", "SR.", "II", "III", "IV", "V", "VI"]:
+            last_name = full_name[-1]
+            full_name = full_name[:-1]
         if len(stats) == 0:
             score = "E"
         else:
             score = stats[0]["displayValue"]
         return {
-            "display_name": player["athlete"]["displayName"].split()[
-                -1
-            ],  # Get last name
+            "display_name": last_name,
             "position": int(player["status"]["position"]["id"]),
             "score": score,
         }
