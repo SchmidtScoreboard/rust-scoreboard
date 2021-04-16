@@ -90,6 +90,11 @@ class Golf:
         delta = abs(now - time)
         if delta > datetime.timedelta(hours=24):
             return None
+            
+        if status == "ACTIVE":
+            if time > now: # if tee time in the future, this happens after Day X of play ends
+                status = "END"
+                
 
         if status is not None:
             return Common.create_common(
