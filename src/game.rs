@@ -1,6 +1,6 @@
+use crate::aws_screen;
 use crate::common;
 use crate::matrix;
-use crate::aws_screen;
 
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use chrono_tz::Tz;
@@ -111,7 +111,7 @@ impl CommonGameData {
     pub fn should_focus(self: &Self) -> bool {
         let now = Utc::now();
         let diff = now - self.start_time; // Get the duration between now and the start of the game. Positive == game started, Negative game to start
-        (self.status == GameStatus::END && diff < Duration::hours(4))
+        (self.status == GameStatus::END && diff > Duration::seconds(0) && diff < Duration::hours(4))
             || (self.status == GameStatus::PREGAME && diff > -Duration::minutes(30))
             || self.is_active_game()
     }
@@ -203,10 +203,10 @@ pub fn draw_scoreboard(
     );
 }
 
-pub trait Sport : aws_screen::AWSScreenType {
+pub trait Sport: aws_screen::AWSScreenType {
     fn get_common(self: &Self) -> &CommonGameData;
 
-    fn involves_team(self: &Self, target_team: u32 ) -> bool {
+    fn involves_team(self: &Self, target_team: u32) -> bool {
         let common = self.get_common();
         common.involves_team(target_team)
     }
@@ -218,9 +218,8 @@ pub trait Sport : aws_screen::AWSScreenType {
 
     fn get_screen_id(self: &Self) -> common::ScreenId {
         let common = self.get_common();
-        common.sport_id 
+        common.sport_id
     }
-
 }
 #[cfg(test)]
 mod tests {

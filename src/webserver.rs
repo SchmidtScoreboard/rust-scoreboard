@@ -13,8 +13,7 @@ use std::sync::Mutex;
 use std::sync::{mpsc, Arc};
 
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
-struct GameAction{
-}
+struct GameAction {}
 
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 struct PowerRequest {
@@ -103,10 +102,7 @@ fn game_action(
 ) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
-    (*state)
-        .sender
-        .send(MatrixCommand::GameAction())
-        .unwrap();
+    (*state).sender.send(MatrixCommand::GameAction()).unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::GameActionResponse(settings) => Ok(Content(content, Json(settings))),
@@ -161,7 +157,10 @@ fn set_sport(
     let state = state.lock().unwrap();
     (*state)
         .sender
-        .send(MatrixCommand::SetActiveScreen(sport_request.sport))
+        .send(MatrixCommand::SetActiveScreen {
+            source: CommandSource::Webserver(),
+            id: sport_request.sport,
+        })
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
@@ -247,7 +246,12 @@ fn reboot(
 ) -> Result<Content<Json<Arc<ScoreboardSettingsData>>>, status::NotFound<String>> {
     let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
     let state = state.lock().unwrap();
-    (*state).sender.send(MatrixCommand::Reboot{is_nightly_reboot: false}).unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::Reboot {
+            is_nightly_reboot: false,
+        })
+        .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
         WebserverResponse::RebootResponse(settings) => match settings {
@@ -341,8 +345,20 @@ pub fn run_webserver(
         .mount(
             "/",
             routes![
-                index, configure, set_power, auto_power, set_sport, wifi, logs, show_sync, reboot,
-                reset, sync, connect, version, game_action
+                index,
+                configure,
+                set_power,
+                auto_power,
+                set_sport,
+                wifi,
+                logs,
+                show_sync,
+                reboot,
+                reset,
+                sync,
+                connect,
+                version,
+                game_action
             ],
         )
         .launch();

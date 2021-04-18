@@ -367,7 +367,7 @@ impl matrix::ScreenProvider for AWSScreen {
     fn update_settings(self: &mut Self, settings: Arc<common::ScoreboardSettingsData>) {
         self.settings = settings;
         self.current_leagues = match self.settings.active_screen {
-            common::ScreenId::Smart => (vec![
+            common::ScreenId::Smart | common::ScreenId::Clock => (vec![
                 common::ScreenId::Hockey,
                 common::ScreenId::Baseball,
                 common::ScreenId::CollegeBasketball,

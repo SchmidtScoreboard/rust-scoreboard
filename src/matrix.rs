@@ -18,6 +18,7 @@ use std::str;
 use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
 
+const PRIORITY_SCREENS: [common::ScreenId; 2] = [common::ScreenId::Smart, common::ScreenId::Clock];
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix, // The actual matrix
     receiver: mpsc::Receiver<common::MatrixCommand>, // Receive commands from the button, the webserver, and responses to shell commands
@@ -122,8 +123,8 @@ impl<'a> Matrix<'a> {
         }
     }
 
-    // Returns what the power state of the system should be after priority check
-    fn check_priority(self: &mut Self) -> bool {
+    // Returns what the power state and target screen of the system should be after priority check
+    fn check_priority(self: &mut Self) -> Option<common::ScreenId> {
         if self
             .last_priority_check
             .map(|last_priority_check| {
@@ -132,11 +133,27 @@ impl<'a> Matrix<'a> {
             .unwrap_or(true)
         {
             info!("Checking priority");
-            self.update_settings_on_active_screen(); // This is a bit of hack to force the sport screen to re-prioritize games
             self.last_priority_check = Some(Instant::now());
-            self.get_mut_active_screen().has_priority()
+            let priority_screen = PRIORITY_SCREENS.iter().find(|id| {
+                let settings = self.settings.get_settings();
+                let screen = self.get_mut_screen(id);
+                screen.update_settings(settings);
+                let priority = screen.has_priority();
+                info!("Priority of {:?}: {}", id, priority);
+                priority
+            });
+            if let Some(priority_screen) = priority_screen {
+                info!("Found priority screen {:?}", priority_screen);
+                Some(*priority_screen)
+            } else {
+                None
+            }
         } else {
-            *self.settings.get_power()
+            if *self.settings.get_power() {
+                Some(*self.settings.get_active_screen())
+            } else {
+                None
+            }
         }
     }
 
@@ -190,15 +207,17 @@ impl<'a> Matrix<'a> {
             // let command = command.unwrap(); // Get the actual command
             if let Ok(command) = command {
                 match command {
-                    common::MatrixCommand::SetActiveScreen(id) => {
+                    common::MatrixCommand::SetActiveScreen { source, id } => {
                         self.deactivate_screen();
                         self.settings.set_active_screen(&id);
                         self.settings.set_power(&true);
-                        self.settings.set_auto_power(&false);
                         self.activate_screen();
-                        self.send_response(common::WebserverResponse::SetActiveScreenResponse(
-                            self.settings.get_settings(),
-                        ));
+                        if source == common::CommandSource::Webserver() {
+                            self.settings.set_auto_power(&false);
+                            self.send_response(common::WebserverResponse::SetActiveScreenResponse(
+                                self.settings.get_settings(),
+                            ));
+                        }
                     }
                     common::MatrixCommand::SetPower { source, power } => {
                         let on = match power {
@@ -227,17 +246,23 @@ impl<'a> Matrix<'a> {
                     }
                     common::MatrixCommand::AutoPower(auto_power) => {
                         self.settings.set_auto_power(&auto_power);
-                        let on = {
+                        self.last_priority_check = None;
+                        let target_screen = {
                             if auto_power {
                                 self.check_priority()
                             } else {
-                                *self.settings.get_power()
+                                if *self.settings.get_power() {
+                                    Some(*self.settings.get_active_screen())
+                                } else {
+                                    None
+                                }
                             }
                         };
                         self.last_priority_check = None;
 
                         let mut settings = self.settings.get_settings().as_ref().clone();
-                        settings.screen_on = on;
+                        settings.screen_on = target_screen.is_some();
+                        settings.active_screen = target_screen.unwrap_or(*self.settings.get_active_screen());
                         self.send_response(common::WebserverResponse::SetAutoPowerResponse(
                             Arc::from(settings),
                         ));
@@ -278,6 +303,7 @@ impl<'a> Matrix<'a> {
                         self.send_response(common::WebserverResponse::UpdateSettingsResponse(
                             self.settings.get_settings(),
                         ));
+                        self.last_priority_check = None;
                         if original_brightness != new_brightness {
                             // Restart the scoreboard
                             self.settings.set_startup_settings(
@@ -424,9 +450,9 @@ impl<'a> Matrix<'a> {
                                 self.settings.set_setup_state(&common::SetupState::Sync);
                                 self.settings.set_active_screen(&common::ScreenId::Setup);
                             } else {
-                                debug!("Showing hockey screen");
+                                debug!("Showing smart screen");
                                 self.settings.set_setup_state(&common::SetupState::Ready);
-                                self.settings.set_active_screen(&common::ScreenId::Hockey);
+                                self.settings.set_active_screen(&common::ScreenId::Smart);
                             }
                             self.update_settings_on_active_screen();
                             self.activate_screen();
@@ -447,12 +473,27 @@ impl<'a> Matrix<'a> {
             };
 
             if *self.settings.get_auto_power() {
-                let on = self.check_priority();
-                if on != *self.settings.get_power() {
-                    let command = common::MatrixCommand::SetPower {
-                        source: common::CommandSource::Task(),
-                        power: Some(on),
+                let target_screen = self.check_priority();
+                let new_power = target_screen.is_some();
+                let current_power = *self.settings.get_power();
+                let current_screen = *self.settings.get_active_screen();
+
+                if new_power != current_power || current_screen != target_screen.unwrap_or(current_screen) {
+                    let command = match target_screen {
+                        Some(target_screen) => {
+                            common::MatrixCommand::SetActiveScreen {
+                                source: common::CommandSource::Task(),
+                                id: target_screen,
+                            }
+                        },
+                        None => {
+                            common::MatrixCommand::SetPower {
+                                source: common::CommandSource::Task(),
+                                power: Some(false),
+                            }
+                        }
                     };
+                    info!("Doing shit, command: {:?}", command);
                     // Send the power on/off command
                     self.scheduler_sender
                         .send(scheduler::DelayedCommand::new(
@@ -460,6 +501,7 @@ impl<'a> Matrix<'a> {
                             None,
                         ))
                         .unwrap();
+
                 }
             }
         }
@@ -608,7 +650,8 @@ impl PixelBook {
             green_check: Pixels::from_file(root_path, "check.png")
                 .expect("Could not load green check"),
             red_x: Pixels::from_file(root_path, "red-x.png").expect("Could not load red X"),
-            play_button: Pixels::from_file(root_path, "play_button.png").expect("Could not load play button"),
+            play_button: Pixels::from_file(root_path, "play_button.png")
+                .expect("Could not load play button"),
         }
     }
 }

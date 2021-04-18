@@ -1,9 +1,9 @@
 use crate::common::{ScoreboardSettingsData, ScreenId, SetupState};
+use chrono_tz::Tz;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use chrono_tz::Tz;
 
 #[derive(PartialEq, Debug)]
 pub struct ScoreboardSettings {
@@ -49,10 +49,10 @@ impl ScoreboardSettings {
     pub fn get_rotation_time(self: &Self) -> Duration {
         self.data.rotation_time
     }
-    pub fn get_startup_power(self: &Self) -> &Option<bool>{
+    pub fn get_startup_power(self: &Self) -> &Option<bool> {
         &self.data.startup_power
     }
-    pub fn get_startup_auto_power(self: &Self) -> &Option<bool>{
+    pub fn get_startup_auto_power(self: &Self) -> &Option<bool> {
         &self.data.startup_auto_power
     }
 
@@ -86,7 +86,11 @@ impl ScoreboardSettings {
         self.data = Arc::from(copy);
         self.write_settings();
     }
-    pub fn set_startup_settings(self: &mut Self, startup_power: Option<bool>, startup_auto_power: Option<bool>) {
+    pub fn set_startup_settings(
+        self: &mut Self,
+        startup_power: Option<bool>,
+        startup_auto_power: Option<bool>,
+    ) {
         let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
         copy.startup_power = startup_power;
         copy.startup_auto_power = startup_auto_power;
@@ -108,7 +112,7 @@ impl ScoreboardSettings {
         self.write_settings();
     }
 
-    pub fn get_timezone(self: &Self) -> &Tz{
+    pub fn get_timezone(self: &Self) -> &Tz {
         &self.data.timezone
     }
 }

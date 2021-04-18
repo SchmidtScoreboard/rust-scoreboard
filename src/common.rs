@@ -41,7 +41,7 @@ impl ScreenId {
             | ScreenId::CollegeBasketball
             | ScreenId::CollegeFootball
             | ScreenId::Football
-            | ScreenId::Golf  => &ScreenId::Smart,
+            | ScreenId::Golf => &ScreenId::Smart,
             _ => self,
         }
     }
@@ -57,24 +57,25 @@ impl ScreenId {
             ScreenId::CollegeFootball | ScreenId::Football => {
                 texts.extend(vec!["First down!", "Blue, 42..."])
             }
-            ScreenId::Golf => {
-                texts.extend(vec!["Fore!"])
-            }
+            ScreenId::Golf => texts.extend(vec!["Fore!"]),
             _ => {}
         };
         texts
     }
 }
 
-#[derive(Hash, Eq, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Debug)]
 pub enum CommandSource {
     Webserver(),
     Button(),
     Task(),
 }
-
+#[derive(Debug)]
 pub enum MatrixCommand {
-    SetActiveScreen(ScreenId),
+    SetActiveScreen {
+        source: CommandSource,
+        id: ScreenId,
+    },
     SetPower {
         source: CommandSource,
         power: Option<bool>,
@@ -85,8 +86,8 @@ pub enum MatrixCommand {
 
     // Setup Commands
     GetSettings(), // Fetch the settings
-    Reboot{
-        is_nightly_reboot: bool
+    Reboot {
+        is_nightly_reboot: bool,
     },
     Reset {
         from_webserver: bool,
@@ -228,6 +229,10 @@ pub fn default_startup_setting() -> Option<bool> {
     None
 }
 
+pub fn default_clock_off_auto_power() -> bool {
+    false
+}
+
 /// Serialize a `Duration` into a `u64` representing the seconds
 pub fn serialize_duration<S>(duration: &Duration, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -293,30 +298,31 @@ pub struct ScoreboardSettingsData {
     #[serde(default = "default_startup_setting")]
     pub startup_power: Option<bool>,
     #[serde(default = "default_startup_setting")]
-    pub startup_auto_power: Option<bool>
+    pub startup_auto_power: Option<bool>,
 
-    
-
-
+    #[serde(default = "default_clock_off_auto_power")]
+    pub clock_off_auto_power: bool,
 }
 
 impl ScoreboardSettingsData {
-    pub fn update_settings(self: &Self, other: ScoreboardSettingsData) -> ScoreboardSettingsData{
+    pub fn update_settings(self: &Self, other: ScoreboardSettingsData) -> ScoreboardSettingsData {
+        info!("Current: {:?}\n\nOther: {:?}", self, other);
         ScoreboardSettingsData {
             timezone: other.timezone,
-            setup_state: other.setup_state,
-            active_screen: other.active_screen,
+            setup_state: self.setup_state,
+            active_screen: self.active_screen,
             mac_address: other.mac_address,
             name: other.name,
             screens: other.screens,
-            screen_on: other.screen_on,
-            auto_power: other.auto_power,
+            screen_on: self.screen_on,
+            auto_power: self.auto_power,
             version: other.version,
             favorite_teams: other.favorite_teams,
             rotation_time: other.rotation_time,
             brightness: other.brightness,
+            clock_off_auto_power: other.clock_off_auto_power,
             startup_power: self.startup_power,
-            startup_auto_power: self.startup_auto_power
-        } 
+            startup_auto_power: self.startup_auto_power,
+        }
     }
 }

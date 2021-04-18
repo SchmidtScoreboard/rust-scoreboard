@@ -58,7 +58,7 @@ impl matrix::ScreenProvider for Clock {
             0,
             false,
         );
-        self.send_draw_command(Some(Duration::from_secs(30)));
+        self.send_draw_command(Some(Duration::from_secs(1)));
     }
 
     fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
@@ -71,5 +71,10 @@ impl matrix::ScreenProvider for Clock {
 
     fn as_any(&mut self) -> &mut dyn Any {
         self
+    }
+
+    fn has_priority(self: &mut Self) -> bool {
+        info!("Clock priority: {:?}", self.settings.clock_off_auto_power);
+        self.settings.clock_off_auto_power
     }
 }
