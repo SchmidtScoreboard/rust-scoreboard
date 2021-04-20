@@ -87,9 +87,10 @@ class Golf:
 
         time, tee_time_display = earliest_tee_time
         now = datetime.datetime.now(tz=pytz.UTC)
-        delta = abs(now - time)
-        if delta > datetime.timedelta(hours=24):
-            return None
+        if time is not None:
+            delta = abs(now - time)
+            if delta > datetime.timedelta(hours=24):
+                return None
             
         if status == "ACTIVE":
             if time > now: # if tee time in the future, this happens after Day X of play ends

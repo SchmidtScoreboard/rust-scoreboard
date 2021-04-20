@@ -1,13 +1,13 @@
 import requests
 
 import aiohttp
-
-
 class Fetcher:
     async def schedule_fetch(schedule_url: str):
+        print(f"[STATSAPI] Fetching schedule at url {schedule_url}")
         async with aiohttp.ClientSession() as session:
             async with session.get(schedule_url) as r:
                 json = await r.json()
+                print(f"[STATSAPI] Done fetching schedule at url {schedule_url}")
                 dates = json["dates"]
                 if len(dates) > 0:
                     return dates[0]["games"]
@@ -15,9 +15,12 @@ class Fetcher:
                     return []
 
     async def game_fetch(game_url: str):
+        print(f"[STATSAPI] Fetching game at url {game_url}")
         async with aiohttp.ClientSession() as session:
             async with session.get(game_url) as r:
-                return await r.json()
+                result = await r.json()
+                print(f"[STATSAPI] Done Fetching game at url {game_url}")
+                return result
 
     def get_espn_url(sport: str, selection: str, suffix: str):
         if selection is None:
@@ -26,10 +29,13 @@ class Fetcher:
             return f"http://site.api.espn.com/apis/site/v2/sports/{sport}/{selection}/{suffix}"
 
     async def espn_fetch(sport: str, selection: str, suffix: str = "scoreboard"):
+        url = Fetcher.get_espn_url(sport, selection, suffix)
+        print(f"[ESPN] Fetching for sport {sport} {selection}")
         async with aiohttp.ClientSession() as session:
-            async with session.get(Fetcher.get_espn_url(sport, selection, suffix)) as r:
+            async with session.get(url) as r:
                 json = await r.json()
                 events = json["events"]
+                print(f"[ESPN] Done fetching for {sport} {selection}")
                 return events
 
 

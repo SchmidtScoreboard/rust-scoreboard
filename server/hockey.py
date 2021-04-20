@@ -66,7 +66,6 @@ class Hockey:
             return await group
 
     async def refresh_game(game):
-        print(f"Refreshing game " + str(game["id"]))
         data = await Fetcher.game_fetch("https://statsapi.web.nhl.com/api/v1/game/" + str(game["id"]) + "/linescore")
         teams = data["teams"]
         away = teams["away"]
@@ -102,7 +101,6 @@ class Hockey:
 
         game["status"] = status
         game = Hockey.create_game(game, away_powerplay, home_powerplay, away_players, home_players)
-        print(f"Done refreshing game " + str(game["common"]["id"]))
         return game
 
 

@@ -26,6 +26,7 @@ class All:
         return flatten_list
 
     async def get_games_v2(testing: bool):
+        print("[ALL] Beginning fetching all sports")
         game_sets = await asyncio.gather(
             *[
                 Golf.get_games(testing),
@@ -37,6 +38,7 @@ class All:
                 CollegeFootball.get_games(testing),
             ]
         )
+        print("[ALL] Finished fetching all sports")
         flatten_list = [game for game_set in game_sets for game in game_set]
 
         return flatten_list
