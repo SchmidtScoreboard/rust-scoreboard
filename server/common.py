@@ -145,6 +145,8 @@ class Common:
             return None
 
     def from_schedule_json(json, team_map, screen_id):
+        if json["status"]["detailedState"] == "Postponed":
+            return None
         try:
             away_team = json["teams"]["away"]["team"]
             home_team = json["teams"]["home"]["team"]
