@@ -5,8 +5,10 @@ import asyncio
 from dateutil.parser import parse
 import datetime
 import pytz
+import re
 
 
+TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z]+)\/([a-zA-z]+)\s*([^\s])+")
 class Golf:
     def create_player(player):
         stats = player["statistics"]
@@ -38,15 +40,35 @@ class Golf:
             return None
 
         competition = game["competitions"][0]
-        players = competition["competitors"]
+        top_5 = []
+        if competition["scoringSystem"]["name"] == "Teamstroke":
+            # Thiis is the data format
+            print("[GOLF] Looking at teamstroke")
+            data = competition["rawData"]
+            position = 1
+            for line in data.splitlines():
+                match = TEAMSTROKE_REGEX.match(line)
+                if match:
+                    groups = match.groups()
+                    # print(f"LINE: {line} groups: {match.groups()}")
+                    top_5.append({
+                        "display_name": f"{groups[0][:4]}/{groups[1][:4]}",
+                        "position": position,
+                        "score": groups[2]
+                    })
+                    position += 1
+                    if position > 5:
+                        break
+        else:
+            players = competition["competitors"]
 
-        top_5 = [
-            Golf.create_player(player)
-            for player in players
-            if 0 < int(player["status"]["position"]["id"]) < 5 
-        ]
-        top_5.sort(key=lambda player: player["position"])
-        top_5 = top_5[:5]
+            top_5 = [
+                Golf.create_player(player)
+                for player in players
+                if 0 < int(player["status"]["position"]["id"]) < 5 
+            ]
+            top_5.sort(key=lambda player: player["position"])
+            top_5 = top_5[:5]
 
         name = game["shortName"].upper()
         words = name.split()
@@ -88,7 +110,7 @@ class Golf:
         time, tee_time_display = earliest_tee_time
         now = datetime.datetime.now(tz=pytz.UTC)
         if time is None:
-            return None
+            time, tee_time_display = (parse(competition["date"]).astimezone(pytz.utc), competition["date"])
 
         delta = abs(now - time)
         if delta > datetime.timedelta(hours=24):
