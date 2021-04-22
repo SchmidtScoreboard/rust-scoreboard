@@ -52,7 +52,7 @@ class Golf:
                     groups = match.groups()
                     # print(f"LINE: {line} groups: {match.groups()}")
                     top_5.append({
-                        "display_name": f"{groups[0][:6]}/{groups[1][:6]}",
+                        "display_name": f"{groups[0][:5]}/{groups[1][:5]}",
                         "position": position,
                         "score": groups[2]
                     })
