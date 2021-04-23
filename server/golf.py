@@ -114,6 +114,7 @@ class Golf:
 
         empty_team = Team.create_team("0", "", "", "", "", "000000", "000000")
 
+
         time, tee_time_display = earliest_tee_time
         now = datetime.datetime.now(tz=pytz.UTC)
         if time is None:
