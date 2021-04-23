@@ -120,7 +120,7 @@ class Golf:
             time, tee_time_display = (parse(competition["date"]).astimezone(pytz.utc), competition["date"])
 
         delta = abs(now - time)
-        if delta > datetime.timedelta(hours=24):
+        if delta > datetime.timedelta(hours=24) and status != "ACTIVE":
             return None
 
             
