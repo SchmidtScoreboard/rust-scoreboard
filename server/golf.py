@@ -40,9 +40,9 @@ class Golf:
             return None
 
         competition = game["competitions"][0]
+        print(game)
         top_5 = []
         if competition["scoringSystem"]["name"] == "Teamstroke":
-            # Thiis is the data format
             print("[GOLF] Looking at teamstroke")
             data = competition["rawData"]
             position = 1
@@ -128,7 +128,9 @@ class Golf:
         if status == "ACTIVE":
             if time > now: # if tee time in the future, this happens after Day X of play ends
                 status = "END"
-                
+            if competition["scoringSystem"]["name"] == "Teamstroke":
+                if "COMPLETE" in competition["rawData"]:
+                    status = "END"
 
         if status is not None:
             return Common.create_common(
