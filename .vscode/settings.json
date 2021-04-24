@@ -1,5 +1,5 @@
 {
     "workbench.colorTheme": "One Dark Pro",
-    "python.formatting.provider": "black",
+    // "python.formatting.provider": "black",
     "editor.defaultFormatter": "rust-lang.rust"
 }

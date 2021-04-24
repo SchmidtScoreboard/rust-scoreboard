@@ -8,7 +8,7 @@ import pytz
 import re
 
 
-TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z]+)\/([a-zA-z]+)\s*([^\s]+)+")
+TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
 class Golf:
     def create_player(player):
         stats = player["statistics"]
@@ -49,7 +49,7 @@ class Golf:
                 match = TEAMSTROKE_REGEX.match(line)
                 if match:
                     groups = match.groups()
-                    # print(f"LINE: {line} groups: {match.groups()}")
+                    print(f"LINE: {line} groups: {match.groups()}")
                     top_5.append({
                         "display_name": f"{groups[0][:5]}/{groups[1][:5]}",
                         "position": position,
