@@ -4,6 +4,7 @@ from college_football import CollegeFootball
 from football import Football
 from hockey import Hockey
 from baseball import Baseball
+from baseball_v2 import Baseball_v2
 from golf import Golf
 from all_sports import All
 import time
@@ -45,12 +46,16 @@ def lambda_handler(event, context):
         result = wrap_games(loop.run_until_complete(Football.get_games(False)))
     elif sport == "baseball":
         result = wrap_games(loop.run_until_complete(Baseball.get_games(False)))
+    elif sport == "baseball_v2":
+        result = wrap_games(loop.run_until_complete(Baseball_v2.get_games(False)))
     elif sport == "golf":
         result = wrap_games(loop.run_until_complete(Golf.get_games(False)))
     elif sport == "all":
         result = wrap_games(loop.run_until_complete(All.get_games_v1(False)))
     elif sport == "all_v2":
         result = wrap_games(loop.run_until_complete(All.get_games_v2(False)))
+    elif sport == "all_v3":
+        result = wrap_games(loop.run_until_complete(All.get_games_v3(False)))
     else:
         result = None
 

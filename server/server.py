@@ -3,6 +3,7 @@ from college_basketball import CollegeBasketball
 from basketball import Basketball
 from hockey import Hockey
 from baseball import Baseball
+from baseball_v2 import Baseball_v2
 from college_football import CollegeFootball
 from football import Football
 from all_sports import All
@@ -42,6 +43,10 @@ def all():
 def all_v2():
     return {"data": {"games": loop.run_until_complete(All.get_games_v2(testing))}}
 
+@app.route("/all_v3")
+def all_v3():
+    return {"data": {"games": loop.run_until_complete(All.get_games_v3(testing))}}
+
 
 @app.route("/basketball")
 def basketball():
@@ -61,6 +66,11 @@ def hockey():
 @app.route("/mlb")
 def baseball():
     return {"data": {"games": loop.run_until_complete(Baseball.get_games(testing))}}
+
+@app.route("/mlb_v2")
+def baseball_v2():
+    return {"data": {"games": loop.run_until_complete(Baseball_v2.get_games(testing))}}
+
 @app.route("/golf")
 def golf():
     return {"data": {"games": loop.run_until_complete(Golf.get_games(testing))}}

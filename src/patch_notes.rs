@@ -15,6 +15,7 @@ impl Patch {
 
 pub fn get_patches() -> Vec<Patch> {
     vec![
+        Patch::create("2.2.0", "Show on base during baseball mode"),
         Patch::create("2.1.1", "Clock auto power"),
         Patch::create("2.1.0", "Golf + Flappy Bird!"),
         Patch::create("2.0.2", "Nightly reboot + update"),

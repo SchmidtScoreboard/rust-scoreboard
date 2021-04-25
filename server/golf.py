@@ -49,7 +49,6 @@ class Golf:
                 match = TEAMSTROKE_REGEX.match(line)
                 if match:
                     groups = match.groups()
-                    print(f"LINE: {line} groups: {match.groups()}")
                     top_5.append({
                         "display_name": f"{groups[0][:5]}/{groups[1][:5]}",
                         "position": position,

@@ -3,6 +3,7 @@ from basketball import Basketball
 from hockey import Hockey
 from baseball import Baseball
 from football import Football
+from baseball_v2 import Baseball_v2
 from golf import Golf
 from college_football import CollegeFootball
 import asyncio
@@ -43,10 +44,28 @@ class All:
 
         return flatten_list
 
+    async def get_games_v3(testing: bool):
+        print("[ALL] Beginning fetching all sports")
+        game_sets = await asyncio.gather(
+            *[
+                Golf.get_games(testing),
+                CollegeBasketball.get_games(testing),
+                Basketball.get_games(testing),
+                Hockey.get_games(testing),
+                Baseball_v2.get_games(testing),
+                Football.get_games(testing),
+                CollegeFootball.get_games(testing),
+            ]
+        )
+        print("[ALL] Finished fetching all sports")
+        flatten_list = [game for game_set in game_sets for game in game_set]
+
+        return flatten_list
+
 
 async def main():
     print("Fetching games")
-    print(await All.get_games_v2(False))
+    print(await All.get_games_v3(False))
 
 
 if __name__ == "__main__":

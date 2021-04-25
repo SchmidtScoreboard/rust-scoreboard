@@ -7,8 +7,8 @@ mod basketball;
 mod button;
 mod clock;
 mod common;
-mod football;
 mod flappy;
+mod football;
 mod game;
 mod golf;
 mod hockey;
@@ -137,7 +137,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (shell_sender, shell_receiver) = mpsc::channel();
 
     let mut settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
-    settings.set_version(5);
+    settings.set_version(6);
 
     if settings.get_settings().setup_state == common::SetupState::Factory {
         settings.set_setup_state(&common::SetupState::Hotspot);
@@ -211,8 +211,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     map.insert(ScreenId::Setup, Box::new(setup_screen));
 
-    // Flappy Bird Game Screen 
-    let flappy= flappy::Flappy::new(
+    // Flappy Bird Game Screen
+    let flappy = flappy::Flappy::new(
         scheduler_sender.clone(),
         settings.get_settings(),
         matrix::FontBook::new(&root_path),
@@ -254,11 +254,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         scheduler.run();
     });
 
-    let daily_reboot : bool = env::var("DAILY_REBOOT").map(|reboot_value| reboot_value.parse().unwrap_or(true)).unwrap_or(true);
-    let reboot_time : u8 = std::cmp::min(env::var("REBOOT_TIME").map(|reboot_time| reboot_time.parse::<u8>().unwrap_or(3)).unwrap_or(3), 23);
+    let daily_reboot: bool = env::var("DAILY_REBOOT")
+        .map(|reboot_value| reboot_value.parse().unwrap_or(true))
+        .unwrap_or(true);
+    let reboot_time: u8 = std::cmp::min(
+        env::var("REBOOT_TIME")
+            .map(|reboot_time| reboot_time.parse::<u8>().unwrap_or(3))
+            .unwrap_or(3),
+        23,
+    );
     let daily_reboot = match daily_reboot {
         true => Some(reboot_time),
-        false => None
+        false => None,
     };
 
     let mut matrix = Matrix::new(
@@ -270,7 +277,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         web_response_sender,
         shell_sender.clone(),
         scheduler_sender.clone(),
-        daily_reboot
+        daily_reboot,
     );
 
     let webserver_sender = matrix_sender.clone();

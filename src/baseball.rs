@@ -16,6 +16,9 @@ pub struct BaseballGame {
     balls: u8,
     outs: u8,
     strikes: u8,
+    on_first: bool,
+    on_second: bool,
+    on_third: bool,
 }
 impl Ord for BaseballGame {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -36,9 +39,16 @@ impl PartialEq for BaseballGame {
 }
 impl Eq for BaseballGame {}
 
-impl game::Sport for BaseballGame{
+impl game::Sport for BaseballGame {
     fn get_common(self: &Self) -> &game::CommonGameData {
         &self.common
+    }
+}
+
+fn get_base_asset(on_base: bool, pixels_book: &matrix::PixelBook) -> &matrix::Pixels {
+    match on_base {
+        true => &pixels_book.filled_base,
+        false => &pixels_book.empty_base,
     }
 }
 
@@ -96,6 +106,17 @@ impl aws_screen::AWSScreenType for BaseballGame {
                 0,
                 false,
             );
+            // TODO make the background transparent, not black
+            let first_base = get_base_asset(self.on_first, pixels_book);
+            let second_base = get_base_asset(self.on_second, pixels_book);
+            let third_base = get_base_asset(self.on_third, pixels_book);
+
+            // TODO correct these position values
+            let start_x = 32;
+            let start_y = 18;
+            matrix::draw_pixels(canvas, first_base, (start_x, start_y));
+            matrix::draw_pixels(canvas, second_base, (start_x + 4, start_y - 4));
+            matrix::draw_pixels(canvas, third_base, (start_x + 8, start_y));
 
             for i in 0..3 {
                 let x = 61 - balls_strikes_dimensions.width + i * 4;
@@ -106,6 +127,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
                     matrix::draw_pixels(canvas, &pixels_book.empty_square, (x, y));
                 }
             }
+
         } else if self.common.status == game::GameStatus::END {
             let yellow = common::new_color(255, 255, 0);
             let message = "FINAL";

@@ -37,7 +37,7 @@ team_map = {
 }
 
 
-class Baseball:
+class Baseball_v2:
     def create_game(common, game):
         competition = game["competitions"][0]
         situation = competition.get("situation")
@@ -56,9 +56,9 @@ class Baseball:
             "strikes": strikes, 
             "inning": inning, 
             "is_inning_top" : is_inning_top,
-            "onFirst": situation["onFirst"] if situation is not None else False,
-            "onSecond": situation["onSecond"] if situation is not None else False,
-            "onThird": situation["onThird"] if situation is not None else False,
+            "on_first": situation["onFirst"] if situation is not None else False,
+            "on_second": situation["onSecond"] if situation is not None else False,
+            "on_third": situation["onThird"] if situation is not None else False,
         }
     async def get_games(testing: bool):
         if testing:
@@ -66,7 +66,7 @@ class Baseball:
         else:
             raw_games = await Fetcher.espn_fetch("baseball", "mlb")
             games = [
-                Baseball.create_game(
+                Baseball_v2.create_game(
                     Common.from_espn_json(
                         game, Team.get_espn_team, team_map, SportId.BASEBALL
                     ),
@@ -79,7 +79,7 @@ class Baseball:
 
 async def main():
     print("Fetching games")
-    print(await Baseball.get_games(False))
+    print(await Baseball_v2.get_games(False))
 
 
 if __name__ == "__main__":

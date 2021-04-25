@@ -262,7 +262,8 @@ impl<'a> Matrix<'a> {
 
                         let mut settings = self.settings.get_settings().as_ref().clone();
                         settings.screen_on = target_screen.is_some();
-                        settings.active_screen = target_screen.unwrap_or(*self.settings.get_active_screen());
+                        settings.active_screen =
+                            target_screen.unwrap_or(*self.settings.get_active_screen());
                         self.send_response(common::WebserverResponse::SetAutoPowerResponse(
                             Arc::from(settings),
                         ));
@@ -478,20 +479,18 @@ impl<'a> Matrix<'a> {
                 let current_power = *self.settings.get_power();
                 let current_screen = *self.settings.get_active_screen();
 
-                if new_power != current_power || current_screen != target_screen.unwrap_or(current_screen) {
+                if new_power != current_power
+                    || current_screen != target_screen.unwrap_or(current_screen)
+                {
                     let command = match target_screen {
-                        Some(target_screen) => {
-                            common::MatrixCommand::SetActiveScreen {
-                                source: common::CommandSource::Task(),
-                                id: target_screen,
-                            }
+                        Some(target_screen) => common::MatrixCommand::SetActiveScreen {
+                            source: common::CommandSource::Task(),
+                            id: target_screen,
                         },
-                        None => {
-                            common::MatrixCommand::SetPower {
-                                source: common::CommandSource::Task(),
-                                power: Some(false),
-                            }
-                        }
+                        None => common::MatrixCommand::SetPower {
+                            source: common::CommandSource::Task(),
+                            power: Some(false),
+                        },
                     };
                     info!("Doing shit, command: {:?}", command);
                     // Send the power on/off command
@@ -501,7 +500,6 @@ impl<'a> Matrix<'a> {
                             None,
                         ))
                         .unwrap();
-
                 }
             }
         }
@@ -633,6 +631,8 @@ pub struct PixelBook {
     pub green_check: Pixels,
     pub red_x: Pixels,
     pub play_button: Pixels,
+    pub filled_base: Pixels,
+    pub empty_base: Pixels,
 }
 
 impl PixelBook {
@@ -652,6 +652,10 @@ impl PixelBook {
             red_x: Pixels::from_file(root_path, "red-x.png").expect("Could not load red X"),
             play_button: Pixels::from_file(root_path, "play_button.png")
                 .expect("Could not load play button"),
+            filled_base: Pixels::from_file(root_path, "filled_base.png")
+                .expect("Could not load filled base"),
+            empty_base: Pixels::from_file(root_path, "empty_base.png")
+                .expect("Could not load empty base"),
         }
     }
 }
