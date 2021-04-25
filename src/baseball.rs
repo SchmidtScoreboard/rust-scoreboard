@@ -112,11 +112,11 @@ impl aws_screen::AWSScreenType for BaseballGame {
             let third_base = get_base_asset(self.on_third, pixels_book);
 
             // TODO correct these position values
-            let start_x = 32;
-            let start_y = 18;
-            matrix::draw_pixels(canvas, first_base, (start_x, start_y));
-            matrix::draw_pixels(canvas, second_base, (start_x + 4, start_y - 4));
-            matrix::draw_pixels(canvas, third_base, (start_x + 8, start_y));
+            let start_x = 29;
+            let start_y = 22;
+            matrix::draw_pixels(canvas, third_base, (start_x, start_y));
+            matrix::draw_pixels(canvas, second_base, (start_x + 5, start_y - 5));
+            matrix::draw_pixels(canvas, first_base, (start_x + 10, start_y));
 
             for i in 0..3 {
                 let x = 61 - balls_strikes_dimensions.width + i * 4;

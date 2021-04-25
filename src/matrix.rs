@@ -619,7 +619,7 @@ struct Asset;
 
 #[derive(Clone)]
 pub struct Pixels {
-    pub data: Vec<Vec<rpi_led_matrix::LedColor>>,
+    pub data: Vec<Vec<Option<rpi_led_matrix::LedColor>>>,
 }
 
 pub struct PixelBook {
@@ -678,13 +678,17 @@ impl Pixels {
         let (info, mut reader) = decoder.read_info().unwrap();
         let width = info.width as usize;
         let height = info.height as usize;
-        let mut data: Vec<Vec<rpi_led_matrix::LedColor>> =
-            vec![vec![common::new_color(0, 0, 0); width]; height];
+        let mut data: Vec<Vec<Option<rpi_led_matrix::LedColor>>> =
+            vec![vec![None; width]; height];
         for y in 0..height {
             let row = reader.next_row().unwrap().unwrap();
             for x in 0..width {
                 let index = x * 4;
-                data[y][x] = common::color_from_slice(&row[index..index + 3]);
+                // info!("Examining pixel at ({}, {}), values are {:?}", x, y, &row[index..index+4]);
+                data[y][x] = match &row[index + 3] {
+                    255 => Some(common::color_from_slice(&row[index..index + 3])),
+                    _ => None
+                };
             }
         }
         Ok(Pixels { data: data })
@@ -721,14 +725,19 @@ impl Pixels {
                 .iter()
                 .map(|row| {
                     row.iter()
+                        
                         .map(|value| {
-                            if value.red == old_color.red
-                                && value.green == old_color.green
-                                && value.blue == old_color.blue
-                            {
-                                *new_color
+                            if let Some(value) = value {
+                                if value.red == old_color.red
+                                    && value.green == old_color.green
+                                    && value.blue == old_color.blue
+                                {
+                                    Some(*new_color)
+                                } else {
+                                    Some(*value)
+                                }
                             } else {
-                                *value
+                                None
                             }
                         })
                         .collect()
@@ -803,8 +812,10 @@ pub fn draw_pixels(canvas: &mut rpi_led_matrix::LedCanvas, pixels: &Pixels, top_
     let mut y = 0;
     pixels.data.iter().for_each(|row| {
         let mut x = 0;
-        row.iter().for_each(|pixel| {
-            canvas.set(x0 + x, y0 + y, &pixel);
+        row.into_iter().for_each(|pixel| {
+            if let Some(pixel) = pixel {
+                canvas.set(x0 + x, y0 + y, &pixel);
+            }
             x += 1;
         });
         y += 1;
