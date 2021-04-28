@@ -79,7 +79,7 @@ class Golf:
         try: 
             idx = words.index("OF")
             words = words[:idx] 
-        except e:
+        except Exception as e:
             pass
 
         name = " ".join(words)

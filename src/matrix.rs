@@ -30,6 +30,7 @@ pub struct Matrix<'a> {
     message_screen: message::MessageScreen, // If this is set, display this message until it is unset
     last_priority_check: Option<Instant>,
     daily_reboot: Option<u8>, // The time to schedule a daily reboot, if any
+    asdf
 }
 
 impl<'a> Matrix<'a> {

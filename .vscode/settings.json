@@ -1,5 +1,8 @@
 {
     "workbench.colorTheme": "One Dark Pro",
     // "python.formatting.provider": "black",
-    "editor.defaultFormatter": "rust-lang.rust"
+    "editor.defaultFormatter": "rust-lang.rust",
+    // "rust.target": "armv7-unknown-linux-gnueabihf",
+    "rust-client.trace.server": "verbose",
+    "workbench.sideBar.location": "right",
 }
