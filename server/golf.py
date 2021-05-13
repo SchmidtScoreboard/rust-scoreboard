@@ -73,7 +73,7 @@ class Golf:
         if words[-1] in ["TOURNAMENT", "CHAMPIONSHIP"]:
             words = words[:-1]
 
-        if words[0].isdigit():
+        if words[0].isdigit() or words[0] == "AT&T":
             words = words[1:]
         
         try: 
