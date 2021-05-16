@@ -97,7 +97,8 @@ class Common:
             "STATUS_END_PERIOD": "INTERMISSION",
             "STATUS_HALFTIME": "INTERMISSION",
             "STATUS_POSTPONED": None,
-            "STATUS_PLAY_COMPLETE": "END"
+            "STATUS_PLAY_COMPLETE": "END",
+            "STATUS_DELAYED": "INTERMISSION"
         }
 
         if status not in status_map:
