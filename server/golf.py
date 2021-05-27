@@ -70,7 +70,7 @@ class Golf:
 
         name = game["shortName"].upper()
         words = name.split()
-        if words[-1] in ["TOURNAMENT", "CHAMPIONSHIP"]:
+        if words[-1] in ["TOURNAMENT", "CHAMPIONSHIP", "CHALLENGE"]:
             words = words[:-1]
 
         if words[0].isdigit() or words[0] == "AT&T":
