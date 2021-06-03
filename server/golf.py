@@ -69,7 +69,9 @@ class Golf:
             top_5 = top_5[:5]
 
         name = game["shortName"].upper()
-        words = name.split()
+        words = name.split("PRES", 1)[0]
+        words = words.split()
+
         if words[-1] in ["TOURNAMENT", "CHAMPIONSHIP", "CHALLENGE"]:
             words = words[:-1]
 
