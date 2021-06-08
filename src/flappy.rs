@@ -108,7 +108,7 @@ pub struct Flappy {
     last_update: Option<Instant>,
     state: FlappyState,
     score: f64,
-    player: matrix::Pixels,
+    player: common::Pixels,
 }
 
 impl Flappy {

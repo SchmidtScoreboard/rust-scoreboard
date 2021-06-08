@@ -1,6 +1,7 @@
-use crate::animation;
+use crate::{animation, custom_message};
 use crate::common;
 use crate::common::ScoreboardSettingsData;
+use crate::common::Pixels;
 use crate::flappy;
 use crate::message;
 use crate::scheduler;
@@ -18,7 +19,7 @@ use std::str;
 use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
 
-const PRIORITY_SCREENS: [common::ScreenId; 2] = [common::ScreenId::Smart, common::ScreenId::Clock];
+const PRIORITY_SCREENS: [common::ScreenId; 3] = [common::ScreenId::Smart, common::ScreenId::Clock, common::ScreenId::CustomMessage];
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix, // The actual matrix
     receiver: mpsc::Receiver<common::MatrixCommand>, // Receive commands from the button, the webserver, and responses to shell commands
@@ -30,7 +31,6 @@ pub struct Matrix<'a> {
     message_screen: message::MessageScreen, // If this is set, display this message until it is unset
     last_priority_check: Option<Instant>,
     daily_reboot: Option<u8>, // The time to schedule a daily reboot, if any
-    asdf
 }
 
 impl<'a> Matrix<'a> {
@@ -126,6 +126,7 @@ impl<'a> Matrix<'a> {
 
     // Returns what the power state and target screen of the system should be after priority check
     fn check_priority(self: &mut Self) -> Option<common::ScreenId> {
+        let auto_power_mode = self.settings.get_auto_power_mode().clone();
         if self
             .last_priority_check
             .map(|last_priority_check| {
@@ -139,7 +140,7 @@ impl<'a> Matrix<'a> {
                 let settings = self.settings.get_settings();
                 let screen = self.get_mut_screen(id);
                 screen.update_settings(settings);
-                let priority = screen.has_priority();
+                let priority = screen.has_priority(&auto_power_mode);
                 info!("Priority of {:?}: {}", id, priority);
                 priority
             });
@@ -471,6 +472,24 @@ impl<'a> Matrix<'a> {
                             }
                         }
                     }
+                    common::MatrixCommand::GetCustomMessage() => {
+                        let custom_message_screen = self.get_mut_screen(&common::ScreenId::CustomMessage) 
+                            .as_any()
+                            .downcast_mut::<custom_message::CustomMessageScreen>().expect("Could not get custom message screen");
+                        let custom_message = custom_message_screen.get_message();
+
+                        self.send_response(common::WebserverResponse::GetCustomMessageResponse(
+                            custom_message
+                        ));
+
+                    }
+                    common::MatrixCommand::SetCustomMessage(custom_message) => {
+                        let custom_message_screen = self.get_mut_screen(&common::ScreenId::CustomMessage) 
+                            .as_any()
+                            .downcast_mut::<custom_message::CustomMessageScreen>().expect("Could not get custom message screen");
+                        custom_message_screen.set_message(custom_message);
+                        self.send_response(common::WebserverResponse::SetCustomMessageResponse());
+                    }
                 }
             };
 
@@ -618,11 +637,6 @@ impl FontBook {
 #[folder = "assets"]
 struct Asset;
 
-#[derive(Clone)]
-pub struct Pixels {
-    pub data: Vec<Vec<Option<rpi_led_matrix::LedColor>>>,
-}
-
 pub struct PixelBook {
     pub small_arrow: Pixels,
     pub empty_square: Pixels,
@@ -634,6 +648,7 @@ pub struct PixelBook {
     pub play_button: Pixels,
     pub filled_base: Pixels,
     pub empty_base: Pixels,
+    pub football: Pixels,
 }
 
 impl PixelBook {
@@ -657,6 +672,8 @@ impl PixelBook {
                 .expect("Could not load filled base"),
             empty_base: Pixels::from_file(root_path, "empty_base.png")
                 .expect("Could not load empty base"),
+            football: Pixels::from_file(root_path, "football.png")
+                .expect("Could not load football"),
         }
     }
 }
@@ -665,7 +682,7 @@ impl Pixels {
     pub fn dump_file(root_path: &std::path::Path, file_name: &str) {
         let target_dir = root_path.join("assets");
         let _create_dir_result = fs::create_dir(&target_dir);
-        let contents = Asset::get(file_name).unwrap();
+        let contents = Asset::get(file_name).expect(&format!("Failed to write file {}", file_name));
         fs::write(&target_dir.join(file_name), contents).expect("Failed to write file");
     }
 
@@ -881,7 +898,7 @@ pub trait ScreenProvider {
 
     fn as_any(&mut self) -> &mut dyn Any;
 
-    fn has_priority(self: &mut Self) -> bool {
+    fn has_priority(self: &mut Self, _power_mode: &common::AutoPowerMode) -> bool {
         false
     }
 }

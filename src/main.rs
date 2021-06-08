@@ -5,6 +5,7 @@ mod aws_screen;
 mod baseball;
 mod basketball;
 mod button;
+mod custom_message;
 mod clock;
 mod common;
 mod flappy;
@@ -81,7 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     flexi_logger::Logger::with_env()
         .log_to_file()
         .directory(log_dir)
-        .duplicate_to_stdout(flexi_logger::Duplicate::All)
+        .duplicate_to_stdout(flexi_logger::Duplicate::Info)
         .format_for_stdout(flexi_logger::opt_format)
         .format_for_files(flexi_logger::detailed_format)
         .rotate(
@@ -219,6 +220,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         matrix::PixelBook::new(&root_path),
     );
     map.insert(ScreenId::Flappy, Box::new(flappy));
+
+    // Custom Message Screen
+    let custom_message= custom_message::CustomMessageScreen::new(
+        common::read_custom_message(&root_path),
+        scheduler_sender.clone(),
+        matrix::FontBook::new(&root_path),
+    );
+    map.insert(ScreenId::CustomMessage, Box::new(custom_message));
+
     // Animation Test
     let animation = AnimationTestScreen::new(scheduler_sender.clone());
     map.insert(ScreenId::Animation, Box::new(animation));

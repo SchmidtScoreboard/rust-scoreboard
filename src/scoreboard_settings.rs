@@ -1,4 +1,4 @@
-use crate::common::{ScoreboardSettingsData, ScreenId, SetupState};
+use crate::common::{self, ScoreboardSettingsData, ScreenId, SetupState};
 use chrono_tz::Tz;
 use std::fs;
 use std::path::PathBuf;
@@ -54,6 +54,9 @@ impl ScoreboardSettings {
     }
     pub fn get_startup_auto_power(self: &Self) -> &Option<bool> {
         &self.data.startup_auto_power
+    }
+    pub fn get_auto_power_mode(self: &Self) -> &common::AutoPowerMode {
+        &self.data.auto_power_mode
     }
 
     pub fn set_rotation_time(self: &mut Self, rotation_time: Duration) {

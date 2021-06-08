@@ -1,8 +1,9 @@
 {
     "workbench.colorTheme": "One Dark Pro",
     // "python.formatting.provider": "black",
-    "editor.defaultFormatter": "rust-lang.rust",
-    // "rust.target": "armv7-unknown-linux-gnueabihf",
-    "rust-client.trace.server": "verbose",
     "workbench.sideBar.location": "right",
-}
+    "rust-client.logToFile": true,
+    "rust-analyzer.cargo.target": "armv7-unknown-linux-gnueabihf",
+    "rust-analyzer.runnableEnv": {
+        "MATRIX_LIB": "HOME/Developer/rpi-rgb-led-matrix/lib/"
+    }

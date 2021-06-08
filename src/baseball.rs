@@ -45,7 +45,7 @@ impl game::Sport for BaseballGame {
     }
 }
 
-fn get_base_asset(on_base: bool, pixels_book: &matrix::PixelBook) -> &matrix::Pixels {
+fn get_base_asset(on_base: bool, pixels_book: &matrix::PixelBook) -> &common::Pixels {
     match on_base {
         true => &pixels_book.filled_base,
         false => &pixels_book.empty_base,
@@ -61,7 +61,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
         timezone: &Tz,
     ) {
         let font = &font_book.font4x6;
-        game::draw_scoreboard(canvas, &font, &self.common, 1);
+        game::draw_scoreboard(canvas, &font, &self.common, 1, 2);
         let ordinal_x_offset = 5;
         let white = common::new_color(255, 255, 255);
         let ordinal_dimensions = font.get_text_dimensions(&self.common.ordinal);

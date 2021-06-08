@@ -367,18 +367,23 @@ impl matrix::ScreenProvider for AWSScreen {
     fn update_settings(self: &mut Self, settings: Arc<common::ScoreboardSettingsData>) {
         self.settings = settings;
         self.current_leagues = match self.settings.active_screen {
-            common::ScreenId::Smart | common::ScreenId::Clock => (vec![
+            common::ScreenId::Hockey
+            | common::ScreenId::Baseball
+            | common::ScreenId::CollegeBasketball
+            | common::ScreenId::Basketball
+            | common::ScreenId::Football
+            | common::ScreenId::Golf => (vec![self.settings.active_screen]).into_iter().collect(),
+            _ => (vec![
                 common::ScreenId::Hockey,
                 common::ScreenId::Baseball,
                 common::ScreenId::CollegeBasketball,
                 common::ScreenId::Basketball,
-                common::ScreenId::CollegeBasketball,
+                common::ScreenId::CollegeFootball,
                 common::ScreenId::Football,
                 common::ScreenId::Golf,
             ])
             .into_iter()
             .collect(),
-            _ => (vec![self.settings.active_screen]).into_iter().collect(),
         };
         if let ReceivedData::Valid(data) = &mut self.data {
             data.filter_games(&self.current_leagues, &self.settings.favorite_teams);
@@ -437,7 +442,7 @@ impl matrix::ScreenProvider for AWSScreen {
         self
     }
 
-    fn has_priority(self: &mut Self) -> bool {
+    fn has_priority(self: &mut Self, _power_mode: &common::AutoPowerMode) -> bool {
         self.process(); // Ensure we fetch any updated games
         match &self.data {
             ReceivedData::Valid(data) => {

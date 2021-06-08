@@ -65,7 +65,7 @@ fn basketball_draw(
     timezone: &Tz,
 ) {
     let font = &font_book.font4x6;
-    game::draw_scoreboard(canvas, &font, &common, 2);
+    game::draw_scoreboard(canvas, &font, &common, 2, 2);
 
     // Draw the current period
     let white = common::new_color(255, 255, 255);

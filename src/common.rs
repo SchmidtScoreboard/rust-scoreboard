@@ -10,7 +10,9 @@ use std::net::Ipv4Addr;
 use std::sync::Arc;
 use std::time::Duration;
 use ureq;
+use std::io::ErrorKind;
 
+pub const MESSAGE_PATH : &str = "custom_message.json";
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize_repr, Serialize_repr, Copy)]
 #[repr(u16)]
 pub enum ScreenId {
@@ -27,6 +29,7 @@ pub enum ScreenId {
     Setup = 101,
     Error = 104,
     Flappy = 420,
+    CustomMessage = 421,
     Animation = 1000,
     Message = 1001,
     Smart = 10000,
@@ -104,6 +107,8 @@ pub enum MatrixCommand {
         from_webserver: bool,
         show_sync: Option<bool>,
     }, // Show sync, hide sync, or swap sync
+    GetCustomMessage(),
+    SetCustomMessage(CustomMessage)
 }
 
 pub enum WebserverResponse {
@@ -118,6 +123,8 @@ pub enum WebserverResponse {
     GotWifiDetailsResponse(Option<Arc<ScoreboardSettingsData>>),
     SyncCommandResponse(Option<Arc<ScoreboardSettingsData>>),
     GameActionResponse(Arc<ScoreboardSettingsData>),
+    GetCustomMessageResponse(CustomMessage),
+    SetCustomMessageResponse(),
 }
 
 pub enum ShellCommand {
@@ -153,6 +160,26 @@ pub fn color_from_string(s: &str) -> Result<rpi_led_matrix::LedColor, Box<dyn Er
     let green = get_value(&s[2..4])?;
     let blue = get_value(&s[4..6])?;
     Ok(new_color(red, green, blue))
+}
+pub fn led_color_from_owned_string<'de, D>(deserializer: D) -> Result<rpi_led_matrix::LedColor, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?;
+    color_from_string(&s).map_err(serde::de::Error::custom)
+}
+
+pub fn led_color_from_string<'de, D>(deserializer: D) -> Result<rpi_led_matrix::LedColor, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: &str = Deserialize::deserialize(deserializer)?;
+    color_from_string(s).map_err(serde::de::Error::custom)
+}
+
+pub fn led_color_to_string<S>(color: &rpi_led_matrix::LedColor, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer{
+    let str = format!("{:x?}{:x?}{:x?}", color.red, color.green, color.blue);
+    serializer.serialize_str(&str)
 }
 
 pub fn is_connected() -> bool {
@@ -197,6 +224,12 @@ pub enum SetupState {
     Sync = 3,
     Ready = 10,
 }
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone, Copy)]
+pub enum AutoPowerMode {
+    Off,
+    Clock,
+    CustomMessage
+}
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
 pub struct ScreenSettings {
     rotation_time: u32,
@@ -229,8 +262,8 @@ pub fn default_startup_setting() -> Option<bool> {
     None
 }
 
-pub fn default_clock_off_auto_power() -> bool {
-    false
+pub fn default_auto_power_mode() -> AutoPowerMode {
+   AutoPowerMode::Off 
 }
 
 /// Serialize a `Duration` into a `u64` representing the seconds
@@ -299,9 +332,8 @@ pub struct ScoreboardSettingsData {
     pub startup_power: Option<bool>,
     #[serde(default = "default_startup_setting")]
     pub startup_auto_power: Option<bool>,
-
-    #[serde(default = "default_clock_off_auto_power")]
-    pub clock_off_auto_power: bool,
+    #[serde(default = "default_auto_power_mode")]
+    pub auto_power_mode: AutoPowerMode,
 }
 
 impl ScoreboardSettingsData {
@@ -320,9 +352,130 @@ impl ScoreboardSettingsData {
             favorite_teams: other.favorite_teams,
             rotation_time: other.rotation_time,
             brightness: other.brightness,
-            clock_off_auto_power: other.clock_off_auto_power,
+            auto_power_mode: other.auto_power_mode,
             startup_power: self.startup_power,
             startup_auto_power: self.startup_auto_power,
         }
     }
+}
+#[derive(Clone, Debug)]
+pub struct Pixels {
+    pub data: Vec<Vec<Option<rpi_led_matrix::LedColor>>>,
+}
+impl PartialEq for Pixels{
+    fn eq(&self, other: &Self) -> bool {
+        self.get_raw().iter().eq(other.get_raw().iter())
+    }
+}
+
+impl Eq for Pixels{}
+
+impl Pixels {
+    pub fn _new(data: Vec<Vec<Option<rpi_led_matrix::LedColor>>>) -> Pixels {
+        Pixels {
+            data
+        }
+    }
+
+    pub fn solid_background(color: rpi_led_matrix::LedColor) -> Pixels {
+        let row = std::iter::repeat(Some(color)).take(64).collect();
+        let data = std::iter::repeat(row).take(32).collect();
+        Pixels {
+            data 
+        }
+    }
+
+    fn get_raw(self: &Self) -> Vec<Vec<Option<[u8; 3]>>> {
+        self.data.iter().map(|row| {
+            row.iter().map(|pixel| {
+                pixel.map(|pixel| {
+                    [pixel.red, pixel.green, pixel.blue]
+                })
+            }).collect()
+        }).collect()
+    }
+}
+
+impl serde::Serialize for Pixels {
+    fn serialize<S>(self: &Self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer{
+        // let mut seq = serializer.serialize_seq(Some(self.data.len()))?;
+
+        let data = self.get_raw();
+        serializer.collect_seq(data)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Pixels {
+
+    fn deserialize<D>(deserializer: D) -> Result<Pixels, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let pixels: Vec<Vec<Option<[u8; 3]>>> = serde::Deserialize::deserialize(deserializer)?;
+
+        Ok(Pixels {
+            data: pixels.iter().map(
+                |row| row.iter().map(
+                    |pixel| pixel.map(
+                        |pixel| color_from_slice(&pixel[0..3]))).collect()).collect()
+        })
+    }
+}
+
+
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
+pub enum FontSize {
+    Small,
+    Medium,
+    Large,
+}
+
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
+pub struct Line {
+    pub text: String,
+    pub size: FontSize,
+    #[serde(
+        serialize_with = "led_color_to_string",
+        deserialize_with = "led_color_from_owned_string")]
+    pub color: rpi_led_matrix::LedColor
+}
+
+impl Line {
+    pub fn new(text: String, size: FontSize, color: rpi_led_matrix::LedColor) -> Line {
+        Line {
+            text,
+            size,
+            color
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone)]
+pub struct CustomMessage {
+    pub background: Pixels,
+    pub texts: Vec<Line>,
+}
+
+impl CustomMessage {
+    pub fn new(background: Pixels, texts: Vec<Line>) -> CustomMessage{
+        CustomMessage {
+            background,
+            texts
+        }
+    }
+}
+
+pub fn read_custom_message(root_path: &std::path::Path) -> CustomMessage {
+    std::fs::File::open(root_path.join(MESSAGE_PATH)).and_then(|file| 
+        serde_json::from_reader(file).map_err(|err| {
+            std::io::Error::new(ErrorKind::Other, err.to_string())
+        })
+    ).unwrap_or(CustomMessage::new(
+        Pixels::solid_background(new_color(0, 255, 0)),
+        vec![
+            Line::new("Set a".to_owned(), FontSize::Medium, new_color(255, 255, 255)),
+            Line::new("custom message!".to_owned(), FontSize::Medium, new_color(255, 255, 255)),
+            ]
+        )
+    )
 }

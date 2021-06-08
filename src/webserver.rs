@@ -1,5 +1,5 @@
-use crate::common::{
-    CommandSource, MatrixCommand, ScoreboardSettingsData, ScreenId, WebserverResponse,
+use crate::common::{CustomMessage,
+    MESSAGE_PATH, CommandSource, MatrixCommand, ScoreboardSettingsData, ScreenId, WebserverResponse,
 };
 use rocket::config::{Config, Environment};
 use rocket::response::{status, Content};
@@ -194,6 +194,40 @@ fn wifi(
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
+#[get("/getCustomMessage")]
+fn get_custom_message(state: State<Mutex<ServerState>>) -> Result<Content<Json<CustomMessage>>, status::NotFound<String>> {
+    let content = ContentType::parse_flexible("application/json; charset=utf-8").unwrap();
+    let state = state.lock().unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::GetCustomMessage())
+        .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::GetCustomMessageResponse(message) => Ok(Content(content, Json(message))),
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
+}
+#[post("/setCustomMessage", format="json", data="<custom_message>")]
+fn set_custom_message(
+    custom_message: Json<CustomMessage>,
+    state: State<Mutex<ServerState>>) -> Result<status::Accepted<()>, status::NotFound<String>> {
+    let state = state.lock().unwrap();
+    (*state)
+        .sender
+        .send(MatrixCommand::SetCustomMessage(custom_message.clone()))
+        .unwrap();
+    fs::write(
+        (*state).file_path.join(MESSAGE_PATH),
+        serde_json::to_string_pretty(&(custom_message.0)).unwrap(),
+    )
+    .unwrap();
+    let response = (*state).receiver.recv().unwrap();
+    match response {
+        WebserverResponse::SetCustomMessageResponse() => Ok(status::Accepted(None)),
+        _ => Err(status::NotFound("Internal error".to_string())),
+    }
+}
 
 #[get("/logs")]
 fn logs(state: State<Mutex<ServerState>>) -> Result<String, std::io::Error> {
@@ -358,7 +392,9 @@ pub fn run_webserver(
                 sync,
                 connect,
                 version,
-                game_action
+                game_action,
+                get_custom_message,
+                set_custom_message
             ],
         )
         .launch();

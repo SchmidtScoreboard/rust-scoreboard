@@ -73,8 +73,8 @@ impl matrix::ScreenProvider for Clock {
         self
     }
 
-    fn has_priority(self: &mut Self) -> bool {
-        info!("Clock priority: {:?}", self.settings.clock_off_auto_power);
-        self.settings.clock_off_auto_power
+    fn has_priority(self: &mut Self, power_mode: &common::AutoPowerMode) -> bool {
+        info!("Auto power mode priority: {:?}", power_mode);
+        power_mode == &common::AutoPowerMode::Clock
     }
 }

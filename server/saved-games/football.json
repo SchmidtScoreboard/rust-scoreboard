@@ -2,6 +2,12 @@
    "games":[
       {
          "type": "Football",
+         "football_data": {
+            "time_remaining": "15:34",
+            "ball_position": 40,
+            "down_string": "4th and 13",
+            "home_possession": true 
+         },
          "common":{
             "sport_id": 4,
             "home_team":{

@@ -1,6 +1,7 @@
 use crate::aws_screen;
-use crate::common;
+use crate::common::{self, led_color_from_string};
 use crate::matrix;
+
 
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use chrono_tz::Tz;
@@ -45,14 +46,6 @@ where
 {
     let s: &str = Deserialize::deserialize(deserializer)?;
     s.parse::<u32>().map_err(D::Error::custom)
-}
-
-fn led_color_from_string<'de, D>(deserializer: D) -> Result<rpi_led_matrix::LedColor, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let s: &str = Deserialize::deserialize(deserializer)?;
-    common::color_from_string(s).map_err(D::Error::custom)
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -140,6 +133,7 @@ fn draw_team_box(
     score: u8,
     y_offset: i32,
     spacing: i32,
+    accent_box_width: i32
 ) -> i32 {
     let (width, _height) = canvas.canvas_size();
     let box_height = font.dimensions.height + 2 * spacing;
@@ -155,7 +149,7 @@ fn draw_team_box(
     matrix::draw_rectangle(
         canvas,
         (0, y_offset),
-        (2, box_height + y_offset),
+        (accent_box_width, box_height + y_offset),
         &team.secondary_color,
     );
     // Draw team name
@@ -188,9 +182,10 @@ pub fn draw_scoreboard(
     font: &matrix::Font,
     game: &CommonGameData,
     spacing: i32,
+    accent_box_width: i32
 ) {
     // draw away box
-    let box_height = draw_team_box(canvas, font, &game.away_team, game.away_score, 0, spacing);
+    let box_height = draw_team_box(canvas, font, &game.away_team, game.away_score, 0, spacing, accent_box_width);
 
     // draw home box
     draw_team_box(
@@ -200,6 +195,7 @@ pub fn draw_scoreboard(
         game.home_score,
         box_height,
         spacing,
+        accent_box_width
     );
 }
 
