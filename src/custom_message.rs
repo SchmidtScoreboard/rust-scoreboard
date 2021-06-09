@@ -50,7 +50,7 @@ impl ScreenProvider for CustomMessageScreen {
             };
             let text_dimensions = font.get_text_dimensions(&line.text);
             let x = 64 / 2 - text_dimensions.width / 2;
-            canvas.draw_text(&font.led_font, &line.text, x, y + padding, &line.color, 0, false);
+            canvas.draw_text(&font.led_font, &line.text, x, y + text_dimensions.height + padding, &line.color, 0, false);
             y = y + padding * 2 + text_dimensions.height;
         });
 

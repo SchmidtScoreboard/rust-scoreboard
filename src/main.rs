@@ -138,7 +138,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (shell_sender, shell_receiver) = mpsc::channel();
 
     let mut settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
-    settings.set_version(6);
+    settings.set_version(7);
 
     if settings.get_settings().setup_state == common::SetupState::Factory {
         settings.set_setup_state(&common::SetupState::Hotspot);
