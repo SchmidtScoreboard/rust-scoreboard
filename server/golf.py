@@ -72,8 +72,10 @@ class Golf:
         words = name.split("PRES", 1)[0]
         words = words.split()
 
-        if words[-1] in ["TOURNAMENT", "CHAMPIONSHIP", "CHALLENGE"]:
-            words = words[:-1]
+        for dumb_word in ["TOURNAMENT", "CHAMPIONSHIP", "CHALLENGE"]:
+            if dumb_word in words:
+                idx = words.index(dumb_word)
+                words = words[:idx]
 
         if words[0].isdigit() or words[0] == "AT&T":
             words = words[1:]
