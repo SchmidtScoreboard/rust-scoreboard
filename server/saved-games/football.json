@@ -2,9 +2,9 @@
    "games":[
       {
          "type": "Football",
-         "football_data": {
+         "extra_data": {
             "time_remaining": "15:34",
-            "ball_position": 40,
+            "ball_position": "Own 30",
             "down_string": "4th and 13",
             "home_possession": true 
          },

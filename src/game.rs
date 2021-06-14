@@ -156,7 +156,7 @@ fn draw_team_box(
     canvas.draw_text(
         &font.led_font,
         &team.display_name.to_ascii_uppercase(),
-        5,
+        accent_box_width + 3,
         font.dimensions.height + y_offset + spacing,
         &team.secondary_color,
         0,

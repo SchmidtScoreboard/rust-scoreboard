@@ -33,7 +33,10 @@
         "is_inning_top": true,
         "balls": 3,
         "strikes": 2,
-        "outs": 2
+        "outs": 2,
+        "on_first": false,
+        "on_second": false,
+        "on_third": false
       }
    ]
 }

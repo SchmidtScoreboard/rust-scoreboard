@@ -370,6 +370,7 @@ impl matrix::ScreenProvider for AWSScreen {
             common::ScreenId::Hockey
             | common::ScreenId::Baseball
             | common::ScreenId::CollegeBasketball
+            | common::ScreenId::CollegeFootball
             | common::ScreenId::Basketball
             | common::ScreenId::Football
             | common::ScreenId::Golf => (vec![self.settings.active_screen]).into_iter().collect(),

@@ -11,7 +11,7 @@ use chrono_tz::Tz;
 #[derive(Deserialize, Debug, Clone)]
 pub struct FootballData {
     pub time_remaining: String,
-    pub ball_position: u8, // (0 - 50 is opponent's, 50+ is your own)
+    pub ball_position: String,
     pub down_string: String,
     pub home_possession: bool
 }
@@ -77,11 +77,12 @@ fn football_draw(
     timezone: &Tz,
 ) {
     let font = &font_book.font4x6;
-    let accent_box_width = if football_data.is_some() && common.is_active_game() { 7 } else { 2 };
-    game::draw_scoreboard(canvas, &font, &common, 2, accent_box_width);
+    let accent_box_width = if football_data.is_some() && common.is_active_game() { 8 } else { 2 };
+    game::draw_scoreboard(canvas, &font, &common, 1, accent_box_width);
 
     // Draw the current period
     let white = common::new_color(255, 255, 255);
+    let black = common::new_color(0, 0, 0);
     let yellow = common::new_color(255, 255, 0);
 
     let mut draw_bottom_info = |text: &str, position: (i32, i32), color: &rpi_led_matrix::LedColor| {
@@ -112,16 +113,19 @@ fn football_draw(
         draw_bottom_info(&football_data.time_remaining, (left_indent, bottom_row_height), &white);
 
         // Right side
-        let ball_on_text = format!("{} {}", if football_data.ball_position > 50 { "Own" } else { "Opp" }, football_data.ball_position % 50);
         let down_string_dimensions = font.get_text_dimensions(&football_data.down_string);
-        let ball_on_text_dimensions = font.get_text_dimensions(&ball_on_text);
+        let ball_on_text_dimensions = font.get_text_dimensions(&football_data.ball_position);
         draw_bottom_info(&football_data.down_string, (right_indent- down_string_dimensions.width, top_row_height), &white);
-        draw_bottom_info(&ball_on_text, (right_indent- ball_on_text_dimensions.width, bottom_row_height), &white);
+        draw_bottom_info(&football_data.ball_position, (right_indent- ball_on_text_dimensions.width, bottom_row_height), &white);
 
         // Draw possession
         if common.is_active_game() {
-            let football_height = if football_data.home_possession { 8 } else { 1 };
-            matrix::draw_pixels(canvas, &pixels_book.football, (1, football_height));
+            let (football_height, football_color, background_color)  = if football_data.home_possession { 
+                (8, common.home_team.primary_color, common.home_team.secondary_color) } else { (1, common.away_team.primary_color, common.away_team.secondary_color) };
+            let football_image = pixels_book.football
+                .replace_color(&white, &football_color )
+                .replace_color(&black, &background_color);
+            matrix::draw_pixels(canvas, &football_image, (1, football_height));
         }
         
         
