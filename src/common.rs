@@ -471,10 +471,10 @@ pub fn read_custom_message(root_path: &std::path::Path) -> CustomMessage {
             std::io::Error::new(ErrorKind::Other, err.to_string())
         })
     ).unwrap_or(CustomMessage::new(
-        Pixels::solid_background(new_color(0, 255, 0)),
+        Pixels::solid_background(new_color(0, 0, 0)),
         vec![
-            Line::new("Set a".to_owned(), FontSize::Medium, new_color(255, 255, 255)),
-            Line::new("custom message!".to_owned(), FontSize::Medium, new_color(255, 255, 255)),
+            Line::new("Set a".to_owned(), FontSize::Small, new_color(255, 255, 255)),
+            Line::new("custom message!".to_owned(), FontSize::Small, new_color(255, 255, 255)),
             ]
         )
     )
