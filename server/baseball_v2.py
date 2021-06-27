@@ -41,9 +41,9 @@ class Baseball_v2:
     def create_game(common, game):
         competition = game["competitions"][0]
         situation = competition.get("situation")
-        balls = situation["balls"] if situation is not None else 0
-        strikes = situation["strikes"] if situation is not None else 0
-        outs = situation["outs"] if situation is not None else 0
+        balls = situation.get("balls", 0) if situation is not None else 0
+        strikes = situation.get("strikes", 0) if situation is not None else 0
+        outs = situation.get("outs", 0) if situation is not None else 0
 
         inning = competition["status"]["period"]
         is_inning_top = "Top" in competition["status"]["type"]["shortDetail"]
