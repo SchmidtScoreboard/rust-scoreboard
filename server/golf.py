@@ -72,7 +72,7 @@ class Golf:
         words = name.split("PRES", 1)[0]
         words = words.split()
 
-        for dumb_word in ["TOURNAMENT", "CHAMPIONSHIP", "CHALLENGE"]:
+        for dumb_word in ["TOURNAMENT", "CHAMPIONSHIP", "CHALLENGE", "CLASSIC"]:
             if dumb_word in words:
                 idx = words.index(dumb_word)
                 words = words[:idx]
