@@ -56,7 +56,7 @@ class Hockey:
         if testing:
             return Common.get_testing_games("hockey")
         else:
-            raw_games = await Fetcher.schedule_fetch("https://statsapi.web.nhl.com/api/v1/schedule")
+            raw_games = await Fetcher.schedule_fetch("http://statsapi.web.nhl.com/api/v1/schedule")
             games = [
                 Common.from_schedule_json(game, team_map, SportId.HOCKEY)
                 for game in raw_games
@@ -66,7 +66,7 @@ class Hockey:
             return await group
 
     async def refresh_game(game):
-        data = await Fetcher.game_fetch("https://statsapi.web.nhl.com/api/v1/game/" + str(game["id"]) + "/linescore")
+        data = await Fetcher.game_fetch("http://statsapi.web.nhl.com/api/v1/game/" + str(game["id"]) + "/linescore")
         teams = data["teams"]
         away = teams["away"]
         home = teams["home"]

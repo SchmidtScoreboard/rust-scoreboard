@@ -39,34 +39,40 @@ class Golf:
         if common is None:
             return None
 
-        competition = game["competitions"][0]
-        top_5 = []
-        if competition["scoringSystem"]["name"] == "Teamstroke":
-            print("[GOLF] Looking at teamstroke")
-            data = competition["rawData"]
-            position = 1
-            for line in data.splitlines():
-                match = TEAMSTROKE_REGEX.match(line)
-                if match:
-                    groups = match.groups()
-                    top_5.append({
-                        "display_name": f"{groups[0][:5]}/{groups[1][:5]}",
-                        "position": position,
-                        "score": groups[2]
-                    })
-                    position += 1
-                    if position > 5:
-                        break
-        else:
-            players = competition["competitors"]
+        try:
+            competition = game["competitions"]
+            while isinstance(competition, list):
+                competition = competition[0]
+            top_5 = []
+            if competition["scoringSystem"]["name"] == "Teamstroke":
+                print("[GOLF] Looking at teamstroke")
+                data = competition["rawData"]
+                position = 1
+                for line in data.splitlines():
+                    match = TEAMSTROKE_REGEX.match(line)
+                    if match:
+                        groups = match.groups()
+                        top_5.append({
+                            "display_name": f"{groups[0][:5]}/{groups[1][:5]}",
+                            "position": position,
+                            "score": groups[2]
+                        })
+                        position += 1
+                        if position > 5:
+                            break
+            else:
+                players = competition["competitors"]
 
-            top_5 = [
-                Golf.create_player(player)
-                for player in players
-                if 0 < int(player["status"]["position"]["id"]) < 5 
-            ]
-            top_5.sort(key=lambda player: player["position"])
-            top_5 = top_5[:5]
+                top_5 = [
+                    Golf.create_player(player)
+                    for player in players
+                    if 0 < int(player["status"]["position"]["id"]) < 5 
+                ]
+                top_5.sort(key=lambda player: player["position"])
+                top_5 = top_5[:5]
+        except Exception as e:
+            print(f"Failed to parse data with {e}")
+            return None
 
         name = game["shortName"].upper()
         words = name.split("PRES", 1)[0]
@@ -94,7 +100,10 @@ class Golf:
         return {"type": "Golf", "common": common, "players": top_5, "name": name}
 
     def create_golf_common(game):
-        competition = game["competitions"][0]
+        competition = game["competitions"]
+        while isinstance(competition, list):
+            competition = competition[0]
+
         espn_status = competition["status"]["type"]["name"]
         status = Common.convert_status(espn_status)
         ordinal = Common.to_ordinal(competition["status"]["period"])
