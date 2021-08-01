@@ -5,13 +5,13 @@
          "common":{
             "sport_id": 0,
             "home_team":{
-               "id":"16",
-               "location":"Chicago",
-               "name":"Chicago Blackhawks",
-               "display_name":"B Hawks",
-               "abbreviation":"CHI",
-               "primary_color":"ce1126",
-               "secondary_color":"000000"
+               "id":"55",
+               "location":"Seattle",
+               "name":"Seattle Kraken",
+               "display_name":"Kraken",
+               "abbreviation":"SEA",
+               "primary_color":"001628",
+               "secondary_color":"99D9D9"
             },
             "away_team":{
                "id":"19",
