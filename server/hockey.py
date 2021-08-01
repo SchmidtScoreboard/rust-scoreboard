@@ -4,7 +4,6 @@ import time
 import asyncio
 
 # .*: \{ id: (.*), city: (.*), name: (.*), display_name: (.*), abbreviation: (.*), primary_color: (.*), secondary_color: (.*) \},
-
 team_map = {
     1: Team.create_team("1", "New Jersey", "Devils", "Devils", "NJD", "c8102e", "000000"),
     2: Team.create_team("2", "New York", "Islanders", "Islanders", "NYI", "003087", "fc4c02"),
