@@ -83,7 +83,7 @@ class Golf:
                 idx = words.index(dumb_word)
                 words = words[:idx]
 
-        if words[0].isdigit() or words[0] == "AT&T":
+        if words[0].isdigit() or words[0] == "AT&T" or words[0] == "WGC-FEDEX":
             words = words[1:]
         
         try: 
