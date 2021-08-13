@@ -6,6 +6,7 @@ from dateutil.parser import parse
 import datetime
 import pytz
 import re
+import string
 
 
 TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
@@ -23,7 +24,7 @@ class Golf:
         else:
             score = stats[0]["displayValue"]
         return {
-            "display_name": last_name,
+            "display_name": last_name.translate(str.maketrans('', '', string.punctuation)),
             "position": int(player["status"]["position"]["id"]),
             "score": score,
         }
