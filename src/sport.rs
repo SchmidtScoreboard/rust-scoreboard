@@ -146,7 +146,7 @@ impl AWSData {
 }
 
 enum ReceivedData {
-    Valid(AWSData),
+    Valid(AWSData, u8),
     Error,
     None,
 }
@@ -265,29 +265,39 @@ impl AWSScreen {
         if let Ok(data_or_error) = self.data_pipe_receiver.try_recv() {
             match data_or_error {
                 Ok(mut new_data) => match &mut self.data {
-                    ReceivedData::Valid(current_data) => {
+                    ReceivedData::Valid(current_data, error_count) => {
                         current_data.update(
                             new_data,
                             &self.current_leagues,
                             &self.settings.favorite_teams,
                         );
                         current_data.try_rotate(self.settings.rotation_time);
+                        *error_count = 0;
                     }
                     _ => {
                         new_data.filter_games(&self.current_leagues, &self.settings.favorite_teams);
-                        self.data = ReceivedData::Valid(new_data);
+                        self.data = ReceivedData::Valid(new_data, 0);
                     }
                 },
                 Err(e) => {
-                    info!("{}", e);
-                    self.data = ReceivedData::Error
+                    info!("Received error: {}", e);
+                    match &mut self.data {
+                        ReceivedData::Valid(_, error_count) => {
+                            *error_count = *error_count + 1;
+                            info!("Error count is {}", *error_count);
+                            if *error_count > 5 {
+                                self.data = ReceivedData::Error
+                            }
+                        }
+                        _ => self.data = ReceivedData::Error,
+                    }
                 }
             }
             self.flavor_text = None; // Clear the flavor text
         }
 
         // if we need to change the displayed image, do that now
-        if let ReceivedData::Valid(current_data) = &mut self.data {
+        if let ReceivedData::Valid(current_data, _error_count) = &mut self.data {
             current_data.try_rotate(self.settings.rotation_time);
         }
     }
@@ -303,33 +313,34 @@ impl AWSScreen {
         loop {
             if !skip_flag {
                 info!("Fetching games from {}", &base_url);
-                let resp = game::fetch_games(&base_url, "all_v3", &api_key);
+                let resp = game::fetch_games(&base_url, "all_v4", &api_key);
                 if resp.error() {
                     error!("There was an error fetching games for endpoint",);
                     data_sender.send(Err("Network Error".to_owned())).unwrap();
-                }
-                info!("{:#?}", resp);
-                match resp.into_string() {
-                    Ok(resp_string) => {
-                        let result: Result<game::Response<SportData>, _> =
-                            serde_json::from_str(&resp_string);
-                        if let Ok(response) = result {
-                            info!("Successfully parsed response",);
-                            data_sender
-                                .send(Ok(AWSData::new(response.data.games)))
-                                .unwrap();
-                        } else {
-                            error!(
-                                "Failed to parse response {}, reason: {}",
-                                resp_string,
-                                result.err().unwrap()
-                            );
-                            data_sender.send(Err("Invalid Data".to_owned())).unwrap();
+                } else {
+                    info!("{:#?}", resp);
+                    match resp.into_string() {
+                        Ok(resp_string) => {
+                            let result: Result<game::Response<SportData>, _> =
+                                serde_json::from_str(&resp_string);
+                            if let Ok(response) = result {
+                                info!("Successfully parsed response",);
+                                data_sender
+                                    .send(Ok(AWSData::new(response.data.games)))
+                                    .unwrap();
+                            } else {
+                                error!(
+                                    "Failed to parse response {}, reason: {}",
+                                    resp_string,
+                                    result.err().unwrap()
+                                );
+                                data_sender.send(Err("Invalid Data".to_owned())).unwrap();
+                            }
                         }
-                    }
-                    Err(e) => {
-                        error!("Failed to convert response into a string {:?}", e);
-                        data_sender.send(Err(format!("Invalid Response"))).unwrap();
+                        Err(e) => {
+                            error!("Failed to convert response into a string {:?}", e);
+                            data_sender.send(Err(format!("Invalid Response"))).unwrap();
+                        }
                     }
                 }
             }
@@ -386,7 +397,7 @@ impl matrix::ScreenProvider for AWSScreen {
             .into_iter()
             .collect(),
         };
-        if let ReceivedData::Valid(data) = &mut self.data {
+        if let ReceivedData::Valid(data, _error_count) = &mut self.data {
             data.filter_games(&self.current_leagues, &self.settings.favorite_teams);
             data.try_rotate(self.settings.rotation_time);
         }
@@ -398,9 +409,9 @@ impl matrix::ScreenProvider for AWSScreen {
         let now = Instant::now();
         // Actually draw the data
         match &self.data {
-            ReceivedData::Valid(current_data) => {
+            ReceivedData::Valid(current_data, _error_count) => {
                 if now.duration_since(current_data.data_received_timestamp)
-                    < Duration::from_secs(120)
+                    < Duration::from_secs(60 * 5)
                 {
                     match current_data.get_active_game() {
                         Some(active_game) => {
@@ -446,7 +457,7 @@ impl matrix::ScreenProvider for AWSScreen {
     fn has_priority(self: &mut Self, _power_mode: &common::AutoPowerMode) -> bool {
         self.process(); // Ensure we fetch any updated games
         match &self.data {
-            ReceivedData::Valid(data) => {
+            ReceivedData::Valid(data, _error_count) => {
                 data.games
                     .iter()
                     .filter(|game| {

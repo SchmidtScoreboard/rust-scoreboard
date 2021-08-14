@@ -51,7 +51,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
         timezone: &Tz,
     ) {
         let font = &font_book.font5x8;
-        game::draw_scoreboard(canvas, &font, &self.common, 2, 2);
+        game::draw_scoreboard(canvas, &font, &self.common, 2, (2, 2));
 
         // Draw the current period
         let white = common::new_color(255, 255, 255);

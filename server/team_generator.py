@@ -48,6 +48,7 @@ if __name__ == "__main__":
                 team = json_team["team"]
                 team_id = team["id"]  # string
                 location = team["location"]
+                print(location)
                 name = team["name"]
                 abbreviation = team["abbreviation"]
                 color = team["color"]

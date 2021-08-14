@@ -47,6 +47,10 @@ def all_v2():
 def all_v3():
     return {"data": {"games": loop.run_until_complete(All.get_games_v3(testing))}}
 
+@app.route("/all_v4")
+def all_v4():
+    return {"data": {"games": loop.run_until_complete(All.get_games_v4(testing))}}
+
 
 @app.route("/basketball")
 def basketball():

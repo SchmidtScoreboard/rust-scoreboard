@@ -13,7 +13,7 @@ pub struct FootballData {
     pub time_remaining: String,
     pub ball_position: String,
     pub down_string: String,
-    pub home_possession: bool
+    pub home_possession: Option<bool>
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -77,8 +77,25 @@ fn football_draw(
     timezone: &Tz,
 ) {
     let font = &font_book.font4x6;
-    let accent_box_width = if football_data.is_some() && common.is_active_game() { 8 } else { 2 };
-    game::draw_scoreboard(canvas, &font, &common, 1, accent_box_width);
+    let (away_width, home_width) = match football_data {
+        Some(data) => {
+            if let Some(home_possession) = data.home_possession {
+                if home_possession {
+                    (2, 8)
+                } else {
+                    (8, 2)
+                }
+            } else {
+                (2, 2)
+            }
+        },
+        None => {
+            (2, 2)
+        }
+    };
+
+
+    game::draw_scoreboard(canvas, &font, &common, 1, (away_width, home_width));
 
     // Draw the current period
     let white = common::new_color(255, 255, 255);
@@ -96,21 +113,23 @@ fn football_draw(
             false,
         )
     };
+    let top_row_height = 17;
+    let bottom_row_height = 25;
+    let left_indent = 2;
+    let right_indent = 63;
 
     // Draw FINAL
     if common.status == game::GameStatus::END {
-        draw_bottom_info("FINAL", (36, 23), &yellow);
-        draw_bottom_info(&common.get_ordinal_text(timezone), (5, 23), &white);
+        let final_string = "FINAL";
+        let final_string_dimensions= font.get_text_dimensions(&final_string);
+        draw_bottom_info("FINAL", (right_indent - final_string_dimensions.width, bottom_row_height), &yellow);
+        draw_bottom_info(&common.get_ordinal_text(timezone), (left_indent, bottom_row_height), &white);
     }
 
     if let Some(football_data) = football_data {
-        let top_row_height = 17;
-        let bottom_row_height = 25;
-        let left_indent = 3;
-        let right_indent = 64;
         // Left side
-        draw_bottom_info(&common.get_ordinal_text(timezone), (left_indent, top_row_height), &white);
-        draw_bottom_info(&football_data.time_remaining, (left_indent, bottom_row_height), &white);
+        draw_bottom_info(&common.get_ordinal_text(timezone), (left_indent, bottom_row_height), &white);
+        draw_bottom_info(&football_data.time_remaining, (left_indent, top_row_height), &white);
 
         // Right side
         let down_string_dimensions = font.get_text_dimensions(&football_data.down_string);
@@ -120,17 +139,19 @@ fn football_draw(
 
         // Draw possession
         if common.is_active_game() {
-            let (football_height, football_color, background_color)  = if football_data.home_possession { 
-                (8, common.home_team.primary_color, common.home_team.secondary_color) } else { (1, common.away_team.primary_color, common.away_team.secondary_color) };
-            let football_image = pixels_book.football
-                .replace_color(&white, &football_color )
-                .replace_color(&black, &background_color);
-            matrix::draw_pixels(canvas, &football_image, (1, football_height));
+            if let Some(home_possession) = football_data.home_possession {
+                let (football_height, football_color, background_color)  = if home_possession { 
+                    (8, common.home_team.primary_color, common.home_team.secondary_color) } else { (1, common.away_team.primary_color, common.away_team.secondary_color) };
+                let football_image = pixels_book.football
+                    .replace_color(&white, &football_color )
+                    .replace_color(&black, &background_color);
+                matrix::draw_pixels(canvas, &football_image, (1, football_height));
+            }
         }
         
         
     } else {
-        draw_bottom_info(&common.get_ordinal_text(timezone), (5, 23), &white);
+        draw_bottom_info(&common.get_ordinal_text(timezone), (left_indent, bottom_row_height), &white);
     }
 }
 

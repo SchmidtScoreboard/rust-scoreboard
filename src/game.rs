@@ -182,10 +182,11 @@ pub fn draw_scoreboard(
     font: &matrix::Font,
     game: &CommonGameData,
     spacing: i32,
-    accent_box_width: i32
+    accent_box_widths: (i32, i32)
 ) {
     // draw away box
-    let box_height = draw_team_box(canvas, font, &game.away_team, game.away_score, 0, spacing, accent_box_width);
+    let (away_width, home_width) = accent_box_widths;
+    let box_height = draw_team_box(canvas, font, &game.away_team, game.away_score, 0, spacing, away_width);
 
     // draw home box
     draw_team_box(
@@ -195,7 +196,7 @@ pub fn draw_scoreboard(
         game.home_score,
         box_height,
         spacing,
-        accent_box_width
+        home_width
     );
 }
 
