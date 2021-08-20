@@ -119,7 +119,7 @@ class Common:
             time = parse(competition["date"]).astimezone(pytz.utc)
             now = datetime.datetime.now(tz=pytz.UTC)
             delta = abs(now - time)
-            if delta > datetime.timedelta(hours=24):
+            if delta > datetime.timedelta(hours=12):
                 return None
 
             ordinal = Common.to_ordinal(competition["status"]["period"])
