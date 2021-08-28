@@ -36,7 +36,7 @@ class CollegeFootball_v2:
         if testing:
             return Common.get_testing_games("college-football")
         else:
-            raw_games = await Fetcher.espn_fetch("football", "college-football")
+            raw_games = await Fetcher.espn_fetch("football", "college-football", "scoreboard?groups=80")
             games = [
                 CollegeFootball_v2.create_game(
                     Common.from_espn_json(
