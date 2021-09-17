@@ -4,15 +4,19 @@ import aiohttp
 class Fetcher:
     async def schedule_fetch(schedule_url: str):
         print(f"[STATSAPI] Fetching schedule at url {schedule_url}")
-        async with aiohttp.ClientSession() as session:
-            async with session.get(schedule_url) as r:
-                json = await r.json()
-                print(f"[STATSAPI] Done fetching schedule at url {schedule_url}")
-                dates = json["dates"]
-                if len(dates) > 0:
-                    return dates[0]["games"]
-                else:
-                    return []
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(schedule_url) as r:
+                    json = await r.json()
+                    print(f"[STATSAPI] Done fetching schedule at url {schedule_url}")
+                    dates = json["dates"]
+                    if len(dates) > 0:
+                        return dates[0]["games"]
+                    else:
+                        return []
+        except Exception as e:
+            print(f"[STATSAPI] FAILED REQUEST RESPONSE {e}")
+            return []
 
     async def game_fetch(game_url: str):
         print(f"[STATSAPI] Fetching game at url {game_url}")
