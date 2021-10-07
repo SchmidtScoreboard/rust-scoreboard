@@ -8,6 +8,9 @@ import pytz
 import re
 import string
 
+name_map = {
+    "SHRINERS CHILDREN'S OPEN" : "SHRINERS OPEN"
+}
 
 TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
 class Golf:
@@ -76,6 +79,8 @@ class Golf:
             return None
 
         name = game["shortName"].upper()
+        if name in name_map:
+            name = name_map[name]
         words = name.split("PRES", 1)[0]
         words = words.split()
 
