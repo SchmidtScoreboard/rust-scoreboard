@@ -161,8 +161,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         common::SetupState::Hotspot | common::SetupState::WifiConnect => true,
         _ => false,
     };
-    if enable_hotspot || !common::is_connected() {
-        info!("Could not reach internet or in setup state, showing hotspot screen and enabling the hotspot");
+    if enable_hotspot {
+        info!("In setup state, showing hotspot screen and enabling the hotspot");
         settings.set_setup_state(&common::SetupState::Hotspot);
         settings.set_active_screen(&common::ScreenId::Setup);
         shell_sender
