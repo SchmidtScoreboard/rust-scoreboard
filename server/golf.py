@@ -10,7 +10,7 @@ import string
 
 name_map = {
     "SHRINERS CHILDREN'S OPEN" : "SHRINERS OPEN",
-    "BUTTERFIELD BERMUDA CHAMPIONSHIP" : "B BERMUDA"
+    "BUTTERFIELD BERMUDA CHAMPIONSHIP" : "BERMUDA CHAMP"
 }
 
 TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
