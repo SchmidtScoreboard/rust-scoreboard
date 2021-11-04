@@ -1,0 +1,86 @@
+{
+  "copyright" : "NHL and the NHL Shield are registered trademarks of the National Hockey League. NHL and NHL team marks are the property of the NHL and its teams. © NHL 2021. All Rights Reserved.",
+  "currentPeriod" : 2,
+  "currentPeriodOrdinal" : "2nd",
+  "currentPeriodTimeRemaining" : "01:24",
+  "periods" : [ {
+    "periodType" : "REGULAR",
+    "startTime" : "2021-10-31T00:08:38Z",
+    "endTime" : "2021-10-31T00:40:41Z",
+    "num" : 1,
+    "ordinalNum" : "1st",
+    "home" : {
+      "goals" : 0,
+      "shotsOnGoal" : 14,
+      "rinkSide" : "left"
+    },
+    "away" : {
+      "goals" : 0,
+      "shotsOnGoal" : 4,
+      "rinkSide" : "right"
+    }
+  }, {
+    "periodType" : "REGULAR",
+    "startTime" : "2021-10-31T00:59:24Z",
+    "num" : 2,
+    "ordinalNum" : "2nd",
+    "home" : {
+      "goals" : 0,
+      "shotsOnGoal" : 13,
+      "rinkSide" : "right"
+    },
+    "away" : {
+      "goals" : 0,
+      "shotsOnGoal" : 12,
+      "rinkSide" : "left"
+    }
+  } ],
+  "shootoutInfo" : {
+    "away" : {
+      "scores" : 0,
+      "attempts" : 0
+    },
+    "home" : {
+      "scores" : 0,
+      "attempts" : 0
+    }
+  },
+  "teams" : {
+    "home" : {
+      "team" : {
+        "id" : 19,
+        "name" : "St. Louis Blues",
+        "link" : "/api/v1/teams/19"
+      },
+      "goals" : 0,
+      "shotsOnGoal" : 27,
+      "goaliePulled" : false,
+      "numSkaters" : 4,
+      "powerPlay" : false
+    },
+    "away" : {
+      "team" : {
+        "id" : 16,
+        "name" : "Chicago Blackhawks",
+        "link" : "/api/v1/teams/16"
+      },
+      "goals" : 0,
+      "shotsOnGoal" : 16,
+      "goaliePulled" : false,
+      "numSkaters" : 5,
+      "powerPlay" : true
+    }
+  },
+  "powerPlayStrength" : "5-on-4",
+  "hasShootout" : false,
+  "intermissionInfo" : {
+    "intermissionTimeRemaining" : 0,
+    "intermissionTimeElapsed" : 0,
+    "inIntermission" : false
+  },
+  "powerPlayInfo" : {
+    "situationTimeRemaining" : 66,
+    "situationTimeElapsed" : 54,
+    "inSituation" : true
+  }
+}
