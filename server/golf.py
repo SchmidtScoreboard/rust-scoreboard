@@ -10,7 +10,8 @@ import string
 
 name_map = {
     "SHRINERS CHILDREN'S OPEN" : "SHRINERS OPEN",
-    "BUTTERFIELD BERMUDA CHAMPIONSHIP" : "BERMUDA CHAMP"
+    "BUTTERFIELD BERMUDA CHAMPIONSHIP" : "BERMUDA CHAMP",
+    "WORLD WIDE TECHNOLOGY CHAMPIONSHIP AT MAYAKOBA" : "WWT CHAMP"
 }
 
 TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
@@ -80,6 +81,7 @@ class Golf:
             return None
 
         name = game["shortName"].upper()
+        print(name)
         if name in name_map:
             name = name_map[name]
         words = name.split("PRES", 1)[0]
