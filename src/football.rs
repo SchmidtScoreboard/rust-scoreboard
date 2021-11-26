@@ -144,7 +144,6 @@ fn football_draw(
                     (8, common.home_team.primary_color, common.home_team.secondary_color) } else { (1, common.away_team.primary_color, common.away_team.secondary_color) };
                 let football_image = pixels_book.football
                     .replace_color(&white, &football_color )
-                    .replace_color(&black, &background_color);
                 matrix::draw_pixels(canvas, &football_image, (1, football_height));
             }
         }

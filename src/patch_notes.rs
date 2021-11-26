@@ -15,6 +15,7 @@ impl Patch {
 
 pub fn get_patches() -> Vec<Patch> {
     vec![
+        Patch::create("2.3.4", "Fix to football icon not displaying, power play working again"),
         Patch::create("2.3.3", "Removed automatic reset on internet loss"),
         Patch::create("2.3.2", "Better Error Handling, fixes to football"),
         Patch::create("2.3.1", "Not hideous default custom message"),
