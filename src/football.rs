@@ -99,7 +99,6 @@ fn football_draw(
 
     // Draw the current period
     let white = common::new_color(255, 255, 255);
-    let black = common::new_color(0, 0, 0);
     let yellow = common::new_color(255, 255, 0);
 
     let mut draw_bottom_info = |text: &str, position: (i32, i32), color: &rpi_led_matrix::LedColor| {
@@ -140,11 +139,10 @@ fn football_draw(
         // Draw possession
         if common.is_active_game() {
             if let Some(home_possession) = football_data.home_possession {
-                let (football_height, football_color, background_color)  = if home_possession { 
-                    (8, common.home_team.primary_color, common.home_team.secondary_color) } else { (1, common.away_team.primary_color, common.away_team.secondary_color) };
+                let (football_height, football_color)  = if home_possession { 
+                    (8, common.home_team.primary_color) } else { (1, common.away_team.primary_color) };
                 let football_image = pixels_book.football
-                    .replace_color(&white, &football_color )
-                    .replace_color(&black, &background_color);
+                    .replace_color(&white, &football_color );
                 matrix::draw_pixels(canvas, &football_image, (1, football_height));
             }
         }

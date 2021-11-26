@@ -743,7 +743,6 @@ impl Pixels {
                 .iter()
                 .map(|row| {
                     row.iter()
-                        
                         .map(|value| {
                             if let Some(value) = value {
                                 if value.red == old_color.red

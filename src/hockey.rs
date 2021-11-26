@@ -80,21 +80,23 @@ impl aws_screen::AWSScreenType for HockeyGame {
                 false,
             );
         } else {
+            let stored : String; // Make sure a potentially created reference stays alive
             let powerplay_message: Option<&str> = {
                 if self.away_powerplay {
-                    Some(&self.common.away_team.abbreviation);
-                }
-                if self.home_powerplay {
-                    Some(&self.common.home_team.abbreviation);
-                }
-                if self.away_players > 1
+                    Some(&self.common.away_team.abbreviation)
+                } else if self.home_powerplay {
+                    Some(&self.common.home_team.abbreviation)
+                } else if self.away_players > 1
                     && self.away_players < 5
                     && self.home_players > 1
                     && self.home_players < 5
                 {
-                    Some(format!("{}-{}", self.away_players, self.home_players));
+                    // This is gross--store the format string here, and keep a reference in the message.
+                    stored = format!("{}-{}", self.away_players, self.home_players);
+                    Some(&stored)
+                } else {
+                    None
                 }
-                None
             };
 
             if let Some(message) = powerplay_message {

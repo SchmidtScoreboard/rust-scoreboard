@@ -740,9 +740,9 @@ team_map = {
     "2509": Team.create_team(
         "2509", "Purdue", "Boilermakers", "Purdue", "PUR", "CEB888", "000000"
     ),
-    "2636": Team.create_team("2636", "UTSA", "Roadrunners", "R Runners", "UTSA", "002A5C", "f47321"),
-    "2572": Team.create_team("2572", "Southern Miss", "Golden Eagles", "G Eagles", "USM", "FFAA3C", "000000"),
-    "2638": Team.create_team("2638", "UTEP", "Miners", "Miners", "UTEP", "ff8200", "041e42"),
+    "2636": Team.create_team("2636", "UTSA", "Roadrunners", "Texas SA", "UTSA", "002A5C", "f47321"),
+    "2572": Team.create_team("2572", "Southern Miss", "S Miss", "G Eagles", "USM", "FFAA3C", "000000"),
+    "2638": Team.create_team("2638", "UTEP", "Miners", "Texas EP", "UTEP", "ff8200", "041e42"),
     "2390": Team.create_team("2390", "Miami", "Hurricanes", "Miami", "MIA", "004325", "f0f0f0"),
       
 }
