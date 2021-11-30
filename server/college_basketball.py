@@ -14,7 +14,7 @@ class CollegeBasketball:
         if testing:
             return Common.get_testing_games("college-basketball")
         else:
-            raw_games = await Fetcher.espn_fetch("basketball", "mens-college-basketball")
+            raw_games = await Fetcher.espn_fetch("basketball", "mens-college-basketball", "scoreboard?groups=50")
             games = [
                 CollegeBasketball.create_game(
                     Common.from_espn_json(game, Team.get_espn_team, team_map, SportId.COLLEGE_BASKETBALL)
