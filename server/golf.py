@@ -151,11 +151,11 @@ class Golf:
             time, tee_time_display = (parse(competition["date"]).astimezone(pytz.utc), competition["date"])
 
         delta = abs(now - time)
-        if delta > datetime.timedelta(hours=24) and status not in ["Active", "END"]:
+        if delta > datetime.timedelta(hours=24) and status not in ["ACTIVE", "END"]:
             return None
 
             
-        if status == "Active":
+        if status == "ACTIVE":
             if time > now: # if tee time in the future, this happens after Day X of play ends
                 status = "END"
             if competition["scoringSystem"]["name"] == "Teamstroke":
