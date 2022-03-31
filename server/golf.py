@@ -16,7 +16,8 @@ name_map = {
     "SONY OPEN IN HAWAII" : "SONY OPEN",
     "AT&T PEBBLE BEACH PRO-AM" : "PEBBLE BEACH",
     "WASTE MANAGEMENT PHOENIX OPEN" : "WM PHOENIX",
-    "CORALES PUNTACANA CHAMPIONSHIP" : "PUTACANA CHAMP"
+    "CORALES PUNTACANA CHAMPIONSHIP" : "PUTACANA CHAMP",
+    "VALERO TEXAS OPEN" : "VALERO OPEN"
 }
 
 TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
@@ -150,11 +151,11 @@ class Golf:
             time, tee_time_display = (parse(competition["date"]).astimezone(pytz.utc), competition["date"])
 
         delta = abs(now - time)
-        if delta > datetime.timedelta(hours=24) and status not in ["ACTIVE", "END"]:
+        if delta > datetime.timedelta(hours=24) and status not in ["Active", "END"]:
             return None
 
             
-        if status == "ACTIVE":
+        if status == "Active":
             if time > now: # if tee time in the future, this happens after Day X of play ends
                 status = "END"
             if competition["scoringSystem"]["name"] == "Teamstroke":
