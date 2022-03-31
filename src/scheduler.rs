@@ -73,7 +73,7 @@ impl Scheduler {
         }
     }
 
-    pub fn run(self: &mut Self) {
+    pub fn run(&mut self) {
         loop {
             //TODO use two threads here--one to read and instantly process/queue, the other to periodically pull off the queue
             if let Ok(delayed_command) = self.receiver.try_recv() {
@@ -104,7 +104,7 @@ impl Scheduler {
         }
     }
 
-    fn send_command(self: &Self, command: Command) {
+    fn send_command(&self, command: Command) {
         match command {
             Command::MatrixCommand(matrix_command) => {
                 self.matrix_sender.send(matrix_command).unwrap();

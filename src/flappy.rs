@@ -3,10 +3,8 @@ use crate::common::ScoreboardSettingsData;
 use crate::matrix;
 use crate::scheduler;
 
-use rand;
 use rand::distributions::Distribution;
 use rand_distr::Uniform;
-use rpi_led_matrix;
 use std::any::Any;
 use std::collections::VecDeque;
 use std::iter::FromIterator;
@@ -36,11 +34,11 @@ impl Stats {
         }
     }
 
-    fn sample_float(self: &mut Self) -> f64 {
+    fn sample_float(&mut self) -> f64 {
         self.distribution.sample(&mut self.rng) as f64
     }
 
-    fn sample_int(self: &mut Self) -> u8 {
+    fn sample_int(&mut self) -> u8 {
         self.sample_float() as u8
     }
 }
@@ -77,11 +75,11 @@ impl Barriers {
         }
     }
 
-    fn get_first_barrier(self: &Self) -> &Barrier {
+    fn get_first_barrier(&self) -> &Barrier {
         self.barriers.front().unwrap()
     }
 
-    fn pop_first_barrier(self: &mut Self) {
+    fn pop_first_barrier(&mut self) {
         self.barriers.pop_front().unwrap();
         self.barriers.push_back(Barrier::generate(
             &mut self.distance_stats,
@@ -138,7 +136,7 @@ impl Flappy {
         }
     }
 
-    pub fn reset(self: &mut Self) {
+    pub fn reset(&mut self) {
         self.state = FlappyState::Playing();
         self.score = 0.0;
         self.player_vertical_velocity = MOMENTUM_ADD;
@@ -159,7 +157,7 @@ fn check_rectangle_intersection(
 }
 
 impl Flappy {
-    pub fn touch(self: &mut Self) {
+    pub fn touch(&mut self) {
         info!("Flappy received touch!");
         match self.state {
             FlappyState::Ready() => {
@@ -180,23 +178,22 @@ impl Flappy {
         }
     }
 
-    fn update_frame(self: &mut Self) -> bool {
+    fn update_frame(&mut self) -> bool {
         let now = Instant::now();
         if let Some(last_update) = self.last_update {
             let delta = now.duration_since(last_update).as_secs_f64();
 
             // First, move the barriers
             let barrier_movement = delta * SCREEN_SPEED;
-            self.first_barrier_distance = self.first_barrier_distance - barrier_movement;
+            self.first_barrier_distance -= barrier_movement;
 
             // Remove barrier if it has fallen off the left of the screen
             if self.first_barrier_distance < -4.0 {
                 let barrier = self.barriers.get_first_barrier();
-                self.first_barrier_distance =
-                    self.first_barrier_distance + barrier.next_distance as f64;
+                self.first_barrier_distance += barrier.next_distance as f64;
                 self.barriers.pop_first_barrier();
             }
-            self.score = self.score + barrier_movement / 10.0;
+            self.score += barrier_movement / 10.0;
 
             //Calcualte new velocity and position for Flappy
             let new_velocity = self.player_vertical_velocity + delta * GRAVITY;
@@ -245,7 +242,7 @@ impl Flappy {
                     info!("INTERSECTION BOTTOM");
                     return false;
                 }
-                barrier_pos = barrier_pos + barrier.next_distance as f64;
+                barrier_pos += barrier.next_distance as f64;
             }
 
             // Check if touching top or bottom
@@ -258,20 +255,20 @@ impl Flappy {
         self.last_update = Some(now);
         true
     }
-    fn draw_play_message(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas, baseline: i32) {
+    fn draw_play_message(&self, canvas: &mut rpi_led_matrix::LedCanvas, baseline: i32) {
         let white = common::new_color(255, 255, 255);
         let font = &self.fonts.font4x6;
         let tap_text = "Tap ";
         let play_button = &self.assets.play_button;
         let play_text = " to play";
-        let tap_dimensions = font.get_text_dimensions(&tap_text);
-        let play_dimensions = font.get_text_dimensions(&play_text);
+        let tap_dimensions = font.get_text_dimensions(tap_text);
+        let play_dimensions = font.get_text_dimensions(play_text);
 
         let total_width = tap_dimensions.width + play_button.size().width + play_dimensions.width;
 
         let start = SCREEN_WIDTH / 2 - total_width / 2;
 
-        canvas.draw_text(&font.led_font, &tap_text, start, baseline, &white, 0, false);
+        canvas.draw_text(&font.led_font, tap_text, start, baseline, &white, 0, false);
         matrix::draw_pixels(
             canvas,
             play_button,
@@ -282,7 +279,7 @@ impl Flappy {
         );
         canvas.draw_text(
             &font.led_font,
-            &play_text,
+            play_text,
             start + tap_dimensions.width + play_button.size().width,
             baseline,
             &white,
@@ -293,31 +290,31 @@ impl Flappy {
 }
 
 impl matrix::ScreenProvider for Flappy {
-    fn activate(self: &mut Self) {
+    fn activate(&mut self) {
         info!("Activating Flappy ");
         self.send_draw_command(None);
     }
 
-    fn deactivate(self: &mut Self) {
+    fn deactivate(&mut self) {
         info!("Deactiving Flappy");
         self.state = FlappyState::Ready();
     }
 
-    fn update_settings(self: &mut Self, settings: Arc<ScoreboardSettingsData>) {
+    fn update_settings(&mut self, settings: Arc<ScoreboardSettingsData>) {
         self._settings = settings;
     }
 
-    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         let white = common::new_color(255, 255, 255);
         let blue = common::new_color(8, 146, 208);
         match self.state {
             FlappyState::Ready() => {
                 let big_font = &self.fonts.font7x13;
                 let text = "FLAPPY";
-                let dimensions = big_font.get_text_dimensions(&text);
+                let dimensions = big_font.get_text_dimensions(text);
                 canvas.draw_text(
                     &big_font.led_font,
-                    &text,
+                    text,
                     SCREEN_WIDTH / 2 - (dimensions.width / 2),
                     dimensions.height + 7,
                     &blue,
@@ -333,7 +330,7 @@ impl matrix::ScreenProvider for Flappy {
                     // Draw player
                     let player = &self.player;
                     let (player_x, player_y) = self.player_position;
-                    matrix::draw_pixels(canvas, &player, (player_x as i32, player_y as i32));
+                    matrix::draw_pixels(canvas, player, (player_x as i32, player_y as i32));
 
                     // Draw the barriers
                     let mut barrier_x = self.first_barrier_distance as i32;
@@ -353,7 +350,7 @@ impl matrix::ScreenProvider for Flappy {
                             (barrier_x + BARRIER_WIDTH, SCREEN_HEIGHT),
                             &white,
                         );
-                        barrier_x = barrier_x + (barrier.next_distance as i32);
+                        barrier_x += barrier.next_distance as i32;
                     });
                     // Draw the score
                     let font = &self.fonts.font4x6;
@@ -373,10 +370,10 @@ impl matrix::ScreenProvider for Flappy {
             FlappyState::GameOver() => {
                 let big_font = &self.fonts.font7x13;
                 let text = "GAME OVER";
-                let dimensions = big_font.get_text_dimensions(&text);
+                let dimensions = big_font.get_text_dimensions(text);
                 canvas.draw_text(
                     &big_font.led_font,
-                    &text,
+                    text,
                     SCREEN_WIDTH / 2 - (dimensions.width / 2),
                     dimensions.height + 1,
                     &white,
@@ -387,14 +384,14 @@ impl matrix::ScreenProvider for Flappy {
                 let font = &self.fonts.font5x8;
                 let score_text = "Score: ";
                 let number_text = format!("{}", self.score as u32);
-                let score_dimensions = font.get_text_dimensions(&score_text);
+                let score_dimensions = font.get_text_dimensions(score_text);
                 let number_dimensions = font.get_text_dimensions(&number_text);
                 let baseline = SCREEN_HEIGHT / 2 + score_dimensions.height / 2;
                 let start =
                     SCREEN_WIDTH / 2 - (score_dimensions.width + number_dimensions.width) / 2;
                 canvas.draw_text(
                     &font.led_font,
-                    &score_text,
+                    score_text,
                     start,
                     baseline,
                     &white,
@@ -417,11 +414,11 @@ impl matrix::ScreenProvider for Flappy {
         self.send_draw_command(Some(Duration::from_millis(20)));
     }
 
-    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+    fn get_sender(&self) -> &mpsc::Sender<scheduler::DelayedCommand> {
         &self.sender
     }
 
-    fn get_screen_id(self: &Self) -> common::ScreenId {
+    fn get_screen_id(&self) -> common::ScreenId {
         common::ScreenId::Flappy
     }
 

@@ -3,7 +3,6 @@ use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use std::thread::sleep;
-use sysfs_gpio;
 
 use std::io;
 use users::{get_current_uid, get_user_by_uid};
@@ -15,8 +14,8 @@ pub struct ButtonHandler {
 }
 
 enum ButtonState {
-    PRESSED,
-    RELEASED,
+    Pressed,
+    Released,
 }
 
 impl ButtonHandler {
@@ -35,10 +34,10 @@ impl ButtonHandler {
             pin,
         }
     }
-    fn get_pin_value(self: &Self) -> Result<ButtonState, sysfs_gpio::Error> {
+    fn get_pin_value(&self) -> Result<ButtonState, sysfs_gpio::Error> {
         match self.pin.get_value() {
-            Ok(value) if value == 1 => Ok(ButtonState::PRESSED),
-            Ok(value) if value == 0 => Ok(ButtonState::RELEASED),
+            Ok(value) if value == 1 => Ok(ButtonState::Pressed),
+            Ok(value) if value == 0 => Ok(ButtonState::Released),
             Err(e) => {
                 let user = get_user_by_uid(get_current_uid()).unwrap();
                 info!(
@@ -58,7 +57,7 @@ impl ButtonHandler {
         }
     }
 
-    pub fn run(self: &mut Self) {
+    pub fn run(&mut self) {
         // Main run thread
         info!("Entering button run");
 
@@ -70,13 +69,13 @@ impl ButtonHandler {
             match self.get_pin_value() {
                 Ok(new_value) => {
                     match (&button_value, &new_value) {
-                        (ButtonState::PRESSED, ButtonState::PRESSED)
-                        | (ButtonState::RELEASED, ButtonState::RELEASED) => {}
-                        (ButtonState::RELEASED, ButtonState::PRESSED) => {
+                        (ButtonState::Pressed, ButtonState::Pressed)
+                        | (ButtonState::Released, ButtonState::Released) => {}
+                        (ButtonState::Released, ButtonState::Pressed) => {
                             info!("Button pressed!");
                             last_press_time = Some(now);
                         }
-                        (ButtonState::PRESSED, ButtonState::RELEASED) => {
+                        (ButtonState::Pressed, ButtonState::Released) => {
                             info!("Button released!");
                             if let Some(lpt) = last_press_time {
                                 if now.duration_since(lpt) > LONG_PRESS_DURATION {
@@ -111,7 +110,7 @@ impl ButtonHandler {
     }
 
     // Reset scoreboard to factory settings
-    fn handle_long_press(self: &Self) {
+    fn handle_long_press(&self) {
         info!("LONG PRESS");
         self.command_sender
             .send(common::MatrixCommand::Reset {
@@ -120,7 +119,7 @@ impl ButtonHandler {
             .unwrap()
     }
     // Send display on/off command
-    fn handle_single_press(self: &Self) {
+    fn handle_single_press(&self) {
         info!("SHORT PRESS");
         self.command_sender
             .send(common::MatrixCommand::SetPower {
@@ -131,7 +130,7 @@ impl ButtonHandler {
     }
 
     // Send show sync command
-    fn handle_double_press(self: &Self) {
+    fn handle_double_press(&self) {
         info!("DOUBLE PRESS");
         self.command_sender
             .send(common::MatrixCommand::SyncCommand {

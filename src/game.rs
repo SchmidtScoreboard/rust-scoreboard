@@ -5,10 +5,8 @@ use crate::matrix;
 
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use chrono_tz::Tz;
-use rpi_led_matrix;
 use serde::{de::Error, Deserialize, Deserializer};
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
-use ureq;
 
 #[derive(Deserialize)]
 pub struct Response<T> {
@@ -21,11 +19,12 @@ pub struct ResponseData<T> {
 }
 
 #[derive(Deserialize, PartialEq, Debug, Clone, Copy)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum GameStatus {
-    PREGAME,
-    ACTIVE,
-    INTERMISSION,
-    END,
+    Pregame,
+    Active,
+    Intermission,
+    End,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -82,8 +81,8 @@ impl PartialEq for CommonGameData {
 impl Eq for CommonGameData {}
 
 impl CommonGameData {
-    pub fn get_ordinal_text(self: &Self, timezone: &Tz) -> String {
-        if self.status == GameStatus::PREGAME {
+    pub fn get_ordinal_text(&self, timezone: &Tz) -> String {
+        if self.status == GameStatus::Pregame {
             format!(
                 "{}",
                 self.start_time.with_timezone(timezone).format("%-I:%M %p")
@@ -93,19 +92,19 @@ impl CommonGameData {
         }
     }
 
-    pub fn involves_team(self: &Self, team_id: u32) -> bool {
+    pub fn involves_team(&self, team_id: u32) -> bool {
         self.home_team.id == team_id || self.away_team.id == team_id
     }
 
-    pub fn is_active_game(self: &Self) -> bool {
-        self.status == GameStatus::ACTIVE || self.status == GameStatus::INTERMISSION
+    pub fn is_active_game(&self) -> bool {
+        self.status == GameStatus::Active || self.status == GameStatus::Intermission
     }
 
-    pub fn should_focus(self: &Self) -> bool {
+    pub fn should_focus(&self) -> bool {
         let now = Utc::now();
         let diff = now - self.start_time; // Get the duration between now and the start of the game. Positive == game started, Negative game to start
-        (self.status == GameStatus::END && diff > Duration::seconds(0) && diff < Duration::hours(4))
-            || (self.status == GameStatus::PREGAME && diff > -Duration::minutes(30))
+        (self.status == GameStatus::End && diff > Duration::seconds(0) && diff < Duration::hours(4))
+            || (self.status == GameStatus::Pregame && diff > -Duration::minutes(30))
             || self.is_active_game()
     }
 }
@@ -115,8 +114,8 @@ where
     D: Deserializer<'de>,
 {
     let s: &str = Deserialize::deserialize(deserializer)?;
-    let naive_time = NaiveDateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M:%SZ")
-        .or(NaiveDateTime::parse_from_str(&s, "%Y-%m-%dT%H:%MZ"))
+    let naive_time = NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M:%SZ")
+        .or_else(|_| NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%MZ"))
         .map_err(D::Error::custom)?;
     Ok(DateTime::<Utc>::from_utc(naive_time, Utc))
 }
@@ -201,19 +200,19 @@ pub fn draw_scoreboard(
 }
 
 pub trait Sport: aws_screen::AWSScreenType {
-    fn get_common(self: &Self) -> &CommonGameData;
+    fn get_common(&self) -> &CommonGameData;
 
-    fn involves_team(self: &Self, target_team: u32) -> bool {
+    fn involves_team(&self, target_team: u32) -> bool {
         let common = self.get_common();
         common.involves_team(target_team)
     }
 
-    fn should_focus(self: &Self) -> bool {
+    fn should_focus(&self) -> bool {
         let common = self.get_common();
         common.should_focus()
     }
 
-    fn get_screen_id(self: &Self) -> common::ScreenId {
+    fn get_screen_id(&self) -> common::ScreenId {
         let common = self.get_common();
         common.sport_id
     }
@@ -305,7 +304,7 @@ mod tests {
                     },
                     "away_score": 0,
                     "home_score": 0,
-                    "status": "PREGAME",
+                    "status": "Pregame",
                     "ordinal": "",
                     "start_time": "2020-08-07T22:05:00Z",
                     "id": "630879"
@@ -313,7 +312,7 @@ mod tests {
         let game: CommonGameData = serde_json::from_str(data).unwrap();
         assert_eq!(game.away_score, 0);
         assert_eq!(game.home_score, 0);
-        assert_eq!(game.status, GameStatus::PREGAME);
+        assert_eq!(game.status, GameStatus::Pregame);
         assert_eq!(game.ordinal, "");
         // let date = game.start_time.with
         // assert_eq!(game.start_time.)

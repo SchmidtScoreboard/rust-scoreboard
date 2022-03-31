@@ -1,15 +1,13 @@
-use crate::{animation, custom_message};
 use crate::common;
-use crate::common::ScoreboardSettingsData;
 use crate::common::Pixels;
+use crate::common::ScoreboardSettingsData;
 use crate::flappy;
 use crate::message;
 use crate::scheduler;
 use crate::scoreboard_settings::ScoreboardSettings;
 use crate::setup_screen;
+use crate::{animation, custom_message};
 use chrono::{Timelike, Utc};
-use png;
-use rpi_led_matrix;
 use std::any::Any;
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -19,7 +17,17 @@ use std::str;
 use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
 
-const PRIORITY_SCREENS: [common::ScreenId; 3] = [common::ScreenId::Smart, common::ScreenId::Clock, common::ScreenId::CustomMessage];
+const PRIORITY_SCREENS: [common::ScreenId; 3] = [
+    common::ScreenId::Smart,
+    common::ScreenId::Clock,
+    common::ScreenId::CustomMessage,
+];
+
+pub struct Senders {
+    pub webserver_responder: mpsc::Sender<common::WebserverResponse>, // Send responses to the webserver
+    pub shell_sender: mpsc::Sender<common::ShellCommand>, // Send commands to shell
+    pub scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
+}
 pub struct Matrix<'a> {
     led_matrix: rpi_led_matrix::LedMatrix, // The actual matrix
     receiver: mpsc::Receiver<common::MatrixCommand>, // Receive commands from the button, the webserver, and responses to shell commands
@@ -40,9 +48,7 @@ impl<'a> Matrix<'a> {
         receiver: mpsc::Receiver<common::MatrixCommand>,
         map: HashMap<common::ScreenId, Box<dyn ScreenProvider + 'a>>,
         settings: ScoreboardSettings,
-        webserver_responder: mpsc::Sender<common::WebserverResponse>,
-        shell_sender: mpsc::Sender<common::ShellCommand>,
-        scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
+        senders: Senders,
         daily_reboot: Option<u8>,
     ) -> Matrix<'a> {
         Matrix {
@@ -50,60 +56,60 @@ impl<'a> Matrix<'a> {
             receiver,
             screens_map: map,
             settings,
-            webserver_responder,
-            shell_sender,
-            scheduler_sender,
+            webserver_responder: senders.webserver_responder,
+            shell_sender: senders.shell_sender,
+            scheduler_sender: senders.scheduler_sender,
             message_screen,
             last_priority_check: Some(Instant::now()),
             daily_reboot,
         }
     }
 
-    fn get_mut_screen(self: &mut Self, id: &common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
+    fn get_mut_screen(&mut self, id: &common::ScreenId) -> &mut Box<dyn ScreenProvider + 'a> {
         self.screens_map
             .get_mut(id)
-            .expect(&format!("Could not find screen {:?}", id))
+            .unwrap_or_else(|| panic!("Could not find screen {:?}", id))
     }
 
-    fn get_mut_active_screen(self: &mut Self) -> &mut Box<dyn ScreenProvider + 'a> {
-        let id = self.settings.get_active_screen().get_base_id().clone();
+    fn get_mut_active_screen(&mut self) -> &mut Box<dyn ScreenProvider + 'a> {
+        let id = *self.settings.get_active_screen().get_base_id();
         self.get_mut_screen(&id)
     }
 
-    fn activate_screen(self: &mut Self) {
+    fn activate_screen(&mut self) {
         self.update_settings_on_active_screen();
         let screen = self.get_mut_active_screen();
         screen.activate();
     }
 
-    fn update_settings_on_active_screen(self: &mut Self) {
+    fn update_settings_on_active_screen(&mut self) {
         let settings = self.settings.get_settings();
         let screen = self.get_mut_active_screen();
         screen.update_settings(settings);
     }
-    fn deactivate_screen(self: &mut Self) {
+    fn deactivate_screen(&mut self) {
         let screen = self.get_mut_active_screen();
         screen.deactivate();
     }
-    fn send_command(self: &Self, response: common::ShellCommand) {
+    fn send_command(&self, response: common::ShellCommand) {
         self.shell_sender.send(response).unwrap();
     }
 
-    fn send_response(self: &Self, response: common::WebserverResponse) {
+    fn send_response(&self, response: common::WebserverResponse) {
         self.webserver_responder.send(response).unwrap();
     }
 
-    fn show_message(self: &mut Self, message: String) {
+    fn show_message(&mut self, message: String) {
         self.message_screen.set_message(message);
         self.message_screen.send_draw_command(None);
     }
 
-    fn hide_message(self: &mut Self) {
+    fn hide_message(&mut self) {
         self.message_screen.unset_message();
         self.get_mut_active_screen().send_draw_command(None);
     }
 
-    fn get_setup_screen(self: &mut Self) -> &mut setup_screen::SetupScreen {
+    fn get_setup_screen(&mut self) -> &mut setup_screen::SetupScreen {
         match self
             .get_mut_screen(&common::ScreenId::Setup)
             .as_any()
@@ -113,7 +119,7 @@ impl<'a> Matrix<'a> {
             None => panic!("Found screen is NOT the setup screen"),
         }
     }
-    fn get_flappy(self: &mut Self) -> &mut flappy::Flappy {
+    fn get_flappy(&mut self) -> &mut flappy::Flappy {
         match self
             .get_mut_screen(&common::ScreenId::Flappy)
             .as_any()
@@ -125,8 +131,8 @@ impl<'a> Matrix<'a> {
     }
 
     // Returns what the power state and target screen of the system should be after priority check
-    fn check_priority(self: &mut Self) -> Option<common::ScreenId> {
-        let auto_power_mode = self.settings.get_auto_power_mode().clone();
+    fn check_priority(&mut self) -> Option<common::ScreenId> {
+        let auto_power_mode = *self.settings.get_auto_power_mode();
         if self
             .last_priority_check
             .map(|last_priority_check| {
@@ -150,16 +156,14 @@ impl<'a> Matrix<'a> {
             } else {
                 None
             }
+        } else if *self.settings.get_power() {
+            Some(*self.settings.get_active_screen())
         } else {
-            if *self.settings.get_power() {
-                Some(*self.settings.get_active_screen())
-            } else {
-                None
-            }
+            None
         }
     }
 
-    fn schedule_nightly_reboot(self: &mut Self, reboot_time: u8) {
+    fn schedule_nightly_reboot(&mut self, reboot_time: u8) {
         let timezone = self.settings.get_timezone();
         let now = Utc::now().with_timezone(timezone);
         // Keep it simple--schedule this at 3AM local time tomorrow. If it is 1AM, don't worry about setting it to 3AM on the current day
@@ -186,7 +190,7 @@ impl<'a> Matrix<'a> {
 
     // This is the main loop of the entire code
     // Call this after everything else is set up
-    pub fn run(self: &mut Self) {
+    pub fn run(&mut self) {
         let mut canvas = self.led_matrix.offscreen_canvas();
         if let Some(reboot_time) = self.daily_reboot {
             self.schedule_nightly_reboot(reboot_time);
@@ -216,7 +220,7 @@ impl<'a> Matrix<'a> {
                         self.activate_screen();
                         if source == common::CommandSource::Webserver() {
                             self.settings.set_auto_power(&false);
-                            self.send_response(common::WebserverResponse::SetActiveScreenResponse(
+                            self.send_response(common::WebserverResponse::SetActiveScreen(
                                 self.settings.get_settings(),
                             ));
                         }
@@ -241,7 +245,7 @@ impl<'a> Matrix<'a> {
                         canvas = self.led_matrix.swap(canvas);
                         canvas.clear();
                         if source == common::CommandSource::Webserver() {
-                            self.send_response(common::WebserverResponse::SetPowerResponse(
+                            self.send_response(common::WebserverResponse::SetPower(
                                 self.settings.get_settings(),
                             ));
                         }
@@ -252,12 +256,10 @@ impl<'a> Matrix<'a> {
                         let target_screen = {
                             if auto_power {
                                 self.check_priority()
+                            } else if *self.settings.get_power() {
+                                Some(*self.settings.get_active_screen())
                             } else {
-                                if *self.settings.get_power() {
-                                    Some(*self.settings.get_active_screen())
-                                } else {
-                                    None
-                                }
+                                None
                             }
                         };
                         self.last_priority_check = None;
@@ -266,35 +268,33 @@ impl<'a> Matrix<'a> {
                         settings.screen_on = target_screen.is_some();
                         settings.active_screen =
                             target_screen.unwrap_or(*self.settings.get_active_screen());
-                        self.send_response(common::WebserverResponse::SetAutoPowerResponse(
-                            Arc::from(settings),
-                        ));
+                        self.send_response(common::WebserverResponse::SetAutoPower(Arc::from(
+                            settings,
+                        )));
                     }
                     common::MatrixCommand::Display(id) => {
                         if self.message_screen.is_message_set() {
                             self.message_screen.draw(&mut canvas);
                             canvas = self.led_matrix.swap(canvas);
                             canvas.clear();
-                        } else {
-                            if id == *self.settings.get_active_screen().get_base_id()
+                        } else if id == *self.settings.get_active_screen().get_base_id()
                                 && *self.settings.get_power()
-                            {
-                                // If the id received matches the active id, display the image
-                                self.get_mut_screen(&id).draw(&mut canvas);
-                                canvas = self.led_matrix.swap(canvas);
-                                canvas.clear();
-                            }
+                        {
+                            // If the id received matches the active id, display the image
+                            self.get_mut_screen(&id).draw(&mut canvas);
+                            canvas = self.led_matrix.swap(canvas);
+                            canvas.clear();
                         }
                     }
                     common::MatrixCommand::GameAction() => {
                         let flappy = self.get_flappy();
                         flappy.touch();
-                        self.send_response(common::WebserverResponse::GameActionResponse(
+                        self.send_response(common::WebserverResponse::GameAction(
                             self.settings.get_settings(),
                         ));
                     }
                     common::MatrixCommand::GetSettings() => {
-                        self.send_response(common::WebserverResponse::GetSettingsResponse(
+                        self.send_response(common::WebserverResponse::GetSettings(
                             self.settings.get_settings(),
                         ));
                     }
@@ -303,7 +303,7 @@ impl<'a> Matrix<'a> {
                         self.settings.update_settings(settings);
                         let new_brightness = self.settings.get_brightness();
                         self.update_settings_on_active_screen();
-                        self.send_response(common::WebserverResponse::UpdateSettingsResponse(
+                        self.send_response(common::WebserverResponse::UpdateSettings(
                             self.settings.get_settings(),
                         ));
                         self.last_priority_check = None;
@@ -367,14 +367,14 @@ impl<'a> Matrix<'a> {
                                     .set_setup_state(&common::SetupState::WifiConnect);
                                 self.update_settings_on_active_screen();
                                 self.send_response(
-                                    common::WebserverResponse::GotHotspotConnectionResponse(Some(
+                                    common::WebserverResponse::GotHotspotConnection(Some(
                                         self.settings.get_settings(),
                                     )),
                                 );
                             }
                             _ => {
                                 self.send_response(
-                                    common::WebserverResponse::GotHotspotConnectionResponse(None),
+                                    common::WebserverResponse::GotHotspotConnection(None),
                                 );
                             }
                         }
@@ -397,9 +397,9 @@ impl<'a> Matrix<'a> {
                             settings: self.settings.get_settings(),
                         });
                         // Send the response immediately
-                        self.send_response(common::WebserverResponse::GotWifiDetailsResponse(
-                            Some(self.settings.get_settings()),
-                        ));
+                        self.send_response(common::WebserverResponse::GotWifiDetails(Some(
+                            self.settings.get_settings(),
+                        )));
                     }
                     common::MatrixCommand::FinishedWifiConnection(result) => match result {
                         Ok(_) => {
@@ -460,35 +460,34 @@ impl<'a> Matrix<'a> {
                             self.update_settings_on_active_screen();
                             self.activate_screen();
                             if from_webserver {
-                                self.send_response(common::WebserverResponse::SyncCommandResponse(
-                                    Some(self.settings.get_settings()),
-                                ));
+                                self.send_response(common::WebserverResponse::SyncCommand(Some(
+                                    self.settings.get_settings(),
+                                )));
                             }
-                        } else {
-                            if from_webserver {
-                                self.send_response(common::WebserverResponse::SyncCommandResponse(
-                                    None,
-                                ));
-                            }
+                        } else if from_webserver {
+                            self.send_response(common::WebserverResponse::SyncCommand(None));
                         }
                     }
                     common::MatrixCommand::GetCustomMessage() => {
-                        let custom_message_screen = self.get_mut_screen(&common::ScreenId::CustomMessage) 
+                        let custom_message_screen = self
+                            .get_mut_screen(&common::ScreenId::CustomMessage)
                             .as_any()
-                            .downcast_mut::<custom_message::CustomMessageScreen>().expect("Could not get custom message screen");
+                            .downcast_mut::<custom_message::CustomMessageScreen>()
+                            .expect("Could not get custom message screen");
                         let custom_message = custom_message_screen.get_message();
 
-                        self.send_response(common::WebserverResponse::GetCustomMessageResponse(
-                            custom_message
+                        self.send_response(common::WebserverResponse::GetCustomMessage(
+                            custom_message,
                         ));
-
                     }
                     common::MatrixCommand::SetCustomMessage(custom_message) => {
-                        let custom_message_screen = self.get_mut_screen(&common::ScreenId::CustomMessage) 
+                        let custom_message_screen = self
+                            .get_mut_screen(&common::ScreenId::CustomMessage)
                             .as_any()
-                            .downcast_mut::<custom_message::CustomMessageScreen>().expect("Could not get custom message screen");
+                            .downcast_mut::<custom_message::CustomMessageScreen>()
+                            .expect("Could not get custom message screen");
                         custom_message_screen.set_message(custom_message);
-                        self.send_response(common::WebserverResponse::SetCustomMessageResponse());
+                        self.send_response(common::WebserverResponse::SetCustomMessage());
                     }
                 }
             };
@@ -561,8 +560,8 @@ pub struct Font {
 
 impl Font {
     fn dump_file(root_path: &std::path::Path, file_name: &str) {
-        let bytes =
-            FontAssets::get(file_name).expect(&format!("Could not find font {}", file_name));
+        let bytes = FontAssets::get(file_name)
+            .unwrap_or_else(|| panic!("Could not find font {}", file_name));
         let target_dir = root_path.join("fonts");
         let _create_dir_result = fs::create_dir(&target_dir);
         fs::write(&target_dir.join(file_name), bytes).expect("Failed to write file");
@@ -578,12 +577,12 @@ impl Font {
         let full_path = root_path.join(format!("fonts/{}", font_file));
         Font {
             led_font: rpi_led_matrix::LedFont::new(std::path::Path::new(&full_path))
-                .expect(&format!("Failed to find font file {:?}", &full_path)),
+                .unwrap_or_else(|_| panic!("Failed to find font file {:?}", &full_path)),
             dimensions: FontDimensions::new(width, height, width_overrides),
         }
     }
 
-    pub fn get_text_dimensions(self: &Self, display_text: &str) -> Dimensions {
+    pub fn get_text_dimensions(&self, display_text: &str) -> Dimensions {
         let width = display_text
             .chars()
             .map(|c| match self.dimensions.width_overrides.get(&c) {
@@ -682,7 +681,8 @@ impl Pixels {
     pub fn dump_file(root_path: &std::path::Path, file_name: &str) {
         let target_dir = root_path.join("assets");
         let _create_dir_result = fs::create_dir(&target_dir);
-        let contents = Asset::get(file_name).expect(&format!("Failed to write file {}", file_name));
+        let contents =
+            Asset::get(file_name).unwrap_or_else(|| panic!("Failed to write file {}", file_name));
         fs::write(&target_dir.join(file_name), contents).expect("Failed to write file");
     }
 
@@ -696,35 +696,34 @@ impl Pixels {
         let (info, mut reader) = decoder.read_info().unwrap();
         let width = info.width as usize;
         let height = info.height as usize;
-        let mut data: Vec<Vec<Option<rpi_led_matrix::LedColor>>> =
-            vec![vec![None; width]; height];
-        for y in 0..height {
+        let mut data: Vec<Vec<Option<rpi_led_matrix::LedColor>>> = vec![vec![None; width]; height];
+        for element in data.iter_mut().take(height) {
             let row = reader.next_row().unwrap().unwrap();
-            for x in 0..width {
+            for (x, value) in element.iter_mut().enumerate().take(width){
                 let index = x * 4;
                 // info!("Examining pixel at ({}, {}), values are {:?}", x, y, &row[index..index+4]);
-                data[y][x] = match &row[index + 3] {
+                *value = match &row[index + 3] {
                     255 => Some(common::color_from_slice(&row[index..index + 3])),
-                    _ => None
+                    _ => None,
                 };
             }
         }
-        Ok(Pixels { data: data })
+        Ok(Pixels { data })
     }
 
-    pub fn size(self: &Self) -> Dimensions {
+    pub fn size(&self) -> Dimensions {
         Dimensions::new(
             self.data[0].len().try_into().unwrap(),
             self.data.len().try_into().unwrap(),
         )
     }
 
-    pub fn flip_vertical(self: &Self) -> Pixels {
+    pub fn flip_vertical(&self) -> Pixels {
         let mut copy = self.data.to_vec();
         copy.reverse();
         Pixels { data: copy }
     }
-    pub fn _flip_horizontal(self: &Self) -> Pixels {
+    pub fn _flip_horizontal(&self) -> Pixels {
         let mut copy = self.data.to_vec();
         copy.iter_mut().for_each(|row| {
             row.reverse();
@@ -733,7 +732,7 @@ impl Pixels {
     }
 
     pub fn replace_color(
-        self: &Self,
+        &self,
         old_color: &rpi_led_matrix::LedColor,
         new_color: &rpi_led_matrix::LedColor,
     ) -> Pixels {
@@ -814,10 +813,10 @@ pub fn draw_lines(
         let index: i32 = i.try_into().unwrap();
         canvas.draw_text(
             &font.led_font,
-            &text,
+            text,
             x_baseline,
-            top_offset + (index * (&font.dimensions.height + spacing as i32)),
-            &color,
+            top_offset + (index * (font.dimensions.height + spacing as i32)),
+            color,
             0,
             false,
         );
@@ -829,9 +828,9 @@ pub fn draw_pixels(canvas: &mut rpi_led_matrix::LedCanvas, pixels: &Pixels, top_
     let mut y = 0;
     pixels.data.iter().for_each(|row| {
         let mut x = 0;
-        row.into_iter().for_each(|pixel| {
+        row.iter().for_each(|pixel| {
             if let Some(pixel) = pixel {
-                canvas.set(x0 + x, y0 + y, &pixel);
+                canvas.set(x0 + x, y0 + y, pixel);
             }
             x += 1;
         });
@@ -849,7 +848,7 @@ pub fn draw_message(
     let white = common::new_color(255, 255, 255);
     canvas.draw_text(
         &font.led_font,
-        &message,
+        message,
         1,
         1 + text_dimensions.height,
         &white,
@@ -863,28 +862,28 @@ pub fn draw_message(
 pub trait ScreenProvider {
     // Activate is called by the Display driver
     // Activate sets up whatever refreshing this screen needs
-    fn activate(self: &mut Self) {}
+    fn activate(&mut self) {}
 
     // Cleanup any unused resources
     // Most screens won't have to do anything here
     // If there are owned threads, cancel them
-    fn deactivate(self: &mut Self) {}
+    fn deactivate(&mut self) {}
 
     // Draw is not blocking--fills in the canvas and returns it immediately
     // Draw can check for new data on an internal try_recv, and update internal variables, but
     // it must not issue any network requests or perform any other asynchronous action
     // Asynchronous actions must be driven by a refresh thread set up in `activate`
-    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas);
+    fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas);
 
     // Handle recieving new scoreboard settings
     // This may change timezone and any other screen specific features
-    fn update_settings(self: &mut Self, _settings: Arc<ScoreboardSettingsData>) {}
+    fn update_settings(&mut self, _settings: Arc<ScoreboardSettingsData>) {}
 
-    fn get_screen_id(self: &Self) -> common::ScreenId;
+    fn get_screen_id(&self) -> common::ScreenId;
 
-    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand>;
+    fn get_sender(&self) -> &mpsc::Sender<scheduler::DelayedCommand>;
 
-    fn send_draw_command(self: &Self, duration: Option<Duration>) {
+    fn send_draw_command(&self, duration: Option<Duration>) {
         let id = self.get_screen_id();
         let sender = self.get_sender();
         sender
@@ -897,7 +896,7 @@ pub trait ScreenProvider {
 
     fn as_any(&mut self) -> &mut dyn Any;
 
-    fn has_priority(self: &mut Self, _power_mode: &common::AutoPowerMode) -> bool {
+    fn has_priority(&mut self, _power_mode: &common::AutoPowerMode) -> bool {
         false
     }
 }

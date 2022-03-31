@@ -3,7 +3,6 @@ use crate::common;
 use crate::matrix;
 use crate::scheduler;
 
-use rpi_led_matrix;
 use std::any::Any;
 use std::sync::{mpsc, Arc};
 use std::time::Duration;
@@ -44,23 +43,23 @@ impl SetupScreen {
         }
     }
 
-    pub fn attempting_connection(self: &mut Self) {
+    pub fn attempting_connection(&mut self) {
         self.wifi_state = WifiScreenSubState::AttemptingConnection();
     }
-    pub fn failed_connection(self: &mut Self) {
+    pub fn failed_connection(&mut self) {
         self.wifi_state = WifiScreenSubState::ConnectionFailed();
     }
 
-    pub fn set_sync_code(self: &mut Self, code: Option<String>) {
+    pub fn set_sync_code(&mut self, code: Option<String>) {
         self.sync_code = code;
     }
 }
 
 impl matrix::ScreenProvider for SetupScreen {
-    fn activate(self: &mut Self) {
+    fn activate(&mut self) {
         self.send_draw_command(None);
     }
-    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         match self.state {
             common::SetupState::Hotspot => {
                 let (canvas_width, canvas_height) = canvas.canvas_size();
@@ -81,7 +80,7 @@ impl matrix::ScreenProvider for SetupScreen {
 
                 matrix::draw_lines(
                     canvas,
-                    &vec!["Connect to", "wifi:", "SSB42"],
+                    &["Connect to", "wifi:", "SSB42"],
                     phone_frame_size.width + 4,
                     font,
                     &white,
@@ -100,8 +99,7 @@ impl matrix::ScreenProvider for SetupScreen {
                 );
                 let white = common::new_color(255, 255, 255);
                 let font = &self.fonts.font4x6;
-                let lines: Vec<&'static str>;
-                match self.wifi_state {
+                let lines: Vec<&'static str> = match self.wifi_state {
                     WifiScreenSubState::WaitingForConnection() => {
                         let check_size = &self.pixels.green_check.size();
                         matrix::draw_pixels(
@@ -109,11 +107,11 @@ impl matrix::ScreenProvider for SetupScreen {
                             &self.pixels.green_check,
                             (5, (canvas_height / 2) - (check_size.height / 2)),
                         );
-                        lines = vec!["Connected!", "Send your", "wifi info"];
+                        vec!["Connected!", "Send your", "wifi info"]
                     }
                     WifiScreenSubState::AttemptingConnection() => {
                         self.loading_anim.draw(canvas, (7, (canvas_height / 2) - 2));
-                        lines = vec!["Connecting", "to wifi"];
+                        vec!["Connecting", "to wifi"]
                     }
                     WifiScreenSubState::ConnectionFailed() => {
                         let x_size = &self.pixels.red_x.size();
@@ -122,9 +120,9 @@ impl matrix::ScreenProvider for SetupScreen {
                             &self.pixels.red_x,
                             (6, (canvas_height / 2) - (x_size.height / 2)),
                         );
-                        lines = vec!["Failed to", "connect,", "try again"]
+                        vec!["Failed to", "connect,", "try again"]
                     }
-                }
+                };
                 matrix::draw_lines(canvas, &lines, phone_frame_size.width + 4, font, &white);
             }
             common::SetupState::Sync => {
@@ -170,13 +168,13 @@ impl matrix::ScreenProvider for SetupScreen {
         }
         self.send_draw_command(Some(Duration::from_millis(16)));
     }
-    fn update_settings(self: &mut Self, settings: Arc<common::ScoreboardSettingsData>) {
+    fn update_settings(&mut self, settings: Arc<common::ScoreboardSettingsData>) {
         self.state = settings.setup_state;
     }
-    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+    fn get_sender(&self) -> &mpsc::Sender<scheduler::DelayedCommand> {
         &self.sender
     }
-    fn get_screen_id(self: &Self) -> common::ScreenId {
+    fn get_screen_id(&self) -> common::ScreenId {
         common::ScreenId::Setup
     }
 

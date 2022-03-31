@@ -28,14 +28,14 @@ impl CommandExecutor {
             receiver,
         }
     }
-    fn send_webserver_response(self: &Self, response: common::WebserverResponse) {
+    fn send_webserver_response(&self, response: common::WebserverResponse) {
         self.webserver_sender.send(response).unwrap();
     }
-    fn send_matrix_response(self: &Self, response: common::MatrixCommand) {
+    fn send_matrix_response(&self, response: common::MatrixCommand) {
         self.matrix_sender.send(response).unwrap();
     }
 
-    fn set_interface(self: &Self, interface: &str, enable: bool) -> ExitStatus {
+    fn set_interface(&self, interface: &str, enable: bool) -> ExitStatus {
         self.execute(
             "sudo",
             &[
@@ -49,18 +49,18 @@ impl CommandExecutor {
         .expect("Failed to run set interfaces")
     }
 
-    fn execute(self: &Self, command: &str, args: &[&str]) -> io::Result<ExitStatus> {
+    fn execute(&self, command: &str, args: &[&str]) -> io::Result<ExitStatus> {
         let result = Command::new(command).args(args).output()?;
-        if result.stdout.len() > 0 {
+        if !result.stdout.is_empty() {
             info!("{:?}", &String::from_utf8(result.stdout).unwrap());
         }
-        if result.stderr.len() > 0 {
+        if !result.stderr.is_empty() {
             error!("{:?}", &String::from_utf8(result.stderr).unwrap());
         }
         Ok(result.status)
     }
 
-    fn setup_wifi(self: &Self, ssid: &str, password: &str) -> io::Result<ExitStatus> {
+    fn setup_wifi(&self, ssid: &str, password: &str) -> io::Result<ExitStatus> {
         // First, write to the WPA Supplicant file
         let supplicant = format!(
             "country=US
@@ -94,7 +94,7 @@ network={{
         Ok(output)
     }
 
-    pub fn run(self: &Self) {
+    pub fn run(&self) {
         let user = get_user_by_uid(get_current_uid()).unwrap();
         info!("Shell exec: Hello, {}!", user.name().to_string_lossy());
 
@@ -105,7 +105,7 @@ network={{
             match command {
                 common::ShellCommand::Reboot { settings } => {
                     if let Some(settings) = settings {
-                        self.send_webserver_response(common::WebserverResponse::RebootResponse(
+                        self.send_webserver_response(common::WebserverResponse::Reboot(
                             Some(settings),
                         ));
                     }
@@ -129,7 +129,7 @@ network={{
                     }
 
                     if let Some(settings) = from_webserver {
-                        self.send_webserver_response(common::WebserverResponse::ResetResponse(
+                        self.send_webserver_response(common::WebserverResponse::Reset(
                             Some(settings),
                         ));
                     }

@@ -24,20 +24,20 @@ impl CustomMessageScreen {
         }
     }
 
-    pub fn set_message(self: &mut Self, new_message: common::CustomMessage) {
+    pub fn set_message(&mut self, new_message: common::CustomMessage) {
         self.message = new_message;
     }
 
-    pub fn get_message(self: &Self) -> common::CustomMessage {
+    pub fn get_message(&self) -> common::CustomMessage {
         self.message.clone()
     }
 }
 
 impl ScreenProvider for CustomMessageScreen {
-    fn activate(self: &mut Self) {
+    fn activate(&mut self) {
         self.send_draw_command(None);
     }
-    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         // Start by drawing the pixels
         draw_pixels(canvas, &self.message.background, (0,0));
 
@@ -57,11 +57,11 @@ impl ScreenProvider for CustomMessageScreen {
         self.send_draw_command(Some(Duration::from_millis(20)));
     }
 
-    fn get_screen_id(self: &Self) -> crate::common::ScreenId {
+    fn get_screen_id(&self) -> crate::common::ScreenId {
         crate::common::ScreenId::CustomMessage
     }
 
-    fn get_sender(self: &Self) -> &Sender<scheduler::DelayedCommand> {
+    fn get_sender(&self) -> &Sender<scheduler::DelayedCommand> {
         &self.sender
     }
 
@@ -69,7 +69,7 @@ impl ScreenProvider for CustomMessageScreen {
         self
     }
 
-    fn has_priority(self: &mut Self, power_mode: &common::AutoPowerMode) -> bool {
+    fn has_priority(&mut self, power_mode: &common::AutoPowerMode) -> bool {
         power_mode == &common::AutoPowerMode::CustomMessage
     }
 }

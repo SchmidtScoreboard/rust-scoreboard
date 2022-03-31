@@ -69,7 +69,7 @@ fn index(
     (*state).sender.send(MatrixCommand::GetSettings()).unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::GetSettingsResponse(settings) => Ok(Content(content, Json(settings))),
+        WebserverResponse::GetSettings(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -91,7 +91,7 @@ fn configure(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::UpdateSettingsResponse(settings) => Ok(Content(content, Json(settings))),
+        WebserverResponse::UpdateSettings(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -105,7 +105,7 @@ fn game_action(
     (*state).sender.send(MatrixCommand::GameAction()).unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::GameActionResponse(settings) => Ok(Content(content, Json(settings))),
+        WebserverResponse::GameAction(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -126,7 +126,7 @@ fn set_power(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SetPowerResponse(settings) => Ok(Content(content, Json(settings))),
+        WebserverResponse::SetPower(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -143,7 +143,7 @@ fn auto_power(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SetAutoPowerResponse(settings) => Ok(Content(content, Json(settings))),
+        WebserverResponse::SetAutoPower(settings) => Ok(Content(content, Json(settings))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -164,7 +164,7 @@ fn set_sport(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SetActiveScreenResponse(settings) => {
+        WebserverResponse::SetActiveScreen(settings) => {
             Ok(Content(content, Json(settings)))
         }
         _ => Err(status::NotFound("Internal error".to_string())),
@@ -187,7 +187,7 @@ fn wifi(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::GotWifiDetailsResponse(settings) => match settings {
+        WebserverResponse::GotWifiDetails(settings) => match settings {
             Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to setup wifi".to_string())),
         },
@@ -204,7 +204,7 @@ fn get_custom_message(state: State<Mutex<ServerState>>) -> Result<Content<Json<C
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::GetCustomMessageResponse(message) => Ok(Content(content, Json(message))),
+        WebserverResponse::GetCustomMessage(message) => Ok(Content(content, Json(message))),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -224,7 +224,7 @@ fn set_custom_message(
     .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SetCustomMessageResponse() => Ok(status::Accepted(None)),
+        WebserverResponse::SetCustomMessage() => Ok(status::Accepted(None)),
         _ => Err(status::NotFound("Internal error".to_string())),
     }
 }
@@ -237,16 +237,13 @@ fn logs(state: State<Mutex<ServerState>>) -> Result<String, std::io::Error> {
         path.join("logs/")
     };
     let entries = fs::read_dir(logs_dir)?;
-    let mut out: String = format!("Begin log file\n");
+    let mut out: String = "Begin log file\n".to_string();
     for entry in entries {
         debug!("entry {:?}", entry);
-        match entry {
-            Ok(entry) => {
-                let log_output = fs::read_to_string(entry.path())?;
-                out.push_str(&format!("\n\nNEW LOG FILE {:?} \n\n", entry.path()));
-                out.push_str(&log_output);
-            }
-            _ => {}
+        if let Ok(entry) = entry {
+            let log_output = fs::read_to_string(entry.path())?;
+            out.push_str(&format!("\n\nNEW LOG FILE {:?} \n\n", entry.path()));
+            out.push_str(&log_output);
         }
     }
     Ok(out)
@@ -267,7 +264,7 @@ fn show_sync(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SyncCommandResponse(settings) => match settings {
+        WebserverResponse::SyncCommand(settings) => match settings {
             Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to show sync".to_string())),
         },
@@ -288,7 +285,7 @@ fn reboot(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::RebootResponse(settings) => match settings {
+        WebserverResponse::Reboot(settings) => match settings {
             Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to init reboot".to_string())),
         },
@@ -309,7 +306,7 @@ fn reset(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::ResetResponse(settings) => match settings {
+        WebserverResponse::Reset(settings) => match settings {
             Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to init reboot".to_string())),
         },
@@ -332,7 +329,7 @@ fn sync(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::SyncCommandResponse(settings) => match settings {
+        WebserverResponse::SyncCommand(settings) => match settings {
             Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound("Failed to move to ready".to_string())),
         },
@@ -351,7 +348,7 @@ fn connect(
         .unwrap();
     let response = (*state).receiver.recv().unwrap();
     match response {
-        WebserverResponse::GotHotspotConnectionResponse(settings) => match settings {
+        WebserverResponse::GotHotspotConnection(settings) => match settings {
             Some(settings) => Ok(Content(content, Json(settings))),
             None => Err(status::NotFound(
                 "Failed to handle hotspot connection".to_string(),

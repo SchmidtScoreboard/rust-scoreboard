@@ -4,7 +4,6 @@ use crate::matrix;
 use crate::scheduler;
 
 use chrono::Utc;
-use rpi_led_matrix;
 use std::any::Any;
 use std::sync::{mpsc, Arc};
 use std::time::Duration;
@@ -29,16 +28,16 @@ impl Clock {
     }
 }
 impl matrix::ScreenProvider for Clock {
-    fn activate(self: &mut Self) {
+    fn activate(&mut self) {
         info!("Activating Clock");
         self.send_draw_command(None);
     }
 
-    fn update_settings(self: &mut Self, settings: Arc<ScoreboardSettingsData>) {
+    fn update_settings(&mut self, settings: Arc<ScoreboardSettingsData>) {
         self.settings = settings;
     }
 
-    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         let now = Utc::now();
         let clock_text = format!(
             "{}",
@@ -61,11 +60,11 @@ impl matrix::ScreenProvider for Clock {
         self.send_draw_command(Some(Duration::from_secs(1)));
     }
 
-    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+    fn get_sender(&self) -> &mpsc::Sender<scheduler::DelayedCommand> {
         &self.sender
     }
 
-    fn get_screen_id(self: &Self) -> common::ScreenId {
+    fn get_screen_id(&self) -> common::ScreenId {
         common::ScreenId::Clock
     }
 
@@ -73,7 +72,7 @@ impl matrix::ScreenProvider for Clock {
         self
     }
 
-    fn has_priority(self: &mut Self, power_mode: &common::AutoPowerMode) -> bool {
+    fn has_priority(&mut self, power_mode: &common::AutoPowerMode) -> bool {
         info!("Auto power mode priority: {:?}", power_mode);
         power_mode == &common::AutoPowerMode::Clock
     }

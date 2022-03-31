@@ -1,4 +1,3 @@
-use rpi_led_matrix;
 use std::process::Command;
 
 use chrono_tz::Tz;
@@ -9,7 +8,6 @@ use std::io;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 use std::time::Duration;
-use ureq;
 use std::io::ErrorKind;
 
 pub const MESSAGE_PATH : &str = "custom_message.json";
@@ -36,7 +34,7 @@ pub enum ScreenId {
 }
 
 impl ScreenId {
-    pub fn get_base_id(self: &Self) -> &ScreenId {
+    pub fn get_base_id(&self) -> &ScreenId {
         match self {
             ScreenId::Baseball
             | ScreenId::Basketball
@@ -49,7 +47,7 @@ impl ScreenId {
         }
     }
 
-    pub fn get_refresh_texts(self: &Self) -> Vec<&'static str> {
+    pub fn get_refresh_texts(&self) -> Vec<&'static str> {
         let mut texts = vec!["Warming up!"];
         match self {
             ScreenId::Hockey => texts.extend(vec!["Calling Toronto!", "Icing"]),
@@ -112,19 +110,19 @@ pub enum MatrixCommand {
 }
 
 pub enum WebserverResponse {
-    UpdateSettingsResponse(Arc<ScoreboardSettingsData>),
-    SetPowerResponse(Arc<ScoreboardSettingsData>),
-    SetAutoPowerResponse(Arc<ScoreboardSettingsData>),
-    SetActiveScreenResponse(Arc<ScoreboardSettingsData>),
-    GetSettingsResponse(Arc<ScoreboardSettingsData>),
-    RebootResponse(Option<Arc<ScoreboardSettingsData>>),
-    ResetResponse(Option<Arc<ScoreboardSettingsData>>),
-    GotHotspotConnectionResponse(Option<Arc<ScoreboardSettingsData>>),
-    GotWifiDetailsResponse(Option<Arc<ScoreboardSettingsData>>),
-    SyncCommandResponse(Option<Arc<ScoreboardSettingsData>>),
-    GameActionResponse(Arc<ScoreboardSettingsData>),
-    GetCustomMessageResponse(CustomMessage),
-    SetCustomMessageResponse(),
+    UpdateSettings(Arc<ScoreboardSettingsData>),
+    SetPower(Arc<ScoreboardSettingsData>),
+    SetAutoPower(Arc<ScoreboardSettingsData>),
+    SetActiveScreen(Arc<ScoreboardSettingsData>),
+    GetSettings(Arc<ScoreboardSettingsData>),
+    Reboot(Option<Arc<ScoreboardSettingsData>>),
+    Reset(Option<Arc<ScoreboardSettingsData>>),
+    GotHotspotConnection(Option<Arc<ScoreboardSettingsData>>),
+    GotWifiDetails(Option<Arc<ScoreboardSettingsData>>),
+    SyncCommand(Option<Arc<ScoreboardSettingsData>>),
+    GameAction(Arc<ScoreboardSettingsData>),
+    GetCustomMessage(CustomMessage),
+    SetCustomMessage(),
 }
 
 pub enum ShellCommand {
@@ -192,18 +190,15 @@ pub fn get_ip_address() -> Option<Ipv4Addr> {
     match Command::new("hostname").arg("-I").output() {
         Ok(output) if output.status.success() => {
             let string = std::str::from_utf8(&output.stdout).expect("Failed to parse hostname");
-            let mut ips = string.split(" ");
-            match ips.next() {
-                Some(ip) => Some(ip.parse().unwrap()),
-                None => None,
-            }
+            let mut ips = string.split(' ');
+            ips.next().map(|ip| ip.parse().unwrap())
         }
         _ => None,
     }
 }
 
 fn get_pair_for_octet(octet: u8) -> String {
-    let offset: u8 = 'A' as u8;
+    let offset: u8 = b'A';
     let first = octet / 26;
     let second = octet % 26;
     std::str::from_utf8(&[first + offset, second + offset])
@@ -212,7 +207,7 @@ fn get_pair_for_octet(octet: u8) -> String {
 }
 
 pub fn get_sync_code() -> Option<String> {
-    get_ip_address().map(|ip| ip.octets().map(|octet| get_pair_for_octet(octet)).join(""))
+    get_ip_address().map(|ip| ip.octets().map(get_pair_for_octet).join(""))
 }
 
 #[derive(Deserialize_repr, Serialize_repr, PartialEq, Debug, Clone, Copy)]
@@ -337,7 +332,7 @@ pub struct ScoreboardSettingsData {
 }
 
 impl ScoreboardSettingsData {
-    pub fn update_settings(self: &Self, other: ScoreboardSettingsData) -> ScoreboardSettingsData {
+    pub fn update_settings(&self, other: ScoreboardSettingsData) -> ScoreboardSettingsData {
         info!("Current: {:?}\n\nOther: {:?}", self, other);
         ScoreboardSettingsData {
             timezone: other.timezone,
@@ -385,7 +380,7 @@ impl Pixels {
         }
     }
 
-    fn get_raw(self: &Self) -> Vec<Vec<Option<[u8; 3]>>> {
+    fn get_raw(&self) -> Vec<Vec<Option<[u8; 3]>>> {
         self.data.iter().map(|row| {
             row.iter().map(|pixel| {
                 pixel.map(|pixel| {
@@ -397,7 +392,7 @@ impl Pixels {
 }
 
 impl serde::Serialize for Pixels {
-    fn serialize<S>(self: &Self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer{
         // let mut seq = serializer.serialize_seq(Some(self.data.len()))?;
 
         let data = self.get_raw();
@@ -470,7 +465,7 @@ pub fn read_custom_message(root_path: &std::path::Path) -> CustomMessage {
         serde_json::from_reader(file).map_err(|err| {
             std::io::Error::new(ErrorKind::Other, err.to_string())
         })
-    ).unwrap_or(CustomMessage::new(
+    ).unwrap_or_else(|_| CustomMessage::new(
         Pixels::solid_background(new_color(0, 0, 0)),
         vec![
             Line::new("Set a".to_owned(), FontSize::Small, new_color(255, 255, 255)),

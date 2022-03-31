@@ -1,11 +1,9 @@
 use crate::common;
 use crate::matrix;
 use crate::scheduler;
-use rand;
 use rand::distributions::{Distribution, Uniform};
 use rand_distr::Normal;
 
-use rpi_led_matrix;
 use std::any::Any;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
@@ -24,7 +22,7 @@ impl LoadingAnimation {
             size,
         }
     }
-    pub fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas, top_left: (i32, i32)) {
+    pub fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas, top_left: (i32, i32)) {
         let (x_offset, y_offset) = top_left;
 
         let white = common::new_color(255, 255, 255);
@@ -96,7 +94,7 @@ impl WavesAnimation {
         }
     }
 
-    pub fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    pub fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         let color = common::new_color(255, 255, 255);
         let (_width, height) = canvas.canvas_size();
 
@@ -156,19 +154,19 @@ impl AnimationTestScreen {
 }
 
 impl matrix::ScreenProvider for AnimationTestScreen {
-    fn activate(self: &mut Self) {
+    fn activate(&mut self) {
         self.send_draw_command(None);
     }
-    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         self.loading_anim.draw(canvas, (0, 0));
         self.waves_anim.draw(canvas);
         self.send_draw_command(Some(Duration::from_millis(20)));
     }
 
-    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+    fn get_sender(&self) -> &mpsc::Sender<scheduler::DelayedCommand> {
         &self.sender
     }
-    fn get_screen_id(self: &Self) -> common::ScreenId {
+    fn get_screen_id(&self) -> common::ScreenId {
         common::ScreenId::Animation
     }
     fn as_any(&mut self) -> &mut dyn Any {

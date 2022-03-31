@@ -50,7 +50,7 @@ class Football_v2:
         time_remaining = status.get("displayClock", "") if status is not None else ""
         espn_status = competition["status"]["type"]["name"]
         status = Common.convert_status(espn_status)
-        if status not in ["ACTIVE"]:
+        if status not in ["Active"]:
             time_remaining = ""
     
         ball_position = situation.get("possessionText", "") if situation is not None else ""

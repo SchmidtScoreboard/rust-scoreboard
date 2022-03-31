@@ -1,4 +1,3 @@
-use self_update;
 use std::thread;
 use std::time::Duration;
 
@@ -13,18 +12,18 @@ impl Updater {
         }
     }
 
-    pub fn run(self: &mut Self) {
+    pub fn run(&mut self) {
         loop {
             self.update().unwrap_or(());
             thread::sleep(Duration::from_secs(60 * 60)); // Every hour
         }
     }
 
-    pub fn _check_now(self: &mut Self) {
+    pub fn _check_now(&mut self) {
         self.update().unwrap_or(());
     }
 
-    fn update(self: &mut Self) -> Result<(), Box<dyn ::std::error::Error>> {
+    fn update(&mut self) -> Result<(), Box<dyn ::std::error::Error>> {
         info!("Starting update check");
         let start_version = self_update::cargo_crate_version!();
         info!("Updating, version is '{}'", start_version);

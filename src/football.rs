@@ -3,7 +3,6 @@ use crate::common;
 use crate::game;
 use crate::matrix;
 
-use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use chrono_tz::Tz;
@@ -95,7 +94,7 @@ fn football_draw(
     };
 
 
-    game::draw_scoreboard(canvas, &font, &common, 1, (away_width, home_width));
+    game::draw_scoreboard(canvas, font, common, 1, (away_width, home_width));
 
     // Draw the current period
     let white = common::new_color(255, 255, 255);
@@ -118,9 +117,9 @@ fn football_draw(
     let right_indent = 63;
 
     // Draw FINAL
-    if common.status == game::GameStatus::END {
+    if common.status == game::GameStatus::End {
         let final_string = "FINAL";
-        let final_string_dimensions= font.get_text_dimensions(&final_string);
+        let final_string_dimensions= font.get_text_dimensions(final_string);
         draw_bottom_info("FINAL", (right_indent - final_string_dimensions.width, bottom_row_height), &yellow);
         draw_bottom_info(&common.get_ordinal_text(timezone), (left_indent, bottom_row_height), &white);
     }
@@ -155,7 +154,7 @@ fn football_draw(
 
 impl aws_screen::AWSScreenType for FootballGame {
     fn draw_screen(
-        self: &Self,
+        &self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         pixels_book: &matrix::PixelBook,
@@ -166,14 +165,14 @@ impl aws_screen::AWSScreenType for FootballGame {
 }
 
 impl game::Sport for FootballGame {
-    fn get_common(self: &Self) -> &game::CommonGameData {
+    fn get_common(&self) -> &game::CommonGameData {
          &self.common
     }
 }
 
 impl aws_screen::AWSScreenType for CollegeFootballGame {
     fn draw_screen(
-        self: &Self,
+        &self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         pixels_book: &matrix::PixelBook,
@@ -183,7 +182,7 @@ impl aws_screen::AWSScreenType for CollegeFootballGame {
     }
 }
 impl game::Sport for CollegeFootballGame {
-    fn get_common(self: &Self) -> &game::CommonGameData {
+    fn get_common(&self) -> &game::CommonGameData {
          &self.common
     }
 }

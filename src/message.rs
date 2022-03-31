@@ -28,35 +28,35 @@ impl MessageScreen {
         }
     }
 
-    pub fn set_message(self: &mut Self, message: String) {
+    pub fn set_message(&mut self, message: String) {
         self.message = Some(message);
     }
-    pub fn unset_message(self: &mut Self) {
+    pub fn unset_message(&mut self) {
         self.message = None;
     }
 
-    pub fn is_message_set(self: &Self) -> bool {
+    pub fn is_message_set(&self) -> bool {
         self.message.is_some()
     }
 }
 
 impl matrix::ScreenProvider for MessageScreen {
-    fn activate(self: &mut Self) {}
+    fn activate(&mut self) {}
 
-    fn deactivate(self: &mut Self) {}
+    fn deactivate(&mut self) {}
 
-    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         if let Some(message) = &self.message {
             matrix::draw_message(canvas, &self.fonts.font4x6, message, &mut self.waves_anim);
             self.send_draw_command(Some(Duration::from_millis(20)));
         }
     }
 
-    fn get_screen_id(self: &Self) -> common::ScreenId {
+    fn get_screen_id(&self) -> common::ScreenId {
         common::ScreenId::Message
     }
 
-    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+    fn get_sender(&self) -> &mpsc::Sender<scheduler::DelayedCommand> {
         &self.sender
     }
 

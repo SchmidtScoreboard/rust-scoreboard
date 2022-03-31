@@ -4,7 +4,6 @@ use crate::game;
 use crate::matrix;
 use chrono_tz::Tz;
 
-use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
@@ -65,7 +64,7 @@ fn basketball_draw(
     timezone: &Tz,
 ) {
     let font = &font_book.font4x6;
-    game::draw_scoreboard(canvas, &font, &common, 2, (2,2));
+    game::draw_scoreboard(canvas, font, common, 2, (2,2));
 
     // Draw the current period
     let white = common::new_color(255, 255, 255);
@@ -82,7 +81,7 @@ fn basketball_draw(
     );
 
     // Draw FINAL
-    if common.status == game::GameStatus::END {
+    if common.status == game::GameStatus::End {
         canvas.draw_text(
             &font.led_font,
             "FINAL",
@@ -97,7 +96,7 @@ fn basketball_draw(
 
 impl aws_screen::AWSScreenType for BasketballGame {
     fn draw_screen(
-        self: &Self,
+        &self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         _pixels_book: &matrix::PixelBook,
@@ -107,14 +106,14 @@ impl aws_screen::AWSScreenType for BasketballGame {
     }
 }
 impl game::Sport for BasketballGame{
-    fn get_common(self: &Self) -> &game::CommonGameData {
+    fn get_common(&self) -> &game::CommonGameData {
          &self.common
     }
 }
 
 impl aws_screen::AWSScreenType for CollegeBasketballGame {
     fn draw_screen(
-        self: &Self,
+        &self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         _pixels_book: &matrix::PixelBook,
@@ -124,7 +123,7 @@ impl aws_screen::AWSScreenType for CollegeBasketballGame {
     }
 }
 impl game::Sport for CollegeBasketballGame{
-    fn get_common(self: &Self) -> &game::CommonGameData {
+    fn get_common(&self) -> &game::CommonGameData {
          &self.common
     }
 }

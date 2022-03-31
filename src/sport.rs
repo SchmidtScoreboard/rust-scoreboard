@@ -9,7 +9,6 @@ use crate::hockey::HockeyGame;
 use crate::animation;
 use crate::game;
 use crate::matrix;
-use crate::rpi_led_matrix;
 use crate::scheduler;
 use std::any::Any;
 use std::collections::HashSet;
@@ -34,7 +33,7 @@ enum SportData {
 }
 
 impl SportData {
-    fn get_inner(self: &Self) -> &(dyn game::Sport) {
+    fn get_inner(&self) -> &(dyn game::Sport) {
         match self {
             SportData::Hockey(hockey) => hockey,
             SportData::Baseball(baseball) => baseball,
@@ -58,7 +57,7 @@ struct AWSData {
 impl AWSData {
     pub fn new(games: Vec<SportData>) -> AWSData {
         AWSData {
-            games: games,
+            games,
             filtered_games: Vec::new(),
             data_received_timestamp: Instant::now(),
             last_cycle_timestamp: None,
@@ -67,10 +66,10 @@ impl AWSData {
     }
 
     pub fn update(
-        self: &mut Self,
+        &mut self,
         new_data: AWSData,
         current_leagues: &HashSet<common::ScreenId>,
-        favorite_teams: &Vec<common::FavoriteTeam>,
+        favorite_teams: &[common::FavoriteTeam],
     ) {
         self.games = new_data.games;
         self.filter_games(current_leagues, favorite_teams);
@@ -78,9 +77,9 @@ impl AWSData {
     }
 
     pub fn filter_games(
-        self: &mut Self,
+        &mut self,
         current_leagues: &HashSet<common::ScreenId>,
-        favorite_teams: &Vec<common::FavoriteTeam>,
+        favorite_teams: &[common::FavoriteTeam],
     ) {
         self.filtered_games = {
             let (priority_games, other_games): (Vec<usize>, Vec<usize>) = self
@@ -90,7 +89,7 @@ impl AWSData {
                 .filter(|(_, game)| current_leagues.contains(&game.get_inner().get_screen_id()))
                 .map(|(i, _)| i)
                 .partition(|i| {
-                    favorite_teams.into_iter().any(|favorite_team| {
+                    favorite_teams.iter().any(|favorite_team| {
                         self.games[*i].get_inner().get_screen_id() == favorite_team.screen_id
                             && self.games[*i]
                                 .get_inner()
@@ -99,7 +98,7 @@ impl AWSData {
                     })
                 });
 
-            if priority_games.len() > 0 {
+            if !priority_games.is_empty() {
                 priority_games
             } else {
                 other_games
@@ -109,7 +108,7 @@ impl AWSData {
         info!("Filtered games: {:?}", self.filtered_games);
     }
 
-    pub fn try_rotate(self: &mut Self, rotation_time: Duration) {
+    pub fn try_rotate(&mut self, rotation_time: Duration) {
         let now = Instant::now();
         self.active_index = match self.filtered_games.len() {
             0 => None,
@@ -139,7 +138,7 @@ impl AWSData {
         };
     }
 
-    pub fn get_active_game(self: &Self) -> Option<&SportData> {
+    pub fn get_active_game(&self) -> Option<&SportData> {
         self.active_index
             .map(|index| &self.games[self.filtered_games[index]])
     }
@@ -164,8 +163,8 @@ pub struct AWSScreen {
 }
 
 enum RefreshThreadState {
-    ACTIVE,
-    HIBERNATING,
+    Active,
+    Hibernating,
 }
 
 impl AWSScreen {
@@ -195,15 +194,15 @@ impl AWSScreen {
             data: ReceivedData::None,
             settings,
             data_pipe_receiver,
-            refresh_control_sender: refresh_control_sender,
+            refresh_control_sender,
             loading_animation: animation::WavesAnimation::new(64),
-            fonts: fonts,
-            pixels: pixels,
+            fonts,
+            pixels,
             flavor_text: None,
         }
     }
 
-    fn draw_refresh(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw_refresh(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         let flavor_text = {
             if let Some(text) = &self.flavor_text {
                 text
@@ -235,7 +234,7 @@ impl AWSScreen {
 
         self.loading_animation.draw(canvas);
     }
-    fn draw_error(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw_error(&self, canvas: &mut rpi_led_matrix::LedCanvas) {
         let font = &self.fonts.font4x6;
         let red = common::new_color(255, 0, 0);
         canvas.draw_text(
@@ -248,7 +247,7 @@ impl AWSScreen {
             false,
         );
     }
-    fn draw_no_games(self: &Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw_no_games(&self, canvas: &mut rpi_led_matrix::LedCanvas) {
         let font = &self.fonts.font4x6;
         let white = common::new_color(255, 255, 255);
         canvas.draw_text(
@@ -261,7 +260,7 @@ impl AWSScreen {
             false,
         );
     }
-    fn process(self: &mut Self) {
+    fn process(&mut self) {
         if let Ok(data_or_error) = self.data_pipe_receiver.try_recv() {
             match data_or_error {
                 Ok(mut new_data) => match &mut self.data {
@@ -283,7 +282,7 @@ impl AWSScreen {
                     info!("Received error: {}", e);
                     match &mut self.data {
                         ReceivedData::Valid(_, error_count) => {
-                            *error_count = *error_count + 1;
+                            *error_count += 1;
                             info!("Error count is {}", *error_count);
                             if *error_count > 5 {
                                 self.data = ReceivedData::Error
@@ -339,7 +338,7 @@ impl AWSScreen {
                         }
                         Err(e) => {
                             error!("Failed to convert response into a string {:?}", e);
-                            data_sender.send(Err(format!("Invalid Response"))).unwrap();
+                            data_sender.send(Err("Invalid Response".to_string())).unwrap();
                         }
                     }
                 }
@@ -347,10 +346,10 @@ impl AWSScreen {
             skip_flag = false;
             if let Ok(state) = refresh_control_receiver.recv_timeout(wait_time) {
                 match state {
-                    RefreshThreadState::ACTIVE => {
+                    RefreshThreadState::Active => {
                         wait_time = ACTIVE_REFRESH_TIME;
                     }
-                    RefreshThreadState::HIBERNATING => {
+                    RefreshThreadState::Hibernating => {
                         wait_time = DORMANT_REFRESH_TIME;
                         skip_flag = true;
                     }
@@ -360,22 +359,22 @@ impl AWSScreen {
     }
 }
 impl matrix::ScreenProvider for AWSScreen {
-    fn activate(self: &mut Self) {
+    fn activate(&mut self) {
         info!("Activating screen");
         self.refresh_control_sender
-            .send(RefreshThreadState::ACTIVE)
+            .send(RefreshThreadState::Active)
             .unwrap();
         self.send_draw_command(None);
     }
-    fn deactivate(self: &mut Self) {
+    fn deactivate(&mut self) {
         // Puts the refresh thread on hibernate
         info!("Deactivating AWS Screen");
         self.refresh_control_sender
-            .send(RefreshThreadState::HIBERNATING)
+            .send(RefreshThreadState::Hibernating)
             .unwrap();
     }
 
-    fn update_settings(self: &mut Self, settings: Arc<common::ScoreboardSettingsData>) {
+    fn update_settings(&mut self, settings: Arc<common::ScoreboardSettingsData>) {
         self.settings = settings;
         self.current_leagues = match self.settings.active_screen {
             common::ScreenId::Hockey
@@ -403,7 +402,7 @@ impl matrix::ScreenProvider for AWSScreen {
         }
     }
 
-    fn draw(self: &mut Self, canvas: &mut rpi_led_matrix::LedCanvas) {
+    fn draw(&mut self, canvas: &mut rpi_led_matrix::LedCanvas) {
         // Check if there is any new data. If there is, copy it in
         self.process();
         let now = Instant::now();
@@ -442,11 +441,11 @@ impl matrix::ScreenProvider for AWSScreen {
         self.send_draw_command(Some(Duration::from_millis(20)));
     }
 
-    fn get_screen_id(self: &Self) -> common::ScreenId {
+    fn get_screen_id(&self) -> common::ScreenId {
         common::ScreenId::Smart
     }
 
-    fn get_sender(self: &Self) -> &mpsc::Sender<scheduler::DelayedCommand> {
+    fn get_sender(&self) -> &mpsc::Sender<scheduler::DelayedCommand> {
         &self.sender
     }
 
@@ -454,7 +453,7 @@ impl matrix::ScreenProvider for AWSScreen {
         self
     }
 
-    fn has_priority(self: &mut Self, _power_mode: &common::AutoPowerMode) -> bool {
+    fn has_priority(&mut self, _power_mode: &common::AutoPowerMode) -> bool {
         self.process(); // Ensure we fetch any updated games
         match &self.data {
             ReceivedData::Valid(data, _error_count) => {

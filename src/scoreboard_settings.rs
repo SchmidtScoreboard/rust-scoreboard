@@ -16,11 +16,11 @@ impl ScoreboardSettings {
         ScoreboardSettings { data, file_path }
     }
 
-    pub fn get_settings(self: &Self) -> Arc<ScoreboardSettingsData> {
+    pub fn get_settings(&self) -> Arc<ScoreboardSettingsData> {
         self.data.clone()
     }
 
-    fn write_settings(self: &Self) {
+    fn write_settings(&self) {
         fs::write(
             &self.file_path,
             serde_json::to_string_pretty(&self.data).unwrap(),
@@ -28,69 +28,69 @@ impl ScoreboardSettings {
         .unwrap();
     }
 
-    pub fn update_settings(self: &mut Self, new_settings: ScoreboardSettingsData) {
+    pub fn update_settings(&mut self, new_settings: ScoreboardSettingsData) {
         self.data = Arc::from(self.data.update_settings(new_settings));
         self.write_settings();
     }
 
-    pub fn get_active_screen(self: &Self) -> &ScreenId {
+    pub fn get_active_screen(&self) -> &ScreenId {
         &self.data.active_screen
     }
-    pub fn get_power(self: &Self) -> &bool {
+    pub fn get_power(&self) -> &bool {
         &self.data.screen_on
     }
-    pub fn get_auto_power(self: &Self) -> &bool {
+    pub fn get_auto_power(&self) -> &bool {
         &self.data.auto_power
     }
-    pub fn get_setup_state(self: &Self) -> &SetupState {
+    pub fn get_setup_state(&self) -> &SetupState {
         &self.data.setup_state
     }
 
-    pub fn get_rotation_time(self: &Self) -> Duration {
+    pub fn get_rotation_time(&self) -> Duration {
         self.data.rotation_time
     }
-    pub fn get_startup_power(self: &Self) -> &Option<bool> {
+    pub fn get_startup_power(&self) -> &Option<bool> {
         &self.data.startup_power
     }
-    pub fn get_startup_auto_power(self: &Self) -> &Option<bool> {
+    pub fn get_startup_auto_power(&self) -> &Option<bool> {
         &self.data.startup_auto_power
     }
-    pub fn get_auto_power_mode(self: &Self) -> &common::AutoPowerMode {
+    pub fn get_auto_power_mode(&self) -> &common::AutoPowerMode {
         &self.data.auto_power_mode
     }
 
-    pub fn set_rotation_time(self: &mut Self, rotation_time: Duration) {
+    pub fn set_rotation_time(&mut self, rotation_time: Duration) {
         let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
         copy.rotation_time = rotation_time;
         self.data = Arc::from(copy);
         self.write_settings();
     }
 
-    pub fn get_brightness(self: &Self) -> u8 {
+    pub fn get_brightness(&self) -> u8 {
         self.data.brightness
     }
 
-    pub fn set_active_screen(self: &mut Self, id: &ScreenId) {
+    pub fn set_active_screen(&mut self, id: &ScreenId) {
         let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
         copy.active_screen = *id;
         self.data = Arc::from(copy);
         self.write_settings();
     }
 
-    pub fn set_power(self: &mut Self, screen_on: &bool) {
+    pub fn set_power(&mut self, screen_on: &bool) {
         let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
         copy.screen_on = *screen_on;
         self.data = Arc::from(copy);
         self.write_settings();
     }
-    pub fn set_auto_power(self: &mut Self, auto_power: &bool) {
+    pub fn set_auto_power(&mut self, auto_power: &bool) {
         let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
         copy.auto_power = *auto_power;
         self.data = Arc::from(copy);
         self.write_settings();
     }
     pub fn set_startup_settings(
-        self: &mut Self,
+        &mut self,
         startup_power: Option<bool>,
         startup_auto_power: Option<bool>,
     ) {
@@ -101,21 +101,21 @@ impl ScoreboardSettings {
         self.write_settings();
     }
 
-    pub fn set_setup_state(self: &mut Self, setup_state: &SetupState) {
+    pub fn set_setup_state(&mut self, setup_state: &SetupState) {
         let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
         copy.setup_state = *setup_state;
         self.data = Arc::from(copy);
         self.write_settings();
     }
 
-    pub fn set_version(self: &mut Self, version: u32) {
+    pub fn set_version(&mut self, version: u32) {
         let mut copy: ScoreboardSettingsData = self.data.as_ref().clone();
         copy.version = version;
         self.data = Arc::from(copy);
         self.write_settings();
     }
 
-    pub fn get_timezone(self: &Self) -> &Tz {
+    pub fn get_timezone(&self) -> &Tz {
         &self.data.timezone
     }
 }

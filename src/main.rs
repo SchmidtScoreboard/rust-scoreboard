@@ -30,11 +30,8 @@ extern crate rust_embed;
 extern crate log;
 
 use animation::AnimationTestScreen;
-use clap;
 use common::ScreenId;
 use matrix::{Matrix, ScreenProvider};
-use rpi_led_matrix;
-use self_update;
 use sport::AWSScreen;
 use std::collections::HashMap;
 use std::env;
@@ -119,17 +116,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Loading secrets from {:?}", secrets_path);
     info!("Loading settings from {:?}", settings_path);
 
-    let api_key = fs::read_to_string(&secrets_path).expect(&format!(
+    let api_key = fs::read_to_string(&secrets_path).unwrap_or_else(|_| panic!(
         "Could not read from secrets.txt at path {:?}",
         &secrets_path
     ));
-
-    let settings_data: common::ScoreboardSettingsData =
-        serde_json::from_str(&fs::read_to_string(&settings_path).expect(&format!(
+    let settings_string = fs::read_to_string(&settings_path).unwrap_or_else(|_| panic!(
             "Could not read scoreboard settings at path {:?}",
             &settings_path
-        )))
-        .expect("Could not parse scoreboard settings from json");
+    ));
+    let settings_data: common::ScoreboardSettingsData =
+        serde_json::from_str(&settings_string).expect("Could not parse scoreboard settings from json");
     let settings_data = Arc::from(settings_data);
 
     let (matrix_sender, matrix_receiver) = mpsc::channel();
@@ -157,10 +153,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         button_handler.run();
     });
 
-    let enable_hotspot = match settings.get_settings().setup_state {
-        common::SetupState::Hotspot | common::SetupState::WifiConnect => true,
-        _ => false,
-    };
+    let enable_hotspot = matches!(settings.get_settings().setup_state,
+        common::SetupState::Hotspot | common::SetupState::WifiConnect);
     if enable_hotspot {
         info!("In setup state, showing hotspot screen and enabling the hotspot");
         settings.set_setup_state(&common::SetupState::Hotspot);
@@ -180,15 +174,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap();
     }
 
-    let v2_url = env::var("V2_URL").unwrap_or(V2_URL.to_string()); // TODO use the actual new AWS URL
+    let v2_url = env::var("V2_URL").unwrap_or_else(|_| V2_URL.to_string()); // TODO use the actual new AWS URL
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
 
     let sports: AWSScreen = AWSScreen::new(
         scheduler_sender.clone(),
-        v2_url.clone(),
-        api_key.clone(),
+        v2_url,
+        api_key,
         settings.get_settings(),
         matrix::FontBook::new(&root_path),
         matrix::PixelBook::new(&root_path),
@@ -278,19 +272,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         false => None,
     };
 
+    let matrix_senders = matrix::Senders {
+        webserver_responder: web_response_sender,
+        shell_sender,
+        scheduler_sender
+    };
+
     let mut matrix = Matrix::new(
         led_matrix,
         message_screen,
         matrix_receiver,
         map,
         settings,
-        web_response_sender,
-        shell_sender.clone(),
-        scheduler_sender.clone(),
+        matrix_senders,
         daily_reboot,
     );
 
-    let webserver_sender = matrix_sender.clone();
+    let webserver_sender = matrix_sender;
     std::thread::spawn(move || {
         webserver::run_webserver(webserver_sender, web_response_receiver, root_path);
     });

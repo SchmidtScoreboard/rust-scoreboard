@@ -8,7 +8,7 @@ impl Patch {
         Patch { version, notes }
     }
 
-    fn log(self: &Self) {
+    fn log(&self) {
         info!("Version {}:\n\n{}", self.version, self.notes);
     }
 }

@@ -91,15 +91,15 @@ class Common:
 
     def convert_status(status: str):
         status_map = {
-            "STATUS_IN_PROGRESS": "ACTIVE",
+            "STATUS_IN_PROGRESS": "Active",
             "STATUS_FINAL": "END",
-            "STATUS_SCHEDULED": "PREGAME",
-            "STATUS_END_PERIOD": "INTERMISSION",
-            "STATUS_HALFTIME": "INTERMISSION",
+            "STATUS_SCHEDULED": "Pregame",
+            "STATUS_END_PERIOD": "Intermission",
+            "STATUS_HALFTIME": "Intermission",
             "STATUS_POSTPONED": None,
             "STATUS_CANCELED": None,
             "STATUS_PLAY_COMPLETE": "END",
-            "STATUS_DELAYED": "INTERMISSION"
+            "STATUS_DELAYED": "Intermission"
         }
 
         if status not in status_map:
@@ -123,7 +123,7 @@ class Common:
                 return None
 
             ordinal = Common.to_ordinal(competition["status"]["period"])
-            if status == "INTERMISSION":
+            if status == "Intermission":
                 ordinal += " INT"
 
             if espn_status == "STATUS_HALFTIME":

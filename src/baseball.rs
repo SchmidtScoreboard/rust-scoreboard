@@ -4,14 +4,13 @@ use crate::game;
 use crate::matrix;
 
 use chrono_tz::Tz;
-use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct BaseballGame {
     pub common: game::CommonGameData,
-    inning: u8,
+    // inning: u8,
     is_inning_top: bool,
     balls: u8,
     outs: u8,
@@ -40,7 +39,7 @@ impl PartialEq for BaseballGame {
 impl Eq for BaseballGame {}
 
 impl game::Sport for BaseballGame {
-    fn get_common(self: &Self) -> &game::CommonGameData {
+    fn get_common(&self) -> &game::CommonGameData {
         &self.common
     }
 }
@@ -54,14 +53,14 @@ fn get_base_asset(on_base: bool, pixels_book: &matrix::PixelBook) -> &common::Pi
 
 impl aws_screen::AWSScreenType for BaseballGame {
     fn draw_screen(
-        self: &Self,
+        &self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         pixels_book: &matrix::PixelBook,
         timezone: &Tz,
     ) {
         let font = &font_book.font4x6;
-        game::draw_scoreboard(canvas, &font, &self.common, 1, (2, 2));
+        game::draw_scoreboard(canvas, font, &self.common, 1, (2, 2));
         let ordinal_x_offset = 5;
         let white = common::new_color(255, 255, 255);
         let ordinal_dimensions = font.get_text_dimensions(&self.common.ordinal);
@@ -77,19 +76,19 @@ impl aws_screen::AWSScreenType for BaseballGame {
             false,
         );
 
-        if self.common.status == game::GameStatus::ACTIVE {
+        if self.common.status == game::GameStatus::Active {
             if self.is_inning_top {
                 let up_arrow = &pixels_book.small_arrow.flip_vertical();
                 matrix::draw_pixels(
                     canvas,
-                    &up_arrow,
+                    up_arrow,
                     (ordinal_dimensions.width + ordinal_x_offset + 4, 20),
                 );
             } else {
                 let down_arrow = &pixels_book.small_arrow;
                 matrix::draw_pixels(
                     canvas,
-                    &down_arrow,
+                    down_arrow,
                     (ordinal_dimensions.width + ordinal_x_offset + 4, 23),
                 );
             }
@@ -128,7 +127,7 @@ impl aws_screen::AWSScreenType for BaseballGame {
                 }
             }
 
-        } else if self.common.status == game::GameStatus::END {
+        } else if self.common.status == game::GameStatus::End {
             let yellow = common::new_color(255, 255, 0);
             let message = "FINAL";
             canvas.draw_text(

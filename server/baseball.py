@@ -75,10 +75,10 @@ class Baseball:
             game["status"] = "END"
         elif state == "Live":
             game["ordinal"] = linescore.get("currentInningOrdinal", "")
-            game["status"] = "ACTIVE"
+            game["status"] = "Active"
         elif state == "Preview":
             game["ordinal"] = ""
-            game["status"] = "PREGAME"
+            game["status"] = "Pregame"
         else:
             game["ordinal"] = "Stats Error"
             game["status"] = "INVALID"
@@ -86,7 +86,7 @@ class Baseball:
         balls = 0
         strikes = 0
         outs = 0
-        if game["status"] == "ACTIVE":
+        if game["status"] == "Active":
             balls = linescore["balls"]
             outs= linescore["outs"]
             strikes= linescore["strikes"]
@@ -97,7 +97,7 @@ class Baseball:
                     game["status"] = "END"
                 else:
                     game["ordinal"] = "Middle " + game["ordinal"]
-                    game["status"] = "INTERMISSION"
+                    game["status"] = "Intermission"
         
         return Baseball.create_game(game, balls, outs, strikes, inning, is_inning_top)
 

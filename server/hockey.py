@@ -89,15 +89,15 @@ class Hockey:
             if period >= 3 and game["away_score"] != game["home_score"]:
                 status = "END"
             else:
-                status = "INTERMISSION"
+                status = "Intermission"
                 game["ordinal"] += " INT"
         elif period_time == "20:00" and period > 1:
-            status = "INTERMISSION"
+            status = "Intermission"
             game["ordinal"] += " INT"
         elif period_time != "20:00" and period >= 1:
-            status = "ACTIVE"
+            status = "Active"
         else:
-            status = "PREGAME"
+            status = "Pregame"
 
         game["status"] = status
         game = Hockey.create_game(game, away_powerplay, home_powerplay, away_players, home_players)

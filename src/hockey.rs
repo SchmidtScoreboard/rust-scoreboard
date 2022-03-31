@@ -4,7 +4,6 @@ use crate::game;
 use crate::matrix;
 
 use chrono_tz::Tz;
-use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
@@ -38,20 +37,20 @@ impl PartialEq for HockeyGame {
 impl Eq for HockeyGame {}
 
 impl game::Sport for HockeyGame{
-    fn get_common(self: &Self) -> &game::CommonGameData {
+    fn get_common(&self) -> &game::CommonGameData {
          &self.common
     }
 }
 impl aws_screen::AWSScreenType for HockeyGame {
     fn draw_screen(
-        self: &Self,
+        &self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         _pixels_book: &matrix::PixelBook,
         timezone: &Tz,
     ) {
         let font = &font_book.font5x8;
-        game::draw_scoreboard(canvas, &font, &self.common, 2, (2, 2));
+        game::draw_scoreboard(canvas, font, &self.common, 2, (2, 2));
 
         // Draw the current period
         let white = common::new_color(255, 255, 255);
@@ -69,7 +68,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
         );
 
         // Draw FINAL
-        if self.common.status == game::GameStatus::END {
+        if self.common.status == game::GameStatus::End {
             canvas.draw_text(
                 &font.led_font,
                 "FINAL",
@@ -100,7 +99,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
             };
 
             if let Some(message) = powerplay_message {
-                let text_dimensions = font.get_text_dimensions(&message);
+                let text_dimensions = font.get_text_dimensions(message);
                 let (canvas_width, _) = canvas.canvas_size();
                 let right_point = canvas_width - text_dimensions.width - 4;
                 matrix::draw_rectangle(
@@ -111,7 +110,7 @@ impl aws_screen::AWSScreenType for HockeyGame {
                 );
                 canvas.draw_text(
                     &font.led_font,
-                    &message,
+                    message,
                     right_point + 2,
                     23 + font.dimensions.height,
                     &black,
@@ -151,7 +150,7 @@ mod tests {
                 },
                 "away_score": 0,
                 "home_score": 0,
-                "status": "PREGAME",
+                "status": "Pregame",
                 "ordinal": "",
                 "start_time": "2020-08-09T19:00:00Z",
                 "id": "2019030016"

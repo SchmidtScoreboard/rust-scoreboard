@@ -4,14 +4,13 @@ use crate::game;
 use crate::matrix;
 
 use chrono_tz::Tz;
-use rpi_led_matrix;
 use serde::Deserialize;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Player {
     display_name: String,
-    position: u32,
+    // position: u32,
     score: String,
 }
 
@@ -75,18 +74,18 @@ fn draw_player(
     *y_offset = *y_offset + font.dimensions.height + 1;
 }
 impl game::Sport for Golf {
-    fn get_common(self: &Self) -> &game::CommonGameData {
+    fn get_common(&self) -> &game::CommonGameData {
         &self.common
     }
 
-    fn involves_team(self: &Self, _target_team: u32) -> bool {
+    fn involves_team(&self, _target_team: u32) -> bool {
         true
     }
 }
 
 impl aws_screen::AWSScreenType for Golf {
     fn draw_screen(
-        self: &Self,
+        &self,
         canvas: &mut rpi_led_matrix::LedCanvas,
         font_book: &matrix::FontBook,
         _pixels_book: &matrix::PixelBook,
@@ -106,7 +105,7 @@ impl aws_screen::AWSScreenType for Golf {
         );
 
         match self.common.status {
-            game::GameStatus::PREGAME => {
+            game::GameStatus::Pregame => {
                 // Draw the start time here
                 let big_font = &font_book.font5x8;
                 let text = format!(
@@ -127,7 +126,7 @@ impl aws_screen::AWSScreenType for Golf {
                     false,
                 );
             }
-            game::GameStatus::INTERMISSION | game::GameStatus::END | game::GameStatus::ACTIVE => {
+            game::GameStatus::Intermission | game::GameStatus::End | game::GameStatus::Active => {
                 let num_players = 4;
                 let mut player_offset = font.dimensions.height + 3;
                 self.players.iter().take(num_players).for_each(|player| {
