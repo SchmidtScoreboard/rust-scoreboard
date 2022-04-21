@@ -159,7 +159,7 @@ class Golf:
             if time > now: # if tee time in the future, this happens after Day X of play ends
                 status = "END"
             if competition["scoringSystem"]["name"] == "Teamstroke":
-                if "COMPLETE" in competition["rawData"]:
+                if "COMPLETE" in competition.get("rawData", []):
                     status = "END"
 
         if status is not None:

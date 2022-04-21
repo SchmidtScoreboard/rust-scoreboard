@@ -191,7 +191,8 @@ pub fn get_ip_address() -> Option<Ipv4Addr> {
         Ok(output) if output.status.success() => {
             let string = std::str::from_utf8(&output.stdout).expect("Failed to parse hostname");
             let mut ips = string.split(' ');
-            ips.next().map(|ip| ip.parse().unwrap())
+            let n = ips.next();
+            n.and_then(|ip|  ip.parse::<Ipv4Addr>().ok())
         }
         _ => None,
     }
