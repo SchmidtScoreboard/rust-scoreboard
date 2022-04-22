@@ -39,6 +39,22 @@ class Golf:
             "position": int(player["status"]["position"]["id"]),
             "score": score,
         }
+    
+    def create_teamstroke_competitor(competitor):
+        stats = competitor["statistics"]
+        if len(stats) == 0:
+            score = "E"
+        else:
+            score = stats[0]["displayValue"]
+        roster = competitor["roster"]
+        name = '/'.join([player["athlete"]["lastName"][0:5] for player in roster])
+        return {
+            "display_name": name.upper(),
+            "position": int(competitor["status"]["position"]["id"]),
+            "score": score,
+        }
+
+
 
     def is_better_score(a, b):
         def normalize(string):
@@ -58,20 +74,33 @@ class Golf:
             top_5 = []
             if competition["scoringSystem"]["name"] == "Teamstroke":
                 print("[GOLF] Looking at teamstroke")
-                data = competition["rawData"]
-                position = 1
-                for line in data.splitlines():
-                    match = TEAMSTROKE_REGEX.match(line)
-                    if match:
-                        groups = match.groups()
-                        top_5.append({
-                            "display_name": f"{groups[0][:5]}/{groups[1][:5]}",
-                            "position": position,
-                            "score": groups[2]
-                        })
-                        position += 1
-                        if position > 5:
-                            break
+                data = competition.get("rawData")
+                if data is not None:
+                    position = 1
+                    for line in data.splitlines():
+                        match = TEAMSTROKE_REGEX.match(line)
+                        if match:
+                            groups = match.groups()
+                            top_5.append({
+                                "display_name": f"{groups[0][:5]}/{groups[1][:5]}",
+                                "position": position,
+                                "score": groups[2]
+                            })
+                            position += 1
+                            if position > 5:
+                                break
+                else:
+                    competitors = competition["competitors"]
+                    top_5 = [
+                        Golf.create_teamstroke_competitor(competitor)
+                        for competitor in competitors 
+                        if 0 < int(competitor["status"]["position"]["id"]) < 5 
+                    ]
+                    top_5.sort(key=lambda player: player["position"])
+                    top_5 = top_5[:5]
+
+
+                    
             else:
                 players = competition["competitors"]
 
