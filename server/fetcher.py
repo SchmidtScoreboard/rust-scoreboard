@@ -34,7 +34,7 @@ class Fetcher:
 
     async def espn_fetch(sport: str, selection: str, suffix: str = "scoreboard"):
         url = Fetcher.get_espn_url(sport, selection, suffix)
-        print(f"[ESPN] Fetching for sport {sport} {selection}")
+        print(f"[ESPN] Fetching for sport {sport} {selection} from {url}")
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as r:
                 json = await r.json()
