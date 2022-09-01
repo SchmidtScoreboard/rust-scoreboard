@@ -61,11 +61,23 @@ impl aws_screen::AWSScreenType for BaseballGame {
     ) {
         let font = &font_book.font4x6;
         game::draw_scoreboard(canvas, font, &self.common, 1, (2, 2));
-        let ordinal_x_offset = 5;
         let white = common::new_color(255, 255, 255);
-        let ordinal_dimensions = font.get_text_dimensions(&self.common.ordinal);
+        let ordinal_text_dimensions = font.get_text_dimensions(&self.common.ordinal);
         let (canvas_width, _) = canvas.canvas_size();
         let font = &font_book.font5x8;
+
+        let text_width = ordinal_text_dimensions.width;
+        let down_arrow_width = 7; 
+        let ordinal_width = text_width + down_arrow_width;
+
+        // left edge of on base indicator is 35 pixels from right edge
+        let ordinal_x_offset = if ordinal_text_dimensions.width < 16 { 
+            5 
+        } else { 
+            26 - ordinal_width
+        };
+
+
         canvas.draw_text(
             &font.led_font,
             &self.common.get_ordinal_text(timezone),
@@ -82,14 +94,14 @@ impl aws_screen::AWSScreenType for BaseballGame {
                 matrix::draw_pixels(
                     canvas,
                     up_arrow,
-                    (ordinal_dimensions.width + ordinal_x_offset + 4, 20),
+                    (ordinal_text_dimensions.width + ordinal_x_offset + 4, 20),
                 );
             } else {
                 let down_arrow = &pixels_book.small_arrow;
                 matrix::draw_pixels(
                     canvas,
                     down_arrow,
-                    (ordinal_dimensions.width + ordinal_x_offset + 4, 23),
+                    (ordinal_text_dimensions.width + ordinal_x_offset + 4, 23),
                 );
             }
 

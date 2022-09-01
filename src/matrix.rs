@@ -564,7 +564,7 @@ impl Font {
             .unwrap_or_else(|| panic!("Could not find font {}", file_name));
         let target_dir = root_path.join("fonts");
         let _create_dir_result = fs::create_dir(&target_dir);
-        fs::write(&target_dir.join(file_name), bytes).expect("Failed to write file");
+        fs::write(&target_dir.join(file_name), bytes.data).expect("Failed to write file");
     }
     pub fn new(
         root_path: &std::path::Path,
@@ -683,7 +683,7 @@ impl Pixels {
         let _create_dir_result = fs::create_dir(&target_dir);
         let contents =
             Asset::get(file_name).unwrap_or_else(|| panic!("Failed to write file {}", file_name));
-        fs::write(&target_dir.join(file_name), contents).expect("Failed to write file");
+        fs::write(&target_dir.join(file_name), contents.data).expect("Failed to write file");
     }
 
     pub fn from_file(
