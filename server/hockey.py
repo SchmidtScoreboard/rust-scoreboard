@@ -74,8 +74,8 @@ class Hockey:
         game["home_score"] = home.get("goals", 0)
         away_powerplay = away["powerPlay"]
         home_powerplay = home["powerPlay"]
-        away_players = away["numSkaters"]
-        home_players= home["numSkaters"]
+        away_players = max(away["numSkaters"], 0)
+        home_players= max(home["numSkaters"], 0)
         period = data["currentPeriod"]
 
         period_time = data.get("currentPeriodTimeRemaining", "20:00")
