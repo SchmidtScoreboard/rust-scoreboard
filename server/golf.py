@@ -21,6 +21,7 @@ name_map = {
     "RBC CANADIAN OPEN" : "RBC CANADIAN",
     "GENESIS SCOTTISH OPEN" : "SCOTTISH OPEN",
     "THE CJ CUP IN SOUTH CAROLINA" : "CJ CUP",
+    "CADENCE BANK HOUSTON OPEN" : "HOUSTON OPEN",
 }
 
 TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
