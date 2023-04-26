@@ -46,7 +46,7 @@ The total price of parts to build a Scoreboard is about $135, not including ship
 
 ### Step 3: Software Setup
 
-1. You can download the full Scoreboard software image that is flash-able onto an 8GB SD card [here]()
+1. You can download the full Scoreboard software image that is flash-able onto an 8GB SD card [here](https://www.icloud.com/iclouddrive/03e780cgBkHiUtdZRzsDtU83w#scoreboard-2.0.1)
 2. If you’d prefer to set things up yourself, you’ll have to be patient—this code is in flux, and there does not exist an install script *yet*. One day!
 3. I use [Etcher](https://www.balena.io/etcher/) to write the image to the SD card.
 

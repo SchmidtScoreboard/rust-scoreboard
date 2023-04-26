@@ -9,22 +9,24 @@ import re
 import string
 
 name_map = {
-    "SHRINERS CHILDREN'S OPEN" : "SHRINERS OPEN",
-    "BUTTERFIELD BERMUDA CHAMPIONSHIP" : "BERMUDA CHAMP",
-    "WORLD WIDE TECHNOLOGY CHAMPIONSHIP AT MAYAKOBA" : "WWT CHAMP",
-    "FARMERS INSURANCE OPEN" : "FARMERS OPEN",
-    "SONY OPEN IN HAWAII" : "SONY OPEN",
-    "AT&T PEBBLE BEACH PRO-AM" : "PEBBLE BEACH",
-    "WASTE MANAGEMENT PHOENIX OPEN" : "WM PHOENIX",
-    "CORALES PUNTACANA CHAMPIONSHIP" : "PUTACANA CHAMP",
-    "VALERO TEXAS OPEN" : "VALERO OPEN",
-    "RBC CANADIAN OPEN" : "RBC CANADIAN",
-    "GENESIS SCOTTISH OPEN" : "SCOTTISH OPEN",
-    "THE CJ CUP IN SOUTH CAROLINA" : "CJ CUP",
-    "CADENCE BANK HOUSTON OPEN" : "HOUSTON OPEN",
+    "SHRINERS CHILDREN'S OPEN": "SHRINERS OPEN",
+    "BUTTERFIELD BERMUDA CHAMPIONSHIP": "BERMUDA CHAMP",
+    "WORLD WIDE TECHNOLOGY CHAMPIONSHIP AT MAYAKOBA": "WWT CHAMP",
+    "FARMERS INSURANCE OPEN": "FARMERS OPEN",
+    "SONY OPEN IN HAWAII": "SONY OPEN",
+    "AT&T PEBBLE BEACH PRO-AM": "PEBBLE BEACH",
+    "WASTE MANAGEMENT PHOENIX OPEN": "WM PHOENIX",
+    "CORALES PUNTACANA CHAMPIONSHIP": "PUTACANA CHAMP",
+    "VALERO TEXAS OPEN": "VALERO OPEN",
+    "RBC CANADIAN OPEN": "RBC CANADIAN",
+    "GENESIS SCOTTISH OPEN": "SCOTTISH OPEN",
+    "THE CJ CUP IN SOUTH CAROLINA": "CJ CUP",
+    "CADENCE BANK HOUSTON OPEN": "HOUSTON OPEN",
 }
 
 TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
+
+
 class Golf:
     def create_player(player):
         stats = player["statistics"]
@@ -43,7 +45,7 @@ class Golf:
             "position": int(player["status"]["position"]["id"]),
             "score": score,
         }
-    
+
     def create_teamstroke_competitor(competitor):
         stats = competitor["statistics"]
         if len(stats) == 0:
@@ -51,14 +53,13 @@ class Golf:
         else:
             score = stats[0]["displayValue"]
         roster = competitor["roster"]
-        name = '/'.join([player["athlete"]["lastName"][0:5] for player in roster])
+        name = '/'.join([player["athlete"]["lastName"][0:5]
+                        for player in roster])
         return {
             "display_name": name.upper(),
             "position": int(competitor["status"]["position"]["id"]),
             "score": score,
         }
-
-
 
     def is_better_score(a, b):
         def normalize(string):
@@ -97,21 +98,19 @@ class Golf:
                     competitors = competition["competitors"]
                     top_5 = [
                         Golf.create_teamstroke_competitor(competitor)
-                        for competitor in competitors 
-                        if 0 < int(competitor["status"]["position"]["id"]) < 5 
+                        for competitor in competitors
+                        if 0 < int(competitor["status"]["position"]["id"]) < 5
                     ]
                     top_5.sort(key=lambda player: player["position"])
                     top_5 = top_5[:5]
 
-
-                    
             else:
                 players = competition["competitors"]
 
                 top_5 = [
                     Golf.create_player(player)
                     for player in players
-                    if 0 < int(player["status"]["position"]["id"]) < 5 
+                    if 0 < int(player["status"]["position"]["id"]) < 5
                 ]
                 top_5.sort(key=lambda player: player["position"])
                 top_5 = top_5[:5]
@@ -136,17 +135,16 @@ class Golf:
 
         if words[0].isdigit() or words[0] == "AT&T" or words[0] == "WGC-FEDEX":
             words = words[1:]
-        
-        try: 
+
+        try:
             idx = words.index("OF")
-            words = words[:idx] 
+            words = words[:idx]
         except Exception as e:
             pass
 
         name = " ".join(words)
         if words[0] == "MASTERS":
             name = "THE " + " ".join(words)
-
 
         return {"type": "Golf", "common": common, "players": top_5, "name": name}
 
@@ -177,19 +175,18 @@ class Golf:
 
         empty_team = Team.create_team("0", "", "", "", "", "000000", "000000")
 
-
         time, tee_time_display = earliest_tee_time
         now = datetime.datetime.now(tz=pytz.UTC)
         if time is None:
-            time, tee_time_display = (parse(competition["date"]).astimezone(pytz.utc), competition["date"])
+            time, tee_time_display = (
+                parse(competition["date"]).astimezone(pytz.utc), competition["date"])
 
         delta = abs(now - time)
         if delta > datetime.timedelta(hours=24) and status not in ["ACTIVE", "END"]:
             return None
 
-            
         if status == "ACTIVE":
-            if time > now: # if tee time in the future, this happens after Day X of play ends
+            if time > now:  # if tee time in the future, this happens after Day X of play ends
                 status = "END"
             if competition["scoringSystem"]["name"] == "Teamstroke":
                 if "COMPLETE" in competition.get("rawData", []):
