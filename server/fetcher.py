@@ -1,6 +1,8 @@
 import requests
 
 import aiohttp
+
+
 class Fetcher:
     async def schedule_fetch(schedule_url: str):
         print(f"[STATSAPI] Fetching schedule at url {schedule_url}")
@@ -8,7 +10,8 @@ class Fetcher:
             async with aiohttp.ClientSession() as session:
                 async with session.get(schedule_url) as r:
                     json = await r.json()
-                    print(f"[STATSAPI] Done fetching schedule at url {schedule_url}")
+                    print(
+                        f"[STATSAPI] Done fetching schedule at url {schedule_url}")
                     dates = json["dates"]
                     if len(dates) > 0:
                         return dates[0]["games"]
@@ -37,10 +40,14 @@ class Fetcher:
         print(f"[ESPN] Fetching for sport {sport} {selection} from {url}")
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as r:
-                json = await r.json()
-                events = json["events"]
-                print(f"[ESPN] Done fetching for {sport} {selection}")
-                return events
+                try:
+                    json = await r.json()
+                    events = json["events"]
+                    print(f"[ESPN] Done fetching for {sport} {selection}")
+                    return events
+                except Exception as e:
+                    print(f"[ESPN] FAILED REQUEST RESPONSE {e}")
+                    return []
 
 
 if __name__ == "__main__":
