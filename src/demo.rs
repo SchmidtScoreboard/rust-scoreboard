@@ -1,10 +1,7 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 mod animation;
 mod aws_screen;
 mod baseball;
 mod basketball;
-mod button;
 mod clock;
 mod common;
 mod custom_message;
@@ -19,10 +16,7 @@ mod patch_notes;
 mod scheduler;
 mod scoreboard_settings;
 mod setup_screen;
-mod shell_executor;
 mod sport;
-mod updater;
-mod webserver;
 #[macro_use]
 extern crate rust_embed;
 
@@ -38,16 +32,12 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{mpsc, Arc};
-use std::thread::sleep;
-use std::time::Duration;
-use updater::Updater;
-const V2_URL: &str = "https://uhoijpn7d1.execute-api.us-east-2.amazonaws.com/Prod/";
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let matches = clap::App::new("Schmidt Scoreboard")
+fn main() {
+    let matches = clap::App::new("Schmidt Scoreboard Demo")
         .version(self_update::cargo_crate_version!())
         .author("Mark Schmidt <mark.schmidt@hey.com>")
-        .about("Runs a Scoreboard to display hockey and baseball scores")
+        .about("Runs a demo of the Schmidt Scoreboard that does not require WiFi or perform setup")
         .arg(clap::Arg::with_name("root_path")
             .short("d")
             .long("root_path")
@@ -90,109 +80,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .start()
         .unwrap();
 
-    if matches.is_present("wait") {
-        info!("Waiting 90 seconds");
-        sleep(Duration::from_secs(90));
-    } else {
-        info!("Starting up now");
-    }
+    info!("Starting up demo");
 
-    let skip_update = matches.is_present("skip_update");
     patch_notes::log_patch_notes();
-
-    let mut updater: Updater;
-    if !skip_update {
-        // Start the update service
-        updater = Updater::new();
-        std::thread::spawn(move || {
-            updater.run();
-        });
-    } else {
-        info!("Skipping updater service");
-    }
-
-    let secrets_path = root_path.join("secrets.txt");
     let settings_path = root_path.join("scoreboard_settings.json");
-    info!("Loading secrets from {:?}", secrets_path);
-    info!("Loading settings from {:?}", settings_path);
 
-    let api_key = fs::read_to_string(&secrets_path).unwrap_or_else(|_| {
-        panic!(
-            "Could not read from secrets.txt at path {:?}",
-            &secrets_path
-        )
-    });
-    let settings_string = fs::read_to_string(&settings_path).unwrap_or_else(|_| {
-        panic!(
-            "Could not read scoreboard settings at path {:?}",
-            &settings_path
-        )
-    });
-    let settings_data: common::ScoreboardSettingsData = serde_json::from_str(&settings_string)
-        .expect("Could not parse scoreboard settings from json");
+    let settings_data: common::ScoreboardSettingsData =
+        serde_json::from_str(include_str!("../assets/demo/scoreboard_settings.json"))
+            .expect("Could not parse scoreboard settings from demo json");
     let settings_data = Arc::from(settings_data);
 
     let (matrix_sender, matrix_receiver) = mpsc::channel();
     let (scheduler_sender, scheduler_receiver) = mpsc::channel();
-    let (web_response_sender, web_response_receiver) = mpsc::channel();
-    let (shell_sender, shell_receiver) = mpsc::channel();
+    let (web_response_sender, _web_response_receiver) = mpsc::channel();
+    let (shell_sender, _shell_receiver) = mpsc::channel();
 
-    let mut settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
-    settings.set_version(7);
-
-    if settings.get_settings().setup_state == common::SetupState::Factory {
-        settings.set_setup_state(&common::SetupState::Hotspot);
-    }
-
-    let shell = shell_executor::CommandExecutor::new(
-        web_response_sender.clone(),
-        matrix_sender.clone(),
-        shell_receiver,
-    );
-    std::thread::spawn(move || {
-        shell.run();
-    });
-    let mut button_handler = button::ButtonHandler::new(matrix_sender.clone());
-    std::thread::spawn(move || {
-        button_handler.run();
-    });
-
-    let enable_hotspot = matches!(
-        settings.get_settings().setup_state,
-        common::SetupState::Hotspot | common::SetupState::WifiConnect
-    );
-    if enable_hotspot {
-        info!("In setup state, showing hotspot screen and enabling the hotspot");
-        settings.set_setup_state(&common::SetupState::Hotspot);
-        settings.set_active_screen(&common::ScreenId::Setup);
-        shell_sender
-            .send(common::ShellCommand::Reset {
-                from_matrix: false,
-                from_webserver: None,
-            })
-            .unwrap();
-    } else {
-        if settings.get_rotation_time() == Duration::from_secs(0) {
-            settings.set_rotation_time(Duration::from_secs(10));
-        }
-        shell_sender
-            .send(common::ShellCommand::SetHotspot(false))
-            .unwrap();
-    }
-
-    let v2_url = env::var("V2_URL").unwrap_or_else(|_| V2_URL.to_string()); // TODO use the actual new AWS URL
+    let settings = scoreboard_settings::ScoreboardSettings::new(settings_data, settings_path);
 
     // Setup ScreenProvider map
     let mut map: HashMap<ScreenId, Box<dyn ScreenProvider>> = HashMap::new();
 
     let sports: AWSScreen = AWSScreen::new(
         scheduler_sender.clone(),
-        v2_url,
-        api_key,
+        "".to_string(),
+        "".to_string(),
         settings.get_settings(),
         matrix::FontBook::new(&root_path),
         matrix::PixelBook::new(&root_path),
-        matrix::MatrixMode::Production,
+        matrix::MatrixMode::Demo,
     );
     map.insert(ScreenId::Smart, Box::new(sports));
 
@@ -265,20 +180,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         scheduler.run();
     });
 
-    let daily_reboot: bool = env::var("DAILY_REBOOT")
-        .map(|reboot_value| reboot_value.parse().unwrap_or(true))
-        .unwrap_or(true);
-    let reboot_time: u8 = std::cmp::min(
-        env::var("REBOOT_TIME")
-            .map(|reboot_time| reboot_time.parse::<u8>().unwrap_or(3))
-            .unwrap_or(3),
-        23,
-    );
-    let daily_reboot = match daily_reboot {
-        true => Some(reboot_time),
-        false => None,
-    };
-
     let matrix_senders = matrix::Senders {
         webserver_responder: web_response_sender,
         shell_sender,
@@ -292,15 +193,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         map,
         settings,
         matrix_senders,
-        daily_reboot,
-        matrix::MatrixMode::Production,
+        None,
+        matrix::MatrixMode::Demo,
     );
 
-    let webserver_sender = matrix_sender;
-    std::thread::spawn(move || {
-        webserver::run_webserver(webserver_sender, web_response_receiver, root_path);
-    });
     info!("Starting matrix runner");
     matrix.run();
-    Ok(())
 }

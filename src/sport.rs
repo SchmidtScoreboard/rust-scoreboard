@@ -175,6 +175,7 @@ impl AWSScreen {
         settings: Arc<common::ScoreboardSettingsData>,
         fonts: matrix::FontBook,
         pixels: matrix::PixelBook,
+        matrix_mode: matrix::MatrixMode,
     ) -> AWSScreen {
         let (data_pipe_sender, data_pipe_receiver) = mpsc::channel();
 
@@ -186,6 +187,7 @@ impl AWSScreen {
                 refresh_control_receiver,
                 api_key,
                 data_pipe_sender,
+                matrix_mode,
             )
         });
         AWSScreen {
@@ -306,40 +308,38 @@ impl AWSScreen {
         refresh_control_receiver: mpsc::Receiver<RefreshThreadState>,
         api_key: String,
         data_sender: mpsc::Sender<Result<AWSData, String>>,
+        matrix_mode: matrix::MatrixMode,
     ) {
         let mut wait_time = DORMANT_REFRESH_TIME;
         let mut skip_flag = false;
         loop {
             if !skip_flag {
-                info!("Fetching games from {}", &base_url);
-                let resp = game::fetch_games(&base_url, "all_v4", &api_key);
-                if resp.error() {
-                    error!("There was an error fetching games for endpoint",);
-                    data_sender.send(Err("Network Error".to_owned())).unwrap();
-                } else {
-                    info!("{:#?}", resp);
-                    match resp.into_string() {
-                        Ok(resp_string) => {
-                            let result: Result<game::Response<SportData>, _> =
-                                serde_json::from_str(&resp_string);
-                            if let Ok(response) = result {
-                                info!("Successfully parsed response",);
-                                data_sender
-                                    .send(Ok(AWSData::new(response.data.games)))
-                                    .unwrap();
-                            } else {
-                                error!(
-                                    "Failed to parse response {}, reason: {}",
-                                    resp_string,
-                                    result.err().unwrap()
-                                );
-                                data_sender.send(Err("Invalid Data".to_owned())).unwrap();
+                match matrix_mode {
+                    matrix::MatrixMode::Production => {
+                        info!("Fetching games from {}", &base_url);
+                        let resp = game::fetch_games(&base_url, "all_v4", &api_key);
+                        if resp.error() {
+                            error!("There was an error fetching games for endpoint",);
+                            data_sender.send(Err("Network Error".to_owned())).unwrap();
+                        } else {
+                            info!("{:#?}", resp);
+                            match resp.into_string() {
+                                Ok(resp_string) => {
+                                    process_data_string(&resp_string, &data_sender);
+                                }
+                                Err(e) => {
+                                    error!("Failed to convert response into a string {:?}", e);
+                                    data_sender
+                                        .send(Err("Invalid Response".to_string()))
+                                        .unwrap();
+                                }
                             }
                         }
-                        Err(e) => {
-                            error!("Failed to convert response into a string {:?}", e);
-                            data_sender.send(Err("Invalid Response".to_string())).unwrap();
-                        }
+                    }
+                    matrix::MatrixMode::Demo => {
+                        info!("Loading demo games");
+                        let data_string = include_str!("../assets/demo/demo_scores.json");
+                        process_data_string(data_string, &data_sender);
                     }
                 }
             }
@@ -356,6 +356,23 @@ impl AWSScreen {
                 }
             }
         }
+    }
+}
+
+fn process_data_string(resp_string: &str, data_sender: &mpsc::Sender<Result<AWSData, String>>) {
+    let result: Result<game::Response<SportData>, _> = serde_json::from_str(resp_string);
+    if let Ok(response) = result {
+        info!("Successfully parsed response",);
+        data_sender
+            .send(Ok(AWSData::new(response.data.games)))
+            .unwrap();
+    } else {
+        error!(
+            "Failed to parse response {}, reason: {}",
+            resp_string,
+            result.err().unwrap()
+        );
+        data_sender.send(Err("Invalid Data".to_owned())).unwrap();
     }
 }
 impl matrix::ScreenProvider for AWSScreen {

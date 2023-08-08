@@ -1,0 +1,94 @@
+{
+	"data": {
+		"games": [
+			{
+				"type": "Golf",
+				"common": {
+					"sport_id": 6,
+					"home_team": {
+						"id": "0",
+						"location": "",
+						"name": "",
+						"display_name": "",
+						"abbreviation": "",
+						"primary_color": "000000",
+						"secondary_color": "000000"
+					},
+					"away_team": {
+						"id": "0",
+						"location": "",
+						"name": "",
+						"display_name": "",
+						"abbreviation": "",
+						"primary_color": "000000",
+						"secondary_color": "000000"
+					},
+					"home_score": 0,
+					"away_score": 0,
+					"status": "END",
+					"ordinal": "4th",
+					"start_time": "2023-08-06T11:45Z",
+					"id": 401465542
+				},
+				"players": [
+					{
+						"display_name": "A GUY",
+						"position": 1,
+						"score": "-20"
+					},
+					{
+						"display_name": "SOME DUDE",
+						"position": 2,
+						"score": "-18"
+					},
+					{
+						"display_name": "BLEH",
+						"position": 2,
+						"score": "-18"
+					},
+					{
+						"display_name": "EESH",
+						"position": 4,
+						"score": "-16"
+					}
+				],
+				"name": "DEMO GOLF"
+			},
+
+            {
+         "type": "Hockey",
+         "common":{
+            "sport_id": 0,
+            "home_team":{
+               "id":"55",
+               "location":"Seattle",
+               "name":"Seattle Kraken",
+               "display_name":"Kraken",
+               "abbreviation":"SEA",
+               "primary_color":"001628",
+               "secondary_color":"99D9D9"
+            },
+            "away_team":{
+               "id":"19",
+               "location":"St. Louis",
+               "name":"St. Louis Blues",
+               "display_name":"Blues",
+               "abbreviation":"STL",
+               "primary_color":"002f87",
+               "secondary_color":"ffb81c"
+            },
+            "home_score":3,
+            "away_score":3,
+            "status":"ACTIVE",
+            "ordinal":"3rd",
+            "start_time":"2021-02-21T18:00Z",
+            "id":401263373
+         },
+        "away_powerplay": true,
+        "home_powerplay": false,
+        "away_players": 5,
+        "home_players": 4
+      }
+		]
+	}
+}

@@ -25,7 +25,7 @@ const PRIORITY_SCREENS: [common::ScreenId; 3] = [
 
 pub struct Senders {
     pub webserver_responder: mpsc::Sender<common::WebserverResponse>, // Send responses to the webserver
-    pub shell_sender: mpsc::Sender<common::ShellCommand>, // Send commands to shell
+    pub shell_sender: mpsc::Sender<common::ShellCommand>,             // Send commands to shell
     pub scheduler_sender: mpsc::Sender<scheduler::DelayedCommand>,
 }
 pub struct Matrix<'a> {
@@ -39,6 +39,12 @@ pub struct Matrix<'a> {
     message_screen: message::MessageScreen, // If this is set, display this message until it is unset
     last_priority_check: Option<Instant>,
     daily_reboot: Option<u8>, // The time to schedule a daily reboot, if any
+    matrix_mode: MatrixMode,  // Whether the matrix is in demo mode or regular mode
+}
+
+pub enum MatrixMode {
+    Production,
+    Demo,
 }
 
 impl<'a> Matrix<'a> {
@@ -50,6 +56,7 @@ impl<'a> Matrix<'a> {
         settings: ScoreboardSettings,
         senders: Senders,
         daily_reboot: Option<u8>,
+        matrix_mode: MatrixMode,
     ) -> Matrix<'a> {
         Matrix {
             led_matrix,
@@ -62,6 +69,7 @@ impl<'a> Matrix<'a> {
             message_screen,
             last_priority_check: Some(Instant::now()),
             daily_reboot,
+            matrix_mode,
         }
     }
 
@@ -278,7 +286,7 @@ impl<'a> Matrix<'a> {
                             canvas = self.led_matrix.swap(canvas);
                             canvas.clear();
                         } else if id == *self.settings.get_active_screen().get_base_id()
-                                && *self.settings.get_power()
+                            && *self.settings.get_power()
                         {
                             // If the id received matches the active id, display the image
                             self.get_mut_screen(&id).draw(&mut canvas);
@@ -699,7 +707,7 @@ impl Pixels {
         let mut data: Vec<Vec<Option<rpi_led_matrix::LedColor>>> = vec![vec![None; width]; height];
         for element in data.iter_mut().take(height) {
             let row = reader.next_row().unwrap().unwrap();
-            for (x, value) in element.iter_mut().enumerate().take(width){
+            for (x, value) in element.iter_mut().enumerate().take(width) {
                 let index = x * 4;
                 // info!("Examining pixel at ({}, {}), values are {:?}", x, y, &row[index..index+4]);
                 *value = match &row[index + 3] {

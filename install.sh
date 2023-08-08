@@ -7,14 +7,16 @@ release=1
 should_run=0
 build_args=""
 environment=""
+binary_name="scoreboard"
 
-while getopts "h?i:e:rn" opt; do
+while getopts "h?i:e:rnd" opt; do
     case "$opt" in
     h|\?)
         echo "-i : Raspberry PI IP address"
         echo "-r : Should build release"
         echo "-n : Should run after install"
         echo "-e : specify additional enviroment variables"
+        echo "-d : build demo mode"
         exit 0
         ;;
     i)  pi_ip=$OPTARG
@@ -25,6 +27,9 @@ while getopts "h?i:e:rn" opt; do
     n)  should_run=1
         ;;
     e)  environment=$OPTARG 
+        ;;
+    d)  build_args="--bin demo"
+        binary_name="demo"
         ;;
     esac
 done
@@ -58,10 +63,10 @@ function ctrl_c() {
 ssh pi@$pi_ip 'sudo systemctl stop scoreboard.service; sudo pkill scoreboard'
 if [[ $release -eq 0 ]] ; then
     echo "Sending release build"
-    rsync -avzhe ssh target/$TARGET/release/scoreboard pi@$pi_ip:/var/lib/scoreboard/
+    rsync -avzhe ssh target/$TARGET/release/$binary_name pi@$pi_ip:/var/lib/scoreboard/scoreboard
 else
     echo "Sending debug build"
-    rsync -avzhe ssh target/$TARGET/debug/scoreboard pi@$pi_ip:/var/lib/scoreboard/
+    rsync -avzhe ssh target/$TARGET/debug/$binary_name pi@$pi_ip:/var/lib/scoreboard/scoreboard
 fi
 
 if [[ $should_run -eq 0 ]] ; then

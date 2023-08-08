@@ -10,6 +10,8 @@ from golf import Golf
 from college_football import CollegeFootball
 import asyncio
 import time
+import argparse
+import json
 
 
 class All:
@@ -82,9 +84,21 @@ class All:
 
         return flatten_list
 
+
 async def main():
+    parser = argparse.ArgumentParser(
+        prog='All Sports',
+        description='Fetches sport scores from API')
+    parser.add_argument('filename')
+    args = parser.parse_args()
+
     print("Fetching games")
-    print(await All.get_games_v4(False))
+    games = await All.get_games_v4(False)
+    print(games)
+
+    if args.filename != "":
+        with open(args.filename, "w") as outfile:
+            json.dump(games, outfile, indent=2)
 
 
 if __name__ == "__main__":
