@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 import time
 import asyncio
@@ -95,14 +95,16 @@ class Basketball:
         else:
             raw_games = await Fetcher.espn_fetch("basketball", "nba")
             games = [
-                Basketball.create_game(Common.from_espn_json(game, Team.get_espn_team, team_map, SportId.BASKETBALL))
+                Basketball.create_game(Common.from_espn_json(
+                    game, Team.get_espn_team, team_map, SportId.BASKETBALL))
                 for game in raw_games
             ]
             return [g for g in games if g]
 
+
 async def main():
     print("Fetching games")
-    print(await Basketball.get_games(False))
+    pretty_print(await Basketball.get_games(False))
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
@@ -110,5 +112,3 @@ if __name__ == "__main__":
         loop.run_until_complete(main())
         time.sleep(60)
     loop.close()
-
-

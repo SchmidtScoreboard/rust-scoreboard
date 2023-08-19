@@ -7,6 +7,7 @@ from dateutil.parser import parse
 import datetime
 import pytz
 from enum import Enum
+import json
 
 
 p = inflect.engine()
@@ -49,7 +50,8 @@ class Team:
             display_name = get_display_name(team)
             color = team["color"]
             secondary_color = team.get("alternateColor", "000000")
-            color, secondary_color = process_team_colors(color, secondary_color)
+            color, secondary_color = process_team_colors(
+                color, secondary_color)
             server_out = f'"{team_id}": Team.create_team("{team_id}", "{location}", "{name}", "{display_name}", "{abbreviation}", "{color}", "{secondary_color}"),'
             app_out = f'{team_id}: Team({team_id}, "{location}", "{name}", "{abbreviation}", {get_app_color_shit(color)}, {get_app_color_shit(secondary_color)}),'
             print(f"Unknown team!\n {server_out}\n{app_out}")
@@ -177,3 +179,7 @@ class Common:
         except Exception as e:
             print(e)
             return []
+
+
+def pretty_print(games):
+    print(json.dumps(games, indent=2))

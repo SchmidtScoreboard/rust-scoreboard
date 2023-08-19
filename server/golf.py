@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 import time
 import asyncio
@@ -221,7 +221,7 @@ class Golf:
 
 async def main():
     print("Fetching games")
-    print(await Golf.get_games(False))
+    pretty_print(await Golf.get_games(False))
 
 
 if __name__ == "__main__":

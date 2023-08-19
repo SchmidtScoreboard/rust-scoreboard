@@ -83,7 +83,7 @@ fn main() {
     info!("Starting up demo");
 
     patch_notes::log_patch_notes();
-    let settings_path = root_path.join("scoreboard_settings.json");
+    let settings_path = root_path.join("demo_scoreboard_settings.json");
 
     let settings_data: common::ScoreboardSettingsData =
         serde_json::from_str(include_str!("../assets/demo/scoreboard_settings.json"))

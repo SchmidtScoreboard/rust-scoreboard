@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 from ncaa import team_map
 import asyncio
@@ -29,7 +29,7 @@ class CollegeFootball:
 async def main():
     print("Fetching games")
     games = await CollegeFootball.get_games(False)
-    print(games)
+    pretty_print(games)
 
 
 if __name__ == "__main__":

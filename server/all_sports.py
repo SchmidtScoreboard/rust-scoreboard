@@ -89,7 +89,7 @@ async def main():
     parser = argparse.ArgumentParser(
         prog='All Sports',
         description='Fetches sport scores from API')
-    parser.add_argument('filename')
+    parser.add_argument('--filename', default="")
     args = parser.parse_args()
 
     print("Fetching games")

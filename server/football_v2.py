@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 import time
 import asyncio
@@ -47,19 +47,23 @@ class Football_v2:
         situation = competition.get("situation")
         status = competition.get("status")
 
-        time_remaining = status.get("displayClock", "") if status is not None else ""
+        time_remaining = status.get(
+            "displayClock", "") if status is not None else ""
         espn_status = competition["status"]["type"]["name"]
         status = Common.convert_status(espn_status)
         if status not in ["ACTIVE"]:
             time_remaining = ""
-    
-        ball_position = situation.get("possessionText", "") if situation is not None else ""
 
-        down_string = situation.get("shortDownDistanceText", "") if situation is not None else ""
+        ball_position = situation.get(
+            "possessionText", "") if situation is not None else ""
+
+        down_string = situation.get(
+            "shortDownDistanceText", "") if situation is not None else ""
         down_string = down_string.replace("&", "+")
-        
+
         home_team, away_team = competition["competitors"]
-        possessing_team_id = situation.get("possession", None) if situation is not None else None
+        possessing_team_id = situation.get(
+            "possession", None) if situation is not None else None
         if possessing_team_id is None:
             home_possession = None
         else:
@@ -68,7 +72,7 @@ class Football_v2:
             "time_remaining": time_remaining,
             "ball_position": ball_position,
             "down_string": down_string,
-            "home_possession": home_possession 
+            "home_possession": home_possession
         }}
 
     async def get_games(testing: bool):
@@ -90,7 +94,7 @@ class Football_v2:
 
 async def main():
     print("Fetching games")
-    print(await Football_v2.get_games(False))
+    pretty_print(await Football_v2.get_games(False))
 
 
 if __name__ == "__main__":

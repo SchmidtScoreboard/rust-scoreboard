@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 import time
 import asyncio
@@ -43,7 +43,7 @@ class Baseball:
     def create_game(common, balls, outs, strikes, inning, is_inning_top):
         if common is None:
             return None
-        return {"type": "Baseball", "common": common, "balls": balls, "outs": outs, "strikes": strikes, "inning": inning, "is_inning_top" : is_inning_top}
+        return {"type": "Baseball", "common": common, "balls": balls, "outs": outs, "strikes": strikes, "inning": inning, "is_inning_top": is_inning_top}
 
     async def get_games(testing: bool):
         if testing:
@@ -54,8 +54,9 @@ class Baseball:
                 Common.from_schedule_json(game, team_map, SportId.BASEBALL)
                 for game in raw_games
             ]
-            
-            group = asyncio.gather(*[Baseball.refresh_game(game) for game in games if game])
+
+            group = asyncio.gather(*[Baseball.refresh_game(game)
+                                   for game in games if game])
             return await group
 
     async def refresh_game(game):
@@ -88,23 +89,24 @@ class Baseball:
         outs = 0
         if game["status"] == "ACTIVE":
             balls = linescore["balls"]
-            outs= linescore["outs"]
-            strikes= linescore["strikes"]
-            if(outs == 3):
+            outs = linescore["outs"]
+            strikes = linescore["strikes"]
+            if (outs == 3):
                 if inning >= 9 and ((is_inning_top and game["home_score"] > game["away_score"]) or (not is_inning_top and game["home_score"] != game["away_score"])):
                     print("Detected game end")
-                    game["ordinal"] = linescore.get("currentInningOrdinal", "FINAL")
+                    game["ordinal"] = linescore.get(
+                        "currentInningOrdinal", "FINAL")
                     game["status"] = "END"
                 else:
                     game["ordinal"] = "Middle " + game["ordinal"]
                     game["status"] = "INTERMISSION"
-        
+
         return Baseball.create_game(game, balls, outs, strikes, inning, is_inning_top)
 
 
 async def main():
     print("Fetching games")
-    print(await Baseball.get_games(False))
+    pretty_print(await Baseball.get_games(False))
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
@@ -112,5 +114,3 @@ if __name__ == "__main__":
         loop.run_until_complete(main())
         time.sleep(60)
     loop.close()
-
-

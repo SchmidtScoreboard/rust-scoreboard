@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 import time
 import asyncio
@@ -50,7 +50,7 @@ class Hockey:
     def create_game(common, away_powerplay, home_powerplay, away_players, home_players):
         if common is None:
             return None
-        return {"type": "Hockey", "common": common, "away_powerplay": away_powerplay, "home_powerplay": home_powerplay, "away_players" : away_players, "home_players": home_players }
+        return {"type": "Hockey", "common": common, "away_powerplay": away_powerplay, "home_powerplay": home_powerplay, "away_players": away_players, "home_players": home_players}
 
     async def get_games(testing: bool):
         if testing:
@@ -61,8 +61,9 @@ class Hockey:
                 Common.from_schedule_json(game, team_map, SportId.HOCKEY)
                 for game in raw_games
             ]
-            
-            group = asyncio.gather(*[Hockey.refresh_game(game) for game in games if game])
+
+            group = asyncio.gather(*[Hockey.refresh_game(game)
+                                   for game in games if game])
             return await group
 
     async def refresh_game(game):
@@ -75,7 +76,7 @@ class Hockey:
         away_powerplay = away["powerPlay"]
         home_powerplay = home["powerPlay"]
         away_players = max(away["numSkaters"], 0)
-        home_players= max(home["numSkaters"], 0)
+        home_players = max(home["numSkaters"], 0)
         period = data["currentPeriod"]
 
         period_time = data.get("currentPeriodTimeRemaining", "20:00")
@@ -100,13 +101,14 @@ class Hockey:
             status = "PREGAME"
 
         game["status"] = status
-        game = Hockey.create_game(game, away_powerplay, home_powerplay, away_players, home_players)
+        game = Hockey.create_game(
+            game, away_powerplay, home_powerplay, away_players, home_players)
         return game
 
 
 async def main():
     print("Fetching games")
-    print(await Hockey.get_games(False))
+    pretty_print(await Hockey.get_games(False))
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
@@ -114,5 +116,3 @@ if __name__ == "__main__":
         loop.run_until_complete(main())
         time.sleep(60)
     loop.close()
-
-

@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 import time
 import asyncio
@@ -49,17 +49,18 @@ class Baseball_v2:
         is_inning_top = "Top" in competition["status"]["type"]["shortDetail"]
         if common is None:
             return None
-        return {"type": "Baseball", 
-            "common": common, 
-            "balls": balls, 
-            "outs": outs, 
-            "strikes": strikes, 
-            "inning": inning, 
-            "is_inning_top" : is_inning_top,
-            "on_first": situation["onFirst"] if situation is not None else False,
-            "on_second": situation["onSecond"] if situation is not None else False,
-            "on_third": situation["onThird"] if situation is not None else False,
-        }
+        return {"type": "Baseball",
+                "common": common,
+                "balls": balls,
+                "outs": outs,
+                "strikes": strikes,
+                "inning": inning,
+                "is_inning_top": is_inning_top,
+                "on_first": situation["onFirst"] if situation is not None else False,
+                "on_second": situation["onSecond"] if situation is not None else False,
+                "on_third": situation["onThird"] if situation is not None else False,
+                }
+
     async def get_games(testing: bool):
         if testing:
             return Common.get_testing_games("baseball")
@@ -79,7 +80,7 @@ class Baseball_v2:
 
 async def main():
     print("Fetching games")
-    print(await Baseball_v2.get_games(False))
+    pretty_print(await Baseball_v2.get_games(False))
 
 
 if __name__ == "__main__":

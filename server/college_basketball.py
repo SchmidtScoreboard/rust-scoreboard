@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 from ncaa import team_map
 import asyncio
@@ -17,7 +17,8 @@ class CollegeBasketball:
             raw_games = await Fetcher.espn_fetch("basketball", "mens-college-basketball", "scoreboard?groups=50")
             games = [
                 CollegeBasketball.create_game(
-                    Common.from_espn_json(game, Team.get_espn_team, team_map, SportId.COLLEGE_BASKETBALL)
+                    Common.from_espn_json(
+                        game, Team.get_espn_team, team_map, SportId.COLLEGE_BASKETBALL)
                 )
                 for game in raw_games
             ]
@@ -27,7 +28,7 @@ class CollegeBasketball:
 async def main():
     print("Fetching games")
     games = await CollegeBasketball.get_games(False)
-    print(games)
+    pretty_print(games)
 
 
 if __name__ == "__main__":

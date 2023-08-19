@@ -1,4 +1,4 @@
-from common import Common, Team, SportId
+from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 from ncaa import team_map
 import asyncio
@@ -11,15 +11,19 @@ class CollegeFootball_v2:
         competition = game["competitions"][0]
         situation = competition.get("situation")
         status = competition.get("status")
-        time_remaining = status.get("displayClock", "") if status is not None else ""
+        time_remaining = status.get(
+            "displayClock", "") if status is not None else ""
         if time_remaining == "0:00":
             time_remaining = ""
-        ball_position = situation.get("possessionText", "") if situation is not None else ""
-        down_string = situation.get("shortDownDistanceText", "") if situation is not None else ""
+        ball_position = situation.get(
+            "possessionText", "") if situation is not None else ""
+        down_string = situation.get(
+            "shortDownDistanceText", "") if situation is not None else ""
         down_string = down_string.replace("&", "+")
-        
+
         home_team, away_team = competition["competitors"]
-        possessing_team_id = situation.get("possession", None) if situation is not None else None
+        possessing_team_id = situation.get(
+            "possession", None) if situation is not None else None
         if possessing_team_id is None:
             home_possession = None
         else:
@@ -28,9 +32,8 @@ class CollegeFootball_v2:
             "time_remaining": time_remaining,
             "ball_position": ball_position,
             "down_string": down_string,
-            "home_possession": home_possession 
+            "home_possession": home_possession
         }}
-
 
     async def get_games(testing: bool):
         if testing:
@@ -52,7 +55,7 @@ class CollegeFootball_v2:
 async def main():
     print("Fetching games")
     games = await CollegeFootball_v2.get_games(False)
-    print(games)
+    pretty_print(games)
 
 
 if __name__ == "__main__":
