@@ -161,7 +161,7 @@ class Golf:
         earliest_tee_time = (None, None)
 
         # Find start time by looking at players
-        for player in competition["competitors"]:
+        for player in competition.get("competitors", []):
             tee_time = player["status"].get("teeTime")
             if tee_time is None:
                 continue
