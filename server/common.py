@@ -149,19 +149,19 @@ class Common:
             return None
 
     def from_schedule_json(json, team_map, screen_id):
-        if json["status"]["detailedState"] == "Postponed":
+        if json["gameState"] == "Postponed":
             return None
         try:
-            away_team = json["teams"]["away"]["team"]
-            home_team = json["teams"]["home"]["team"]
+            away_team = json["awayTeam"]
+            home_team = json["homeTeam"]
             return Common.create_common(
                 screen_id.value,
                 team_map[home_team["id"]],
                 team_map[away_team["id"]],
                 "",  # status
                 "",  # ordinal
-                json["gameDate"],
-                json["gamePk"],
+                json["startTimeUTC"],
+                json["id"],
                 0,
                 0,
             )

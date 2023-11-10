@@ -12,7 +12,7 @@ class Fetcher:
                     json = await r.json()
                     print(
                         f"[STATSAPI] Done fetching schedule at url {schedule_url}")
-                    dates = json["dates"]
+                    dates = json["gameWeek"]
                     if len(dates) > 0:
                         return dates[0]["games"]
                     else:

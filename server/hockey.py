@@ -56,7 +56,7 @@ class Hockey:
         if testing:
             return Common.get_testing_games("hockey")
         else:
-            raw_games = await Fetcher.schedule_fetch("http://statsapi.web.nhl.com/api/v1/schedule")
+            raw_games = await Fetcher.schedule_fetch("https://api-web.nhle.com/v1/schedule/now")
             games = [
                 Common.from_schedule_json(game, team_map, SportId.HOCKEY)
                 for game in raw_games
@@ -67,26 +67,33 @@ class Hockey:
             return await group
 
     async def refresh_game(game):
-        data = await Fetcher.game_fetch("http://statsapi.web.nhl.com/api/v1/game/" + str(game["id"]) + "/linescore")
-        teams = data["teams"]
-        away = teams["away"]
-        home = teams["home"]
-        game["away_score"] = away.get("goals", 0)
-        game["home_score"] = home.get("goals", 0)
-        away_powerplay = away["powerPlay"]
-        home_powerplay = home["powerPlay"]
-        away_players = max(away["numSkaters"], 0)
-        home_players = max(home["numSkaters"], 0)
-        period = data["currentPeriod"]
+        data = await Fetcher.game_fetch("https://api-web.nhle.com/v1/gamecenter/" + str(game["id"]) + "/boxscore")
+        away = data["awayTeam"]
+        home = data["homeTeam"]
+        game["away_score"] = away.get("score", 0)
+        game["home_score"] = home.get("score", 0)
+        away_powerplay = away.get("powerPlay", False)
+        home_powerplay = home.get("powerPlay", False)
+        away_players = max(away.get("numSkaters", 0), 0)
+        home_players = max(home.get("numSkaters", 0), 0)
+        period = data["period"]
 
-        period_time = data.get("currentPeriodTimeRemaining", "20:00")
-        if period >= 1:
-            game["ordinal"] = data.get("currentPeriodOrdinal", "1st")
+        clock = data["clock"]
+        period_time = clock.get("timeRemaining", "20:00")
+        if period == 1:
+            game["ordinal"] = "1st"
+        elif period == 2:
+            game["ordinal"] = "2nd"
+        elif period == 3:
+            game["ordinal"] = "3rd"
+        else:
+            game["ordinal"] = "OT"
 
+        game_state = data["gameState"]
         status = "INVALID"
-        if period_time == "Final":
+        if game_state == "OFF" or game_state == "FUT":
             status = "END"
-        elif period_time == "END":
+        elif period_time == "00:00":
             if period >= 3 and game["away_score"] != game["home_score"]:
                 status = "END"
             else:
