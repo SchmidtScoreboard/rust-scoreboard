@@ -2,6 +2,7 @@ from common import Common, Team, SportId, pretty_print
 from fetcher import Fetcher
 import time
 import asyncio
+import json
 
 # .*: \{ id: (.*), city: (.*), name: (.*), display_name: (.*), abbreviation: (.*), primary_color: (.*), secondary_color: (.*) \},
 team_map = {
@@ -68,6 +69,7 @@ class Hockey:
 
     async def refresh_game(game):
         data = await Fetcher.game_fetch("https://api-web.nhle.com/v1/gamecenter/" + str(game["id"]) + "/boxscore")
+        # print(f"Got data for {game['id']} {json.dumps(data)}")
         away = data["awayTeam"]
         home = data["homeTeam"]
         game["away_score"] = away.get("score", 0)
@@ -77,6 +79,8 @@ class Hockey:
         away_players = max(away.get("numSkaters", 0), 0)
         home_players = max(home.get("numSkaters", 0), 0)
         period = data.get("period", 0)
+        if period == 0 and "periodDescriptor" in data:
+            period = data["periodDescriptor"].get("number", 0)
 
         clock = data["clock"]
         period_time = clock.get("timeRemaining", "20:00")
@@ -86,7 +90,7 @@ class Hockey:
             game["ordinal"] = "2nd"
         elif period == 3:
             game["ordinal"] = "3rd"
-        else:
+        elif period > 3:
             game["ordinal"] = "OT"
 
         game_state = data["gameState"]
