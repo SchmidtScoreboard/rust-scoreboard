@@ -81,37 +81,37 @@ class Hockey:
         period = data.get("period", 0)
         if period == 0 and "periodDescriptor" in data:
             period = data["periodDescriptor"].get("number", 0)
+        if data.get("clock", None) is not None:
+            clock = data["clock"]
+            period_time = clock.get("timeRemaining", "20:00")
+            if period == 1:
+                game["ordinal"] = "1st"
+            elif period == 2:
+                game["ordinal"] = "2nd"
+            elif period == 3:
+                game["ordinal"] = "3rd"
+            elif period > 3:
+                game["ordinal"] = "OT"
 
-        clock = data["clock"]
-        period_time = clock.get("timeRemaining", "20:00")
-        if period == 1:
-            game["ordinal"] = "1st"
-        elif period == 2:
-            game["ordinal"] = "2nd"
-        elif period == 3:
-            game["ordinal"] = "3rd"
-        elif period > 3:
-            game["ordinal"] = "OT"
-
-        game_state = data["gameState"]
-        status = "INVALID"
-        if game_state == "OFF" or game_state == "FUT":
-            status = "END"
-        elif period_time == "00:00":
-            if period >= 3 and game["away_score"] != game["home_score"]:
+            game_state = data["gameState"]
+            status = "INVALID"
+            if game_state == "OFF" or game_state == "FUT":
                 status = "END"
-            else:
+            elif period_time == "00:00":
+                if period >= 3 and game["away_score"] != game["home_score"]:
+                    status = "END"
+                else:
+                    status = "INTERMISSION"
+                    game["ordinal"] += " INT"
+            elif period_time == "20:00" and period > 1:
                 status = "INTERMISSION"
                 game["ordinal"] += " INT"
-        elif period_time == "20:00" and period > 1:
-            status = "INTERMISSION"
-            game["ordinal"] += " INT"
-        elif period_time != "20:00" and period >= 1:
-            status = "ACTIVE"
-        else:
-            status = "PREGAME"
+            elif period_time != "20:00" and period >= 1:
+                status = "ACTIVE"
+            else:
+                status = "PREGAME"
 
-        game["status"] = status
+            game["status"] = status
         game = Hockey.create_game(
             game, away_powerplay, home_powerplay, away_players, home_players)
         return game
