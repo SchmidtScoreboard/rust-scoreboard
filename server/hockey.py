@@ -81,7 +81,6 @@ class Hockey:
         period = data.get("period", 0)
         if period == 0 and "periodDescriptor" in data:
             period = data["periodDescriptor"].get("number", 0)
-            game["status"] = "PREGAME" 
         if data.get("clock", None) is not None:
             clock = data["clock"]
             period_time = clock.get("timeRemaining", "20:00")
@@ -113,6 +112,8 @@ class Hockey:
                 status = "PREGAME"
 
             game["status"] = status
+        else:
+            game["status"] = "PREGAME"
         game = Hockey.create_game(
             game, away_powerplay, home_powerplay, away_players, home_players)
         return game
