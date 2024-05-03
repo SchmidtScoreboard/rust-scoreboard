@@ -26,6 +26,7 @@ name_map = {
     "PGA TOUR Q-SCHOOL PRESENTED BY KORN FERRY": "Q-SCHOOL",
     "MEXICO OPEN AT VIDANTA": "MEXICO OPEN",
     "TEXAS CHILDREN'S HOUSTON OPEN": "TEXAS CHILDREN'S",
+    "THE CJ CUP BYRON NELSON": "BYRON NELSON",
 }
 
 TEAMSTROKE_REGEX = re.compile(".*\s([a-zA-z ]+)\/([a-zA-z ]+)\s*([^\s]+)+")
