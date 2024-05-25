@@ -62,25 +62,25 @@ impl aws_screen::AWSScreenType for BaseballGame {
         let font = &font_book.font4x6;
         game::draw_scoreboard(canvas, font, &self.common, 1, (2, 2));
         let white = common::new_color(255, 255, 255);
-        let ordinal_text_dimensions = font.get_text_dimensions(&self.common.ordinal);
+        let ordinal_text = &self.common.get_ordinal_text(timezone);
+        let ordinal_text_dimensions = font.get_text_dimensions(ordinal_text);
         let (canvas_width, _) = canvas.canvas_size();
         let font = &font_book.font5x8;
 
         let text_width = ordinal_text_dimensions.width;
-        let down_arrow_width = 7; 
+        let down_arrow_width = 7;
         let ordinal_width = text_width + down_arrow_width;
 
         // left edge of on base indicator is 35 pixels from right edge
-        let ordinal_x_offset = if ordinal_text_dimensions.width < 16 { 
-            5 
-        } else { 
+        let ordinal_x_offset = if ordinal_text_dimensions.width < 16 {
+            5
+        } else {
             26 - ordinal_width
         };
 
-
         canvas.draw_text(
             &font.led_font,
-            &self.common.get_ordinal_text(timezone),
+            ordinal_text,
             ordinal_x_offset,
             20 + font.dimensions.height,
             &white,
@@ -138,7 +138,6 @@ impl aws_screen::AWSScreenType for BaseballGame {
                     matrix::draw_pixels(canvas, &pixels_book.empty_square, (x, y));
                 }
             }
-
         } else if self.common.status == game::GameStatus::End {
             let yellow = common::new_color(255, 255, 0);
             let message = "FINAL";

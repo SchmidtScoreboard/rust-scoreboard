@@ -44,6 +44,9 @@ class Baseball_v2:
         balls = situation.get("balls", 0) if situation is not None else 0
         strikes = situation.get("strikes", 0) if situation is not None else 0
         outs = situation.get("outs", 0) if situation is not None else 0
+        # Delayed game, clear ordinal
+        if game["status"]["type"]["name"] == "STATUS_DELAYED":
+            common["ordinal"] = "DELAYED"
 
         inning = competition["status"]["period"]
         is_inning_top = "Top" in competition["status"]["type"]["shortDetail"]

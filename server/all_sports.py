@@ -1,4 +1,5 @@
 from college_basketball import CollegeBasketball
+from common import pretty_print
 from basketball import Basketball
 from hockey import Hockey
 from baseball import Baseball
@@ -94,7 +95,7 @@ async def main():
 
     print("Fetching games")
     games = await All.get_games_v4(False)
-    print(games)
+    pretty_print(games)
 
     if args.filename != "":
         with open(args.filename, "w") as outfile:
