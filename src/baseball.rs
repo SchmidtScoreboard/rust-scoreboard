@@ -72,7 +72,10 @@ impl aws_screen::AWSScreenType for BaseballGame {
         let ordinal_width = text_width + down_arrow_width;
 
         // left edge of on base indicator is 35 pixels from right edge
-        let ordinal_x_offset = if ordinal_text_dimensions.width < 16 {
+        // This helps prevent overflow during innings 10+ -- but we don't want it to take effect in pregame
+        let ordinal_x_offset = if ordinal_text_dimensions.width < 16
+            || self.common.status != game::GameStatus::Active
+        {
             5
         } else {
             26 - ordinal_width
