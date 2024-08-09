@@ -101,7 +101,8 @@ class Common:
             "STATUS_POSTPONED": None,
             "STATUS_CANCELED": None,
             "STATUS_PLAY_COMPLETE": "END",
-            "STATUS_DELAYED": "INTERMISSION"
+            "STATUS_DELAYED": "INTERMISSION",
+            "STATUS_SUSPENDED": "INTERMISSION",
         }
 
         if status not in status_map:
