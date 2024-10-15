@@ -11,7 +11,7 @@ team_map = {
     "16": Team.create_team("16", "Chicago", "Cubs", "Cubs", "CHC", "00417d", "ffffff"),
     "4": Team.create_team("4", "Chicago", "White Sox", "White Sox", "CHW", "1b1516", "c4ced4"),
     "17": Team.create_team("17", "Cincinnati", "Reds", "Reds", "CIN", "c41422", "ffffff"),
-    "5": Team.create_team("5", "Cleveland", "Indians", "Indians", "CLE", "00264e", "ffffff"),
+    "5": Team.create_team("5", "Cleveland", "Guardians", "Guardians", "CLE", "00264e", "ffffff"),
     "27": Team.create_team("27", "Colorado", "Rockies", "Rockies", "COL", "220d48", "ffffff"),
     "6": Team.create_team("6", "Detroit", "Tigers", "Tigers", "DET", "002d5c", "ff6600"),
     "18": Team.create_team("18", "Houston", "Astros", "Astros", "HOU", "000000", "eb6e1f"),
