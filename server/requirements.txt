@@ -4,3 +4,4 @@ inflect==5.0.2
 pytz==2019.3
 python-dateutil==2.8.1
 typing_extensions>=3.8.0
+multidict<6.0.0
