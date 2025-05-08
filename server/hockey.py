@@ -38,7 +38,7 @@ team_map = {
     53: Team.create_team("53", "Arizona", "Coyotes", "Coyotes", "ARI", "8c2633", "e2d6b5"),
     54: Team.create_team("54", "Las Vegas", "Golden Knights", "Knights", "VGK", "B4975A", "000000"),
     55: Team.create_team("55", "Seattle", "Kraken", "Kraken", "SEA", "001628", "99D9D9"),
-    55: Team.create_team("59", "Utah", "HC", "Utah HC", "UTA", "71AFE5", "090909"),
+    55: Team.create_team("59", "Utah", "Mammoth", "Mammoth", "UTA", "71AFE5", "090909"),
     87: Team.create_team("87", "Atlantic", "Atlantic All Stars", "Atlantic", "ATL", "fa1b1b", "000000"),
     88: Team.create_team("88", "Metropolitan", "Metropolitan All Stars", "Metro", "MET", "fae71b", "000000"),
     89: Team.create_team("89", "Central", "Central All Stars", "Central", "CEN", "1411bd", "000000"),
